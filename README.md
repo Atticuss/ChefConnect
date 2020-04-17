@@ -7,10 +7,8 @@ A recipe storage solution built primarily via a graph database (dgraph). Current
 API: ec2-34-238-150-16.compute-1.amazonaws.com:4000
 
 Ratel: ec2-34-238-150-16.compute-1.amazonaws.com:8000
-
-    on the auth screen popup, opt to connect to the same host but on port 8080
-
-    close the auth prompt
+    1. on the auth screen popup, opt to connect to the same host but on port 8080
+    2. close the auth prompt
 
 The API can be started via a simple `python3 recipy.py`. Long running commands, such as running the API, should be done via `screen`. Current screens can be found via `-ls`:
 
