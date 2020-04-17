@@ -7,6 +7,7 @@ A recipe storage solution built primarily via a graph database (dgraph). Current
 API: ec2-34-238-150-16.compute-1.amazonaws.com:4000
 
 Ratel: ec2-34-238-150-16.compute-1.amazonaws.com:8000
+
     1. on the auth screen popup, opt to connect to the same host but on port 8080
     2. close the auth prompt
 
