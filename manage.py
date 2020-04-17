@@ -1,10 +1,6 @@
 import sys
 import json
-import boto3
-import sqlite3
 import pydgraph
-
-from uuid import uuid4
 
 dgraph_server = "127.0.0.1:9080"
 client_stub = pydgraph.DgraphClientStub(dgraph_server)
