@@ -29,4 +29,4 @@ docker run -it -p 7080:7080 --network dgraph_default -p 8080:8080 -p 9080:9080 -
 docker run -it -p 8000:8000 --network dgraph_default dgraph/dgraph:latest dgraph-ratel
 ```
 
-Currently a single-host deployment. Full production env will migrate to HA.
+Currently a single-host deployment. Full production env will migrate to HA. Data can be populated via `python3 manage.py`. Will create the schema and insert two small sample recipes.
