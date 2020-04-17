@@ -8,9 +8,6 @@ API: ec2-34-238-150-16.compute-1.amazonaws.com:4000
 
 Ratel: ec2-34-238-150-16.compute-1.amazonaws.com:8000
 
-    1. on the auth screen popup, opt to connect to the same host but on port 8080
-    2. close the auth prompt
-
 The API can be started via a simple `python3 recipy.py`. Long running commands, such as running the API, should be done via `screen`. Current screens can be found via `-ls`:
 
 ```
@@ -23,7 +20,7 @@ There are screens on:
 4 Sockets in /run/screen/S-ubuntu.
 ```
 
-Attach to a specific screen via `-d -R`, e.g.: `screen -d -R run`. Detach with `ctrl-a, ctrl-d`. The alpha, zero, and ratel screens are for dgraph. Commands for restarting each, replacing the IP address as necessary:
+Attach to a specific screen via `-d -R`, e.g.: `screen -d -R run`. Detach with `ctrl-a, ctrl-d`. The alpha, zero, and ratel screens are for dgraph. THe run screen is for the API. Commands for restarting each, replacing the IP address as necessary:
 
 ```
 docker run -it -p 5080:5080 --network dgraph_default -p 6080:6080 -v ~/zero:/dgraph dgraph/dgraph:latest dgraph zero --my=172.31.12.209:5080
