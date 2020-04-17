@@ -2,7 +2,34 @@
 
 A recipe storage solution built primarily via a graph database (dgraph). Current API POC in Python, MVP will migrated to Golang. Angular front-end.
 
-## Dev Help
+### High Level Goals
+
+A recipe should track the following metadata:
+    
+    * title
+    * picture
+    * prep and cook time
+    * ingredients
+    * steps
+    * rating (track ratings from individual users separately)
+    * tags (such as culinary region, type of meal, or whatever else you want to tag a recipe with)
+    * notes, tagged by the user who added them
+    * list of dates of when the recipe was made
+
+Core API functionality:
+
+    * authentication
+        * facebook SSO?
+        * two roles:
+            * full control of everything
+            * can only rate + add notes
+    * basic CRUD on recipes
+    * search recipes by any and all metadata
+    * master store of ingredients, typical CRUD ops
+    * recommendation engine using graph data
+    * dashboard with random stupid stats
+
+### Dev Help
 
 API: ec2-34-238-150-16.compute-1.amazonaws.com:4000
 
