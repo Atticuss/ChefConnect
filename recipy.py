@@ -18,9 +18,29 @@ app = Flask(__name__)
 app.url_map.converters["regex"] = util.RegexConverter
 
 dgraph_server = "127.0.0.1:9080"
+dgraph_server = "ec2-34-238-150-16.compute-1.amazonaws.com:9080"
 client_stub = pydgraph.DgraphClientStub(dgraph_server)
 dgraph_client = pydgraph.DgraphClient(client_stub)
 util.init_conn(dgraph_client)
+
+"""
+CORS Support
+"""
+
+@app.after_request
+def add_cors_headers(resp):
+    key = None
+    for header in request.headers.keys():
+        if header.lower() == "origin":
+            key = header
+
+    if key:
+        origin = request.headers[key]
+        resp.headers["Access-Control-Allow-Origin"] = origin
+        resp.headers["Access-Control-Allow-Credentials"] = True
+    
+    return resp
+
 
 """
 Static content
@@ -46,11 +66,13 @@ Recipe routes
 """
 
 
-@app.route("/api/recipes", methods=["GET", "POST"])
+@app.route("/api/recipes", methods=["OPTIONS", "GET", "POST"])
 def recipes():
     data = request.get_json()
 
-    if request.method == "GET":
+    if request.method == "OPTIONS":
+        return "{}"
+    elif request.method == "GET":
         resp, err = recipe_controller.get_recipes()
     else:
         resp, err = recipe_controller.create_recipe(data)
@@ -58,19 +80,24 @@ def recipes():
     return util.api_response(resp, err)
 
 
-@app.route("/api/recipes/<regex('0x[a-fA-F0-9]*'):dgid>", methods=["GET", "PUT"])
+@app.route("/api/recipes/<regex('0x[a-fA-F0-9]*'):dgid>", methods=["OPTIONS", "GET", "PUT"])
 def recipe(dgid):
     data = request.get_json()
 
-    if request.method == "GET":
+    if request.method == "OPTIONS":
+        return "{}"
+    elif request.method == "GET":
         resp, err = recipe_controller.get_recipe(dgid)
     else:
         resp, err = recipe_controller.update_recipe(dgid, data)
     return util.api_response(resp, err)
 
 
-@app.route("/api/recipes/search", methods=["POST"])
+@app.route("/api/recipes/search", methods=["OPTIONS", "POST"])
 def recipe_search():
+    if request.method == "OPTIONS":
+        return "{}"
+
     data = request.get_json()
     resp, err = recipe_controller.search_recipes(data)
     return util.api_response(resp, err)
@@ -81,11 +108,13 @@ Ingredient routes
 """
 
 
-@app.route("/api/ingredients", methods=["GET", "POST"])
+@app.route("/api/ingredients", methods=["OPTIONS", "GET", "POST"])
 def ingredients():
     data = request.get_json()
 
-    if request.method == "GET":
+    if request.method == "OPTIONS":
+        return "{}"
+    elif request.method == "GET":
         resp, err = ingredient_controller.get_ingredients()
     else:
         resp, err = ingredient_controller.create_ingredient(data)
@@ -93,11 +122,13 @@ def ingredients():
     return util.api_response(resp, err)
 
 
-@app.route("/api/ingredients/<regex('0x[a-fA-F0-9]*'):dgid>", methods=["GET", "PUT"])
+@app.route("/api/ingredients/<regex('0x[a-fA-F0-9]*'):dgid>", methods=["OPTIONS", "GET", "PUT"])
 def ingredient(dgid):
     data = request.get_json()
 
-    if request.method == "GET":
+    if request.method == "OPTIONS":
+        return "{}"
+    elif request.method == "GET":
         resp, err = ingredient_controller.get_ingredient(dgid)
     else:
         resp, err = ingredient_controller.update_ingredient(dgid, data)
@@ -108,11 +139,13 @@ Category routes
 """
 
 
-@app.route("/api/categories", methods=["GET", "POST"])
+@app.route("/api/categories", methods=["OPTIONS", "GET", "POST"])
 def categories():
     data = request.get_json()
 
-    if request.method == "GET":
+    if request.method == "OPTIONS":
+        return "{}"
+    elif request.method == "GET":
         resp, err = category_controller.get_categories()
     else:
         resp, err = category_controller.create_category(data)
@@ -120,22 +153,26 @@ def categories():
     return util.api_response(resp, err)
 
 
-@app.route("/api/categories/<regex('0x[a-fA-F0-9]*'):dgid>", methods=["GET", "PUT"])
+@app.route("/api/categories/<regex('0x[a-fA-F0-9]*'):dgid>", methods=["OPTIONS", "GET", "PUT"])
 def get_category(dgid):
     data = request.get_json()
 
-    if request.method == "GET":
+    if request.method == "OPTIONS":
+        return "{}"
+    elif request.method == "GET":
         resp, err = category_controller.get_category(dgid)
     else:
         resp, err = category_controller.update_category(dgid, data)
     return util.api_response(resp, err)
 
 
-@app.route("/api/categories/types", methods=["GET", "POST"])
+@app.route("/api/categories/types", methods=["OPTIONS", "GET", "POST"])
 def category_types():
     data = request.get_json()
 
-    if request.method == "GET":
+    if request.method == "OPTIONS":
+        return "{}"
+    elif request.method == "GET":
         resp, err = category_controller.get_category_types()
     else:
         resp, err = category_controller.create_category_type(data)
