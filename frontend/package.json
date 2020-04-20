@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
+    "ng": "node ./node_modules/.bin/ng",
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test",
