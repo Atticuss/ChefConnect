@@ -1,4 +1,4 @@
-# Frontend
+# ChefConnect UI
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.1.1.
 
@@ -12,7 +12,7 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Run `ng build` to build the project. The build artifacts will be stored in the `static` directory on the root directory. Use the `--prod` flag for a production build.
 
 ## Running unit tests
 
@@ -23,5 +23,9 @@ Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.
 Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
 
 ## Further help
+
+## Committing Code
+
+Run `npm run commit` to create commit messages with [Commitizen](https://github.com/commitizen/cz-cli)
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
