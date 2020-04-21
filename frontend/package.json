@@ -5,9 +5,11 @@
     "ng": "node ./node_modules/.bin/ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --prod",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "commit": "npx git-cz"
   },
   "private": true,
   "dependencies": {
