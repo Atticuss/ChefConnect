@@ -52,6 +52,8 @@ func (a *app) initialize(dgraphURL string) {
 
 	ctx.DgraphClient = dgo.NewDgraphClient(api.NewDgraphClient(conn))
 
+	// no longer need func-specific validation. will leave for now in case i end up
+	// needing it for other controllers down the line.
 	v := validator.New()
 	_ = v.RegisterValidation("required-update", func(fl validator.FieldLevel) bool {
 		fmt.Printf("inside 'required-update' check with value: %+v\n", fl.Field())
