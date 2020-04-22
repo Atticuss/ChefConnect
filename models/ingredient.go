@@ -50,6 +50,8 @@ func (i *Ingredient) GetIngredient(c *dgo.Dgraph) error {
 		return err
 	}
 
+	// this works fine for just a single field, but should use some reflection to
+	// copy all fields from the temp struct to the calling one
 	i.Name = single.Ingredient[0].Name
 
 	return nil
@@ -70,6 +72,7 @@ func (i *Ingredient) CreateIngredient(c *dgo.Dgraph) error {
 	txn := c.NewTxn()
 	defer txn.Discard(context.Background())
 
+	// assign an alias ID that can be ref'd out of the response's uid []string map
 	i.ID = "_:ingredient"
 
 	pb, err := json.Marshal(i)

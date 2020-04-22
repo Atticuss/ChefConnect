@@ -2,11 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/atticuss/chefconnect/models"
-	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -17,8 +15,6 @@ func (ctx *ControllerCtx) GetAllIngredients(w http.ResponseWriter, r *http.Reque
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	fmt.Printf("%+v\n", resp)
 
 	respondWithJSON(w, http.StatusOK, resp)
 }
@@ -33,8 +29,6 @@ func (ctx *ControllerCtx) GetIngredient(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	fmt.Printf("%+v\n", i)
 
 	respondWithJSON(w, http.StatusOK, i)
 }
@@ -73,33 +67,16 @@ func (ctx *ControllerCtx) UpdateIngredient(w http.ResponseWriter, r *http.Reques
 	}
 	defer r.Body.Close()
 
-	fmt.Println("i:")
-	fmt.Printf("%+v\n", i)
-
 	err := ctx.Validator.Struct(i)
 	if err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			fmt.Println(err.Namespace())
-			fmt.Println(err.Field())
-			fmt.Println(err.StructNamespace())
-			fmt.Println(err.StructField())
-			fmt.Println(err.Tag())
-			fmt.Println(err.ActualTag())
-			fmt.Println(err.Kind())
-			fmt.Println(err.Type())
-			fmt.Println(err.Value())
-			fmt.Println(err.Param())
-			fmt.Println()
-		}
+		respondWithValidationError(w, err, i)
+		return
 	}
 
 	if err := i.CreateIngredient(ctx.DgraphClient); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	fmt.Println("i:")
-	fmt.Printf("%+v\n", i)
 
 	respondWithJSON(w, http.StatusCreated, i)
 }
