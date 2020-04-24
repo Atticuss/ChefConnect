@@ -4,7 +4,7 @@ build:
 	go mod tidy
 	go build main.go
 swagger-spec:
-	go get -u github.com/go-swagger/go-swagger/cmd/swagger
+	go get github.com/go-swagger/go-swagger/cmd/swagger
 	swagger generate spec -o ./swagger.json
 run:
 	go run main.go
