@@ -76,7 +76,8 @@ func (a *app) initialize(dgraphURL string) {
 	router.HandleFunc("/ingredients", ctx.GetAllIngredients).Methods("GET")
 	router.HandleFunc("/ingredients", ctx.CreateIngredient).Methods("POST")
 	router.HandleFunc("/ingredients/{id}", ctx.GetIngredient).Methods("GET")
-	router.HandleFunc("/hello/{name}", index).Methods("GET")
+
+	router.HandleFunc("/ping", healthCheck).Methods("GET")
 	router.HandleFunc("/swagger.json", swagger).Methods("GET")
 
 	a.Router = router
@@ -88,37 +89,11 @@ func (a *app) run(addr string) {
 	log.Fatal(http.ListenAndServe(addr, handler))
 }
 
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 func swagger(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	http.ServeFile(w, r, "swagger.json")
-}
-
-func index(w http.ResponseWriter, r *http.Request) {
-	// swagger:operation GET /hello/{name} hello Hello
-	//
-	// Returns a simple Hello message
-	// ---
-	// consumes:
-	// - text/plain
-	// produces:
-	// - text/plain
-	// parameters:
-	// - name: name
-	//   in: path
-	//   description: Name to be returned.
-	//   required: true
-	//   type: string
-	// responses:
-	//   '200':
-	//     description: The hello message
-	//     type: string
-
-	log.Println("Responsing to /hello request")
-	log.Println(r.UserAgent())
-
-	vars := mux.Vars(r)
-	name := vars["name"]
-
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintln(w, "Hello:", name)
 }
