@@ -12,7 +12,7 @@
     "axios": "^0.18.0",
     "bootstrap": "^4.3.1",
     "bootstrap-vue": "^2.0.0-rc.12",
-    "jquery": "^3.3.1",
+    "jquery": "^3.5.0",
     "vue": "^2.6.6",
     "vue-router": "^3.0.2"
   },
