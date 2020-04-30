@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -11,9 +12,12 @@ import (
 
 // Ingredient is a struct that represents a single ingredient
 type Ingredient struct {
-	ID    string   `json:"uid"`
-	Name  string   `json:"ingredient_name" validate:"required"`
-	DType []string `json:"dgraph.type,omitempty"`
+	ID         string     `json:"uid,omitempty"`
+	Name       string     `json:"name,omitempty" validate:"required"`
+	Categories []Category `json:"categories,omitempty"`
+	DType      []string   `json:"dgraph.type,omitempty"`
+
+	Amount string `json:"ingredients|amount",omitempty`
 }
 
 // ManyIngredients is a struct that represents multiple ingredients
@@ -21,9 +25,9 @@ type ManyIngredients struct {
 	Ingredients []Ingredient
 }
 
-// cheap hack to get around how dgraph returns data
-type singleIngredient struct {
-	Ingredient []Ingredient
+// parent struct for dgraph responses
+type rootIngredient struct {
+	Ingredient []Ingredient `json:"root"`
 }
 
 // GetIngredient will fetch an ingredient via a given ID
@@ -33,9 +37,10 @@ func (i *Ingredient) GetIngredient(c *dgo.Dgraph) error {
 	variables := map[string]string{"$id": i.ID}
 	const q = `
 		query all($id: string) {
-			ingredient(func: uid($id)) {
+			root(func: uid($id)) {
 				uid
-				ingredient_name
+				name
+				ingredient_categories
 			}
 		}
 	`
@@ -44,15 +49,15 @@ func (i *Ingredient) GetIngredient(c *dgo.Dgraph) error {
 		return err
 	}
 
-	single := singleIngredient{}
-	err = json.Unmarshal(resp.Json, &single)
+	root := rootIngredient{}
+	err = json.Unmarshal(resp.Json, &root)
 	if err != nil {
 		return err
 	}
 
 	// this works fine for just a single field, but should use some reflection to
 	// copy all fields from the temp struct to the calling one
-	i.Name = single.Ingredient[0].Name
+	i.Name = root.Ingredient[0].Name
 
 	return nil
 }
@@ -69,11 +74,14 @@ func (i *Ingredient) DeleteIngredient(c *dgo.Dgraph) error {
 
 // CreateIngredient will create a new ingredient from the given Ingredient struct
 func (i *Ingredient) CreateIngredient(c *dgo.Dgraph) error {
+	fmt.Println("CreateIngredient() start")
+
 	txn := c.NewTxn()
 	defer txn.Discard(context.Background())
 
 	// assign an alias ID that can be ref'd out of the response's uid []string map
 	i.ID = "_:ingredient"
+	i.DType = []string{"Ingredient"}
 
 	pb, err := json.Marshal(i)
 	if err != nil {
@@ -89,6 +97,9 @@ func (i *Ingredient) CreateIngredient(c *dgo.Dgraph) error {
 		return err
 	}
 
+	fmt.Println("CreateIngredient mutation resp: ")
+	fmt.Printf("%+v\n", res)
+
 	i.ID = res.Uids["ingredient"]
 
 	return nil
@@ -100,11 +111,12 @@ func GetAllIngredients(c *dgo.Dgraph) (*ManyIngredients, error) {
 
 	const q = `
 		{
-			ingredients(func: has(ingredient_name)) {
+			q(func: type(Ingredient)) {
 				uid
-				ingredient_name
+				name
+				ingredient_categories
 			}
-      	}
+		}
 	`
 	resp, err := txn.Query(context.Background(), q)
 	if err != nil {
