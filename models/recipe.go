@@ -20,11 +20,12 @@ type Recipe struct {
 	Ingredients  []Ingredient `json:"ingredients,omitempty"`
 	PrepTime     int          `json:"prep_time,omitempty"`
 	CookTime     int          `json:"cook_time,omitempty"`
+	TotalServings int `json:"total_servings,omitempty"`
 	Categories   []Category   `json:"categories,omitempty"`
 	HasBeenTried bool         `json:"has_been_tried,omitempty"`
 
 	RatedBy        []User   `json:"~ratings,omitempty"`
-	RatingScore    int      `json:"~ratings|score,omitempty"`
+	RatingScore    int      `json:"ratings|score,omitempty"`
 	FavoritedBy    []User   `json:"~favorites,omitempty"`
 	RelatedRecipes []Recipe `json:"related_recipes,omitempty"`
 	DType          []string `json:"dgraph.type,omitempty"`

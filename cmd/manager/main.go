@@ -28,9 +28,10 @@ func buildSchema(c *dgo.Dgraph) {
 		categories: [uid] @reverse .
 		prep_time: int @index(int) .
 		cook_time: int @index(int) .
+		total_servings: int .
 		related_recipes: [uid] @reverse .
 		ratings: [uid] @reverse .
-		rating_num: int @index(int) .
+		score: int @index(int) .
 		username: string @index(exact) .
 		password: string .
 		favorites: [uid] @reverse .
@@ -61,11 +62,14 @@ func buildSchema(c *dgo.Dgraph) {
 			ingredients
 			prep_time
 			cook_time
+			total_servings
 			related_recipes
 			categories
 			ratings
 			notes
 			has_been_tried
+
+			score
 
 			<~ratings>
 			<~favorites>
@@ -183,6 +187,7 @@ func initRecipes(c *dgo.Dgraph, categories *[]models.Category, ingredients *[]mo
 		},
 		PrepTime: 10,
 		CookTime: 12,
+		TotalServings: 2
 	}
 
 	recipes := []models.Recipe{recipe1}
