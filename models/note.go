@@ -10,14 +10,16 @@ import (
 	"github.com/dgraph-io/dgo/v2/protos/api"
 )
 
-// Recipe is a struct that represents a single recipe
+// Note is a struct that represents a single note
 type Note struct {
-	ID    string   `json:"uid,omitempty"`
-	Text  string   `json:"text,omitempty"`
-	DType []string `json:"dgraph.type,omitempty"`
+	ID     string   `json:"uid,omitempty"`
+	Text   string   `json:"text,omitempty"`
+	User   User     `json:"author,omitempty"`
+	Recipe Recipe   `json:"recipe,omitempty"`
+	DType  []string `json:"dgraph.type,omitempty"`
 }
 
-// ManyRecipes is a struct that represents multiple recipes
+// ManyNotes is a struct that represents multiple notes
 type ManyNotes struct {
 	Recipes []Note
 }

@@ -35,11 +35,15 @@ func buildSchema(c *dgo.Dgraph) {
 		username: string @index(exact) .
 		password: string .
 		favorites: [uid] @reverse .
-		notes: [uid] @reverse .
+		user_notes: [uid] @reverse .
+		recipe_notes: [uid] @reverse .
 		has_been_tried: bool @index(bool) .
 		text: string .
 		index: int .
 		amount: string .
+
+		recipe: [uid] @reverse .
+		author: [uid] @reverse .
 
 		type Ingredient {
 			name
@@ -66,8 +70,9 @@ func buildSchema(c *dgo.Dgraph) {
 			related_recipes
 			categories
 			ratings
-			notes
 			has_been_tried
+			
+			<~recipe>
 
 			score
 
@@ -78,7 +83,8 @@ func buildSchema(c *dgo.Dgraph) {
 
 		type Note {
 			text
-			<~notes>
+			author
+			recipe
 		}
 
 		type User {
@@ -86,7 +92,7 @@ func buildSchema(c *dgo.Dgraph) {
 			username
 			password
 			favorites
-			notes
+			<~author>
 			ratings
 		}
 	`
@@ -185,9 +191,9 @@ func initRecipes(c *dgo.Dgraph, categories *[]models.Category, ingredients *[]mo
 			{ID: (*ingredients)[2].ID, Amount: "1 cup, precooked", DType: []string{"Ingredient"}},
 			{ID: (*ingredients)[3].ID, Amount: "3 tbsp", DType: []string{"Ingredient"}},
 		},
-		PrepTime: 10,
-		CookTime: 12,
-		TotalServings: 2
+		PrepTime:      10,
+		CookTime:      12,
+		TotalServings: 2,
 	}
 
 	recipes := []models.Recipe{recipe1}
@@ -225,13 +231,36 @@ func initUsers(c *dgo.Dgraph, recipes *[]models.Recipe) *[]models.User {
 	return &users
 }
 
+func initNotes(c *dgo.Dgraph, recipes *[]models.Recipe, users *[]models.User) *[]models.Note {
+	fmt.Println("init: notes")
+
+	note1 := models.Note{
+		Text:   "this shit dank, yo",
+		Recipe: models.Recipe{ID: (*recipes)[0].ID},
+		User:   models.User{ID: (*users)[0].ID},
+		DType:  []string{"Note"},
+	}
+
+	notes := []models.Note{note1}
+
+	for idx, n := range notes {
+		if err := n.CreateNote(c); err != nil {
+			log.Fatal(err)
+		}
+		notes[idx] = n
+	}
+
+	return &notes
+}
+
 func initData(c *dgo.Dgraph) {
 	fmt.Println("init: data")
 
 	categories := initCategories(c)
 	ingredients := initIngredients(c, categories)
 	recipes := initRecipes(c, categories, ingredients)
-	initUsers(c, recipes)
+	users := initUsers(c, recipes)
+	initNotes(c, recipes, users)
 }
 
 func main() {

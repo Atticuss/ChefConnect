@@ -12,22 +12,23 @@ import (
 
 // Recipe is a struct that represents a single recipe
 type Recipe struct {
-	ID           string       `json:"uid,omitempty"`
-	Name         string       `json:"name,omitempty" validate:"required"`
-	URL          string       `json:"url,omitempty"`
-	Domain       string       `json:"domain,omitempty"`
-	Directions   string       `json:"directions,omitempty"`
-	Ingredients  []Ingredient `json:"ingredients,omitempty"`
-	PrepTime     int          `json:"prep_time,omitempty"`
-	CookTime     int          `json:"cook_time,omitempty"`
-	TotalServings int `json:"total_servings,omitempty"`
-	Categories   []Category   `json:"categories,omitempty"`
-	HasBeenTried bool         `json:"has_been_tried,omitempty"`
+	ID            string       `json:"uid,omitempty"`
+	Name          string       `json:"name,omitempty" validate:"required"`
+	URL           string       `json:"url,omitempty"`
+	Domain        string       `json:"domain,omitempty"`
+	Directions    string       `json:"directions,omitempty"`
+	Ingredients   []Ingredient `json:"ingredients,omitempty"`
+	PrepTime      int          `json:"prep_time,omitempty"`
+	CookTime      int          `json:"cook_time,omitempty"`
+	TotalServings int          `json:"total_servings,omitempty"`
+	Categories    []Category   `json:"categories,omitempty"`
+	HasBeenTried  bool         `json:"has_been_tried,omitempty"`
 
 	RatedBy        []User   `json:"~ratings,omitempty"`
 	RatingScore    int      `json:"ratings|score,omitempty"`
 	FavoritedBy    []User   `json:"~favorites,omitempty"`
 	RelatedRecipes []Recipe `json:"related_recipes,omitempty"`
+	Notes          []Note   `json:"~recipe,omitempty"`
 	DType          []string `json:"dgraph.type,omitempty"`
 }
 

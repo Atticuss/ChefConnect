@@ -64,7 +64,33 @@ func (i *Ingredient) GetIngredient(c *dgo.Dgraph) error {
 
 // UpdateIngredient will update the name of an ingredient via a given by ID
 func (i *Ingredient) UpdateIngredient(c *dgo.Dgraph) error {
-	return errors.New("Not implemented")
+	fmt.Println("UpdateIngredient() start")
+
+	txn := c.NewTxn()
+	defer txn.Discard(context.Background())
+
+	i.DType = []string{"Ingredient"}
+
+	pb, err := json.Marshal(i)
+	if err != nil {
+		return err
+	}
+
+	mu := &api.Mutation{
+		CommitNow: true,
+	}
+	mu.SetJson = pb
+	res, err := txn.Mutate(context.Background(), mu)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("CreateIngredient mutation resp: ")
+	fmt.Printf("%+v\n", res)
+
+	i.ID = res.Uids["ingredient"]
+
+	return nil
 }
 
 // DeleteIngredient will delete an ingredient via a given by ID

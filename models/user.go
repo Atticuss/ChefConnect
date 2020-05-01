@@ -17,7 +17,7 @@ type User struct {
 	Username  string   `json:"username,omitempty"`
 	Password  string   `json:"password,omitempty"`
 	Favorites []Recipe `json:"favorites,omitempty"`
-	Notes     []Note   `json:"notes,omitempty"`
+	Notes     []Note   `json:"~author,omitempty"`
 	Ratings   []Recipe `json:"ratings,omitempty"`
 	DType     []string `json:"dgraph.type,omitempty"`
 }
@@ -75,7 +75,7 @@ func (u *User) CreateUser(c *dgo.Dgraph) error {
 	fmt.Println("CreateUser mutation resp: ")
 	fmt.Printf("%+v\n", res)
 
-	u.ID = res.Uids["note"]
+	u.ID = res.Uids["user"]
 
 	return nil
 }
