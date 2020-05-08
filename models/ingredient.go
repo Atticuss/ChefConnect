@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/dgraph-io/dgo/v2"
@@ -12,8 +11,9 @@ import (
 
 // Ingredient is a struct that represents a single ingredient
 type Ingredient struct {
-	ID         string     `json:"uid,omitempty"`
-	Name       string     `json:"name,omitempty" validate:"required"`
+	ID   string `json:"uid,omitempty"`
+	Name string `json:"name,omitempty" validate:"required"`
+
 	Categories []Category `json:"categories,omitempty"`
 	DType      []string   `json:"dgraph.type,omitempty"`
 
@@ -22,12 +22,43 @@ type Ingredient struct {
 
 // ManyIngredients is a struct that represents multiple ingredients
 type ManyIngredients struct {
-	Ingredients []Ingredient
+	Ingredients []Ingredient `json:"ingredients"`
 }
 
 // parent struct for dgraph responses
 type rootIngredient struct {
-	Ingredient []Ingredient `json:"root"`
+	Ingredients []Ingredient `json:"root"`
+}
+
+// GetAllIngredients will fetch all ingredients
+func GetAllIngredients(c *dgo.Dgraph) (*ManyIngredients, error) {
+	txn := c.NewReadOnlyTxn()
+
+	const q = `
+		{
+			root(func: type(Ingredient)) {
+				uid
+				name
+				categories {
+					uid
+					name
+				}
+				dgraph.type
+			}
+		}
+	`
+	resp, err := txn.Query(context.Background(), q)
+	if err != nil {
+		return nil, err
+	}
+
+	root := rootIngredient{}
+	err = json.Unmarshal(resp.Json, &root)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ManyIngredients{root.Ingredients}, nil
 }
 
 // GetIngredient will fetch an ingredient via a given ID
@@ -37,10 +68,14 @@ func (i *Ingredient) GetIngredient(c *dgo.Dgraph) error {
 	variables := map[string]string{"$id": i.ID}
 	const q = `
 		query all($id: string) {
-			root(func: uid($id)) {
+			root(func: uid($id)) @filter(type(Ingredient)) {
 				uid
 				name
-				ingredient_categories
+				categories {
+					uid
+					name
+				}
+				dgraph.type
 			}
 		}
 	`
@@ -55,9 +90,7 @@ func (i *Ingredient) GetIngredient(c *dgo.Dgraph) error {
 		return err
 	}
 
-	// this works fine for just a single field, but should use some reflection to
-	// copy all fields from the temp struct to the calling one
-	i.Name = root.Ingredient[0].Name
+	*i = root.Ingredients[0]
 
 	return nil
 }
@@ -94,8 +127,9 @@ func (i *Ingredient) UpdateIngredient(c *dgo.Dgraph) error {
 }
 
 // DeleteIngredient will delete an ingredient via a given by ID
+// TODO: unfinished
 func (i *Ingredient) DeleteIngredient(c *dgo.Dgraph) error {
-	return errors.New("Not implemented")
+	return nil
 }
 
 // CreateIngredient will create a new ingredient from the given Ingredient struct
@@ -129,31 +163,4 @@ func (i *Ingredient) CreateIngredient(c *dgo.Dgraph) error {
 	i.ID = res.Uids["ingredient"]
 
 	return nil
-}
-
-// GetAllIngredients will fetch all ingredients
-func GetAllIngredients(c *dgo.Dgraph) (*ManyIngredients, error) {
-	txn := c.NewReadOnlyTxn()
-
-	const q = `
-		{
-			q(func: type(Ingredient)) {
-				uid
-				name
-				ingredient_categories
-			}
-		}
-	`
-	resp, err := txn.Query(context.Background(), q)
-	if err != nil {
-		return nil, err
-	}
-
-	i := ManyIngredients{}
-	err = json.Unmarshal(resp.Json, &i)
-	if err != nil {
-		return nil, err
-	}
-
-	return &i, nil
 }

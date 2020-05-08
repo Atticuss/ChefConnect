@@ -236,9 +236,8 @@ func initNotes(c *dgo.Dgraph, recipes *[]models.Recipe, users *[]models.User) *[
 
 	note1 := models.Note{
 		Text:   "this shit dank, yo",
-		Recipe: models.Recipe{ID: (*recipes)[0].ID},
-		User:   models.User{ID: (*users)[0].ID},
-		DType:  []string{"Note"},
+		Recipe: []models.Recipe{{ID: (*recipes)[0].ID}},
+		User:   []models.User{{ID: (*users)[0].ID}},
 	}
 
 	notes := []models.Note{note1}

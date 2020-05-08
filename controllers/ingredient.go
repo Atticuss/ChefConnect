@@ -124,9 +124,9 @@ func (ctx *ControllerCtx) CreateIngredient(w http.ResponseWriter, r *http.Reques
 
 // UpdateIngredient handles the PUT /ingredients/{id} req for updating an ingredient
 func (ctx *ControllerCtx) UpdateIngredient(w http.ResponseWriter, r *http.Request) {
-	// swagger:operation PUT /ingredients ingredients Ingredients
+	// swagger:operation PUT /ingredients/{id} ingredients Ingredients
 	//
-	// Create a new ingredient
+	// Update an ingredient
 	// ---
 	// consumes:
 	// - application/json
@@ -141,6 +141,8 @@ func (ctx *ControllerCtx) UpdateIngredient(w http.ResponseWriter, r *http.Reques
 	// responses:
 	//   '200':
 	//     description: Successfully updated
+	//     schema:
+	//       "$ref": "#/responses/Ingredient"
 
 	var i models.Ingredient
 	decoder := json.NewDecoder(r.Body)
@@ -157,6 +159,43 @@ func (ctx *ControllerCtx) UpdateIngredient(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := i.CreateIngredient(ctx.DgraphClient); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, i)
+}
+
+// DeleteIngredient handles the DELETE /ingredients/{id} req for deleting an ingredient
+func (ctx *ControllerCtx) DeleteIngredient(w http.ResponseWriter, r *http.Request) {
+	// swagger:operation DELETE /ingredients/{id} ingredients Ingredients
+	//
+	// Delete an ingredient
+	// ---
+	// consumes:
+	// - application/json
+	// produces:
+	// - application/json
+	// parameters:
+	// - name: id
+	//   in: body
+	//   required: true
+	// responses:
+	//   '200':
+	//     description: Successfully deleted
+
+	respondWithError(w, http.StatusNotImplemented, "Not implemented yet")
+	return
+
+	var i models.Ingredient
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&i); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := i.DeleteIngredient(ctx.DgraphClient); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

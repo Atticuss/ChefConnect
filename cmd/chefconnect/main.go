@@ -69,13 +69,23 @@ func (a *app) initialize(dgraphURL string) {
 	})
 
 	ctx.Validator = v
-
 	a.Ctx = &ctx
 
 	router := mux.NewRouter().StrictSlash(true)
+	//this errors out
 	router.HandleFunc("/ingredients", ctx.GetAllIngredients).Methods("GET")
 	router.HandleFunc("/ingredients", ctx.CreateIngredient).Methods("POST")
 	router.HandleFunc("/ingredients/{id}", ctx.GetIngredient).Methods("GET")
+	router.HandleFunc("/ingredients/{id}", ctx.DeleteIngredient).Methods("DELETE")
+
+	router.HandleFunc("/recipes/{id}", ctx.GetRecipe).Methods("GET")
+
+	router.HandleFunc("/users", ctx.GetAllUsers).Methods("GET")
+	router.HandleFunc("/users/{id}", ctx.GetUser).Methods("GET")
+
+	//this errors out
+	router.HandleFunc("/categories", ctx.GetAllCategories).Methods("GET")
+	router.HandleFunc("/categories/{id}", ctx.GetCategory).Methods("GET")
 
 	router.HandleFunc("/ping", healthCheck).Methods("GET")
 	router.HandleFunc("/swagger.json", swagger).Methods("GET")

@@ -10,41 +10,126 @@ import (
 	"github.com/dgraph-io/dgo/v2/protos/api"
 )
 
-// Recipe is a struct that represents a single recipe
-type Recipe struct {
-	ID            string       `json:"uid,omitempty"`
-	Name          string       `json:"name,omitempty" validate:"required"`
-	URL           string       `json:"url,omitempty"`
-	Domain        string       `json:"domain,omitempty"`
-	Directions    string       `json:"directions,omitempty"`
-	Ingredients   []Ingredient `json:"ingredients,omitempty"`
-	PrepTime      int          `json:"prep_time,omitempty"`
-	CookTime      int          `json:"cook_time,omitempty"`
-	TotalServings int          `json:"total_servings,omitempty"`
-	Categories    []Category   `json:"categories,omitempty"`
-	HasBeenTried  bool         `json:"has_been_tried,omitempty"`
+// ResponseRecipe is a struct that represents a single recipe. It is used exclusively
+// for marshalling responses back to API clients.
+type ResponseRecipe struct {
+	ID            string `json:"uid,omitempty"`
+	Name          string `json:"name,omitempty"`
+	URL           string `json:"url,omitempty"`
+	Domain        string `json:"domain,omitempty"`
+	Directions    string `json:"directions,omitempty"`
+	PrepTime      int    `json:"prep_time,omitempty"`
+	CookTime      int    `json:"cook_time,omitempty"`
+	TotalServings int    `json:"total_servings,omitempty"`
+	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
 
-	RatedBy        []User   `json:"~ratings,omitempty"`
-	RatingScore    int      `json:"ratings|score,omitempty"`
-	FavoritedBy    []User   `json:"~favorites,omitempty"`
-	RelatedRecipes []Recipe `json:"related_recipes,omitempty"`
-	Notes          []Note   `json:"~recipe,omitempty"`
-	DType          []string `json:"dgraph.type,omitempty"`
+	Ingredients    []Ingredient `json:"ingredients,omitempty"`
+	Categories     []Category   `json:"categories,omitempty"`
+	RatedBy        []User       `json:"rated_by,omitempty"`
+	RatingScore    int          `json:"rated_by|score,omitempty"`
+	FavoritedBy    []User       `json:"favorited_by,omitempty"`
+	RelatedRecipes []Recipe     `json:"related_recipes,omitempty"`
+	Notes          []Note       `json:"notes,omitempty"`
+
+	DType []string `json:"dgraph.type,omitempty"`
+}
+
+// Recipe is a struct that represents a single recipe. It is used exclusively
+// for unmarshalling responses from dgraph
+type Recipe struct {
+	ID            string `json:"uid,omitempty"`
+	Name          string `json:"name,omitempty" validate:"required"`
+	URL           string `json:"url,omitempty"`
+	Domain        string `json:"domain,omitempty"`
+	Directions    string `json:"directions,omitempty"`
+	PrepTime      int    `json:"prep_time,omitempty"`
+	CookTime      int    `json:"cook_time,omitempty"`
+	TotalServings int    `json:"total_servings,omitempty"`
+	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
+
+	Ingredients    []Ingredient `json:"ingredients,omitempty"`
+	Categories     []Category   `json:"categories,omitempty"`
+	RatedBy        []User       `json:"~ratings,omitempty"`
+	RatingScore    int          `json:"ratings|score,omitempty"`
+	FavoritedBy    []User       `json:"~favorites,omitempty"`
+	RelatedRecipes []Recipe     `json:"related_recipes,omitempty"`
+	Notes          []Note       `json:"~recipe,omitempty"`
+
+	DType []string `json:"dgraph.type,omitempty"`
 }
 
 // ManyRecipes is a struct that represents multiple recipes
 type ManyRecipes struct {
-	Recipes []Recipe
+	Recipes []Recipe `json:"recipes"`
 }
 
-// cheap hack to get around how dgraph returns data
-type singleRecipe struct {
-	Recipe []Recipe
+// parent struct for dgraph responses
+type rootRecipe struct {
+	Recipe []Recipe `json:"root"`
 }
 
 // GetRecipe will get a recipe via a given by ID
 func (r *Recipe) GetRecipe(c *dgo.Dgraph) error {
-	return errors.New("Not implemented")
+	txn := c.NewReadOnlyTxn()
+
+	variables := map[string]string{"$id": r.ID}
+	const q = `
+		query all($id: string) {
+			root(func: uid($id)) @filter(type(Recipe)) {
+				uid
+				name
+				url
+				domain
+				directions
+				prep_time
+				cook_time
+				total_servings
+				has_been_tried
+				dgraph.type
+				
+				ingredients @facets {
+					uid
+					name
+				}
+				categories {
+					uid
+					name
+				}
+				~ratings @facets {
+					uid
+					name
+				}
+				~favorites {
+					uid
+					name
+				}
+				~recipe {
+					uid
+					text
+					author {
+						uid
+						name
+					}
+				}
+			}
+		}
+	`
+	resp, err := txn.QueryWithVars(context.Background(), q, variables)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%+v\n", resp)
+
+	root := rootRecipe{}
+	err = json.Unmarshal(resp.Json, &root)
+	if err != nil {
+		return err
+	}
+
+	*r = root.Recipe[0]
+
+	return nil
 }
 
 // UpdateRecipe will update a recipe via a given by ID
@@ -59,8 +144,6 @@ func (r *Recipe) DeleteRecipe(c *dgo.Dgraph) error {
 
 // CreateRecipe will create a new recipe from the given Recipe struct
 func (r *Recipe) CreateRecipe(c *dgo.Dgraph) error {
-	fmt.Println("CreateRecipe() start")
-
 	txn := c.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -81,9 +164,6 @@ func (r *Recipe) CreateRecipe(c *dgo.Dgraph) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("CreateRecipe mutation resp: ")
-	fmt.Printf("%+v\n", res)
 
 	r.ID = res.Uids["recipe"]
 

@@ -12,21 +12,23 @@ import (
 
 // Note is a struct that represents a single note
 type Note struct {
-	ID     string   `json:"uid,omitempty"`
-	Text   string   `json:"text,omitempty"`
-	User   User     `json:"author,omitempty"`
-	Recipe Recipe   `json:"recipe,omitempty"`
-	DType  []string `json:"dgraph.type,omitempty"`
+	ID   string `json:"uid,omitempty"`
+	Text string `json:"text,omitempty"`
+
+	User   []User   `json:"author,omitempty"`
+	Recipe []Recipe `json:"recipe,omitempty"`
+
+	DType []string `json:"dgraph.type,omitempty"`
 }
 
 // ManyNotes is a struct that represents multiple notes
 type ManyNotes struct {
-	Recipes []Note
+	Recipes []Note `json:"notes"`
 }
 
-// cheap hack to get around how dgraph returns data
-type singleNote struct {
-	Note []Note
+// parent struct for dgraph responses
+type rootNote struct {
+	Note []Note `json:"root"`
 }
 
 // GetNote will fetch a note via a given ID
