@@ -11,4 +11,5 @@ swagger:
 run:
 	go run main.go
 swagger-ui:
-	docker run --rm -it -p 8081:8080 -e SWAGGER_JSON=/tmp/swagger.json -v ${PWD}:/tmp swaggerapi/swagger-ui
+	#docker run --rm -it -p 8081:8080 -e SWAGGER_JSON=/tmp/swagger.json -v ${PWD}:/tmp swaggerapi/swagger-ui
+	swagger serve -F=swagger swagger.json
