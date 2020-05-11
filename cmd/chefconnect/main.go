@@ -72,20 +72,30 @@ func (a *app) initialize(dgraphURL string) {
 	a.Ctx = &ctx
 
 	router := mux.NewRouter().StrictSlash(true)
-	//this errors out
+
 	router.HandleFunc("/ingredients", ctx.GetAllIngredients).Methods("GET")
 	router.HandleFunc("/ingredients", ctx.CreateIngredient).Methods("POST")
 	router.HandleFunc("/ingredients/{id}", ctx.GetIngredient).Methods("GET")
+	router.HandleFunc("/ingredients/{id}", ctx.UpdateIngredient).Methods("PUT")
 	router.HandleFunc("/ingredients/{id}", ctx.DeleteIngredient).Methods("DELETE")
 
+	router.HandleFunc("/recipes", ctx.GetAllRecipes).Methods("GET")
+	router.HandleFunc("/recipes", ctx.CreateRecipe).Methods("POST")
 	router.HandleFunc("/recipes/{id}", ctx.GetRecipe).Methods("GET")
+	router.HandleFunc("/recipes/{id}", ctx.UpdateRecipe).Methods("PUT")
+	router.HandleFunc("/recipes/{id}", ctx.DeleteRecipe).Methods("DELETE")
 
 	router.HandleFunc("/users", ctx.GetAllUsers).Methods("GET")
+	router.HandleFunc("/users", ctx.CreateUser).Methods("POST")
 	router.HandleFunc("/users/{id}", ctx.GetUser).Methods("GET")
+	router.HandleFunc("/users/{id}", ctx.UpdateIngredient).Methods("PUT")
+	router.HandleFunc("/users/{id}", ctx.DeleteUser).Methods("DELETE")
 
-	//this errors out
 	router.HandleFunc("/categories", ctx.GetAllCategories).Methods("GET")
+	router.HandleFunc("/categories", ctx.CreateCategory).Methods("POST")
 	router.HandleFunc("/categories/{id}", ctx.GetCategory).Methods("GET")
+	router.HandleFunc("/categories/{id}", ctx.UpdateCategory).Methods("PUT")
+	router.HandleFunc("/categories/{id}", ctx.DeleteCategory).Methods("DELETE")
 
 	router.HandleFunc("/ping", healthCheck).Methods("GET")
 	router.HandleFunc("/swagger.json", swagger).Methods("GET")
