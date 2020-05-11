@@ -10,9 +10,9 @@ import (
 	"github.com/dgraph-io/dgo/v2/protos/api"
 )
 
-// ResponseRecipe is a struct that represents a single recipe. It is used exclusively
+// RecipeResponse is a struct that represents a single recipe. It is used exclusively
 // for marshalling responses back to API clients.
-type ResponseRecipe struct {
+type RecipeResponse struct {
 	ID            string `json:"uid,omitempty"`
 	Name          string `json:"name,omitempty"`
 	URL           string `json:"url,omitempty"`
@@ -23,13 +23,22 @@ type ResponseRecipe struct {
 	TotalServings int    `json:"total_servings,omitempty"`
 	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
 
-	Ingredients    []Ingredient `json:"ingredients,omitempty"`
-	Categories     []Category   `json:"categories,omitempty"`
-	RatedBy        []User       `json:"rated_by,omitempty"`
-	RatingScore    int          `json:"rated_by|score,omitempty"`
-	FavoritedBy    []User       `json:"favorited_by,omitempty"`
-	RelatedRecipes []Recipe     `json:"related_recipes,omitempty"`
-	Notes          []Note       `json:"notes,omitempty"`
+	Ingredients    []IngredientResponse `json:"ingredients,omitempty"`
+	Categories     []NestedCategory     `json:"categories,omitempty"`
+	RatedBy        []NestedUser         `json:"rated_by,omitempty"`
+	RatingScore    int                  `json:"rating_score,omitempty"`
+	FavoritedBy    []NestedUser         `json:"favorited_by,omitempty"`
+	RelatedRecipes []NestedRecipe       `json:"related_recipes,omitempty"`
+	Notes          []NestedNote         `json:"notes,omitempty"`
+
+	DType []string `json:"dgraph.type,omitempty"`
+}
+
+// NestedRecipe is a stripped down struct used when a Recipe is nested
+// within a parent struct in an API response
+type NestedRecipe struct {
+	ID   string `json:"uid,omitempty"`
+	Name string `json:"name,omitempty" validate:"required"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }
@@ -66,6 +75,11 @@ type ManyRecipes struct {
 // parent struct for dgraph responses
 type rootRecipe struct {
 	Recipe []Recipe `json:"root"`
+}
+
+// GetAllRecipes will get all recipes
+func GetAllRecipes(c *dgo.Dgraph) (*[]Recipe, error) {
+	return nil, errors.New("Not implemented")
 }
 
 // GetRecipe will get a recipe via a given by ID
@@ -132,16 +146,6 @@ func (r *Recipe) GetRecipe(c *dgo.Dgraph) error {
 	return nil
 }
 
-// UpdateRecipe will update a recipe via a given by ID
-func (r *Recipe) UpdateRecipe(c *dgo.Dgraph) error {
-	return errors.New("Not implemented")
-}
-
-// DeleteRecipe will delete a recipe via a given by ID
-func (r *Recipe) DeleteRecipe(c *dgo.Dgraph) error {
-	return errors.New("Not implemented")
-}
-
 // CreateRecipe will create a new recipe from the given Recipe struct
 func (r *Recipe) CreateRecipe(c *dgo.Dgraph) error {
 	txn := c.NewTxn()
@@ -168,4 +172,14 @@ func (r *Recipe) CreateRecipe(c *dgo.Dgraph) error {
 	r.ID = res.Uids["recipe"]
 
 	return nil
+}
+
+// UpdateRecipe will update a recipe via a given by ID
+func (r *Recipe) UpdateRecipe(c *dgo.Dgraph) error {
+	return errors.New("Not implemented")
+}
+
+// DeleteRecipe will delete a recipe via a given by ID
+func (r *Recipe) DeleteRecipe(c *dgo.Dgraph) error {
+	return errors.New("Not implemented")
 }

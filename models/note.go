@@ -10,6 +10,27 @@ import (
 	"github.com/dgraph-io/dgo/v2/protos/api"
 )
 
+// NoteResponse is a struct that represents a single note. It is used exclusively
+// for marshalling responses back to API clients.
+type NoteResponse struct {
+	ID   string `json:"uid,omitempty"`
+	Text string `json:"text,omitempty"`
+
+	User   []NestedUser   `json:"author,omitempty"`
+	Recipe []NestedRecipe `json:"recipe,omitempty"`
+
+	DType []string `json:"dgraph.type,omitempty"`
+}
+
+// NestedNote is a stripped down struct used when a Note is nested
+// within a parent struct in an API response
+type NestedNote struct {
+	ID   string `json:"uid,omitempty"`
+	Text string `json:"text,omitempty"`
+
+	DType []string `json:"dgraph.type,omitempty"`
+}
+
 // Note is a struct that represents a single note
 type Note struct {
 	ID   string `json:"uid,omitempty"`

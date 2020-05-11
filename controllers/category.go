@@ -1,38 +1,41 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/atticuss/chefconnect/models"
+
 	"github.com/gorilla/mux"
 )
 
+// body comment
+// swagger:parameters createCategory updateCategory
+type categoryRequest struct {
+	// in:body
+	models.NestedCategory
+}
+
+// body comment
 // swagger:response Category
 type category struct {
 	// in:body
-	Body models.Category
+	Body models.CategoryResponse
+}
+
+// body comment
+// swagger:response ManyCategories
+type manyCategories struct {
+	// in:body
+	Body []models.CategoryResponse
 }
 
 // GetAllCategories handles the GET /categories req for fetching all categories
 func (ctx *ControllerCtx) GetAllCategories(w http.ResponseWriter, r *http.Request) {
-	// swagger:operation GET /categories categories Categories
-	//
+	// swagger:route GET /categories categories getAllCategories
 	// Fetch all categories
-	// ---
-	// consumes:
-	// - application/json
-	// produces:
-	// - application/json
 	// responses:
-	//   '200':
-	//     description: Successfully fetched
-	//     schema:
-	//       type: object
-	//       properties:
-	//         categories:
-	//           type: array
-	//           items:
-	//             "$ref": "#/responses/Category"
+	//   200: ManyCategories
 
 	resp, err := models.GetAllCategories(ctx.DgraphClient)
 	if err != nil {
@@ -45,25 +48,11 @@ func (ctx *ControllerCtx) GetAllCategories(w http.ResponseWriter, r *http.Reques
 
 // GetCategory handles the GET /categories/{id} req for fetching a specific user
 func (ctx *ControllerCtx) GetCategory(w http.ResponseWriter, r *http.Request) {
-	// swagger:operation GET /categories/{id} category Category
-	//
-	// Fetches a single user by ID
-	// ---
-	// consumes:
-	// - application/json
-	// produces:
-	// - application/json
-	// parameters:
-	// - name: id
-	//   in: path
-	//   description: ID of the category to be returned.
-	//   required: true
-	//   type: string
+	// swagger:route GET /categories/{id} categories getCategory
+	// Fetch a single category by ID
 	// responses:
-	//   '200':
-	//     description: Successfully fetched
-	//     schema:
-	//       "$ref": "#/responses/Category"
+	//   200: Category
+
 	vars := mux.Vars(r)
 	id := vars["id"]
 
@@ -74,4 +63,89 @@ func (ctx *ControllerCtx) GetCategory(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, category)
+}
+
+// CreateCategory handles the POST /categories req for creating a category
+// TODO: prevent dupes - https://dgraph.io/docs/mutations/#example-of-conditional-upsert
+func (ctx *ControllerCtx) CreateCategory(w http.ResponseWriter, r *http.Request) {
+	// swagger:route POST /categories categories createCategory
+	// Create a new category
+	// responses:
+	//   200: Category
+
+	var category models.Category
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&category); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	err := ctx.Validator.Struct(category)
+	if err != nil {
+		respondWithValidationError(w, err, category)
+		return
+	}
+
+	if err := category.CreateCategory(ctx.DgraphClient); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, category)
+}
+
+// UpdateCategory handles the PUT /categories/{id} req for updating a category
+func (ctx *ControllerCtx) UpdateCategory(w http.ResponseWriter, r *http.Request) {
+	// swagger:route PUT /categories/{id} categories updateCategory
+	// Update a category
+	// responses:
+	//   200: Category
+
+	var category models.Category
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&category); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	err := ctx.Validator.Struct(category)
+	if err != nil {
+		respondWithValidationError(w, err, category)
+		return
+	}
+
+	if err := category.UpdateCategory(ctx.DgraphClient); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, category)
+}
+
+// DeleteCategory handles the DELETE /categories/{id} req for deleting a category
+func (ctx *ControllerCtx) DeleteCategory(w http.ResponseWriter, r *http.Request) {
+	// swagger:route DELETE /categories/{id} categories deleteCategory
+	// Delete a category
+	// responses:
+	//   200
+
+	respondWithError(w, http.StatusNotImplemented, "Not implemented yet")
+	return
+
+	var category models.Category
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&category); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := category.DeleteCategory(ctx.DgraphClient); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, category)
 }

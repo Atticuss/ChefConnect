@@ -18,9 +18,19 @@ type UserResponse struct {
 	Username string `json:"username,omitempty"`
 	Password string `json:"-"`
 
-	Favorites []Recipe `json:"favorites,omitempty"`
-	Notes     []Note   `json:"notes,omitempty"`
-	Ratings   []Recipe `json:"ratings,omitempty"`
+	Favorites []NestedRecipe `json:"favorites,omitempty"`
+	Notes     []NestedNote   `json:"notes,omitempty"`
+	Ratings   []NestedRecipe `json:"ratings,omitempty"`
+
+	DType []string `json:"dgraph.type,omitempty"`
+}
+
+// NestedUser is a stripped down struct used when a User is nested
+// within a parent struct within an API response
+type NestedUser struct {
+	ID       string `json:"uid,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Username string `json:"username,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }

@@ -1,0 +1,1005 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "The ChefConnect app is built using a modern Angular + back end API architecture. All API endpoints are detailed here. Many endpoints can be called as both an authenticated or unauthenticated user, though the data returned may differ. For example, when pulling back recipe details, the notes and ratings associated with that recipe will not be included unless authenticated.",
+    "title": "ChefConnect API Docs",
+    "contact": {
+      "name": "atticuss",
+      "email": "jonn.callahan@gmail.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "http://opensource.org/licenses/MIT"
+    },
+    "version": "0.0.1"
+  },
+  "host": "localhost:8080",
+  "paths": {
+    "/categories": {
+      "get": {
+        "description": "Fetch all categories",
+        "tags": [
+          "categories"
+        ],
+        "operationId": "getAllCategories",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ManyCategories"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new category",
+        "tags": [
+          "categories"
+        ],
+        "operationId": "createCategory",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "name": "uid",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "x-go-name": "DType",
+            "name": "dgraph.type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Category"
+          }
+        }
+      }
+    },
+    "/categories/{id}": {
+      "get": {
+        "description": "Fetch a single category by ID",
+        "tags": [
+          "categories"
+        ],
+        "operationId": "getCategory",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Category"
+          }
+        }
+      },
+      "put": {
+        "description": "Update a category",
+        "tags": [
+          "categories"
+        ],
+        "operationId": "updateCategory",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "name": "uid",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "x-go-name": "DType",
+            "name": "dgraph.type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Category"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a category",
+        "tags": [
+          "categories"
+        ],
+        "operationId": "deleteCategory",
+        "responses": {}
+      }
+    },
+    "/ingredients": {
+      "get": {
+        "description": "Fetch all ingredients",
+        "tags": [
+          "ingredients"
+        ],
+        "operationId": "getAllIngredients",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ManyIngredients"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new ingredient",
+        "tags": [
+          "ingredients"
+        ],
+        "operationId": "createIngredient",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "name": "uid",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Amount",
+            "name": "amount",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "x-go-name": "DType",
+            "name": "dgraph.type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Ingredient"
+          }
+        }
+      }
+    },
+    "/ingredients/{id}": {
+      "get": {
+        "description": "Fetches a single ingredient by ID",
+        "tags": [
+          "ingredients"
+        ],
+        "operationId": "getIngredient",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Ingredient"
+          }
+        }
+      },
+      "put": {
+        "description": "Update an ingredient",
+        "tags": [
+          "ingredients"
+        ],
+        "operationId": "updateIngredient",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "name": "uid",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Amount",
+            "name": "amount",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "x-go-name": "DType",
+            "name": "dgraph.type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Ingredient"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete an ingredient",
+        "tags": [
+          "ingredients"
+        ],
+        "operationId": "deleteIngredient",
+        "responses": {}
+      }
+    },
+    "/recipes": {
+      "get": {
+        "description": "Fetch all recipes",
+        "tags": [
+          "recipes"
+        ],
+        "operationId": "getAllRecipes",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ManyRecipes"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new recipe",
+        "tags": [
+          "recipes"
+        ],
+        "operationId": "createRecipe",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "name": "uid",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "URL",
+            "name": "url",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Domain",
+            "name": "domain",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Directions",
+            "name": "directions",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "PrepTime",
+            "name": "prep_time",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "CookTime",
+            "name": "cook_time",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "TotalServings",
+            "name": "total_servings",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "x-go-name": "HasBeenTried",
+            "name": "has_been_tried",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/IngredientResponse"
+            },
+            "x-go-name": "Ingredients",
+            "name": "ingredients",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedCategory"
+            },
+            "x-go-name": "Categories",
+            "name": "categories",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedUser"
+            },
+            "x-go-name": "RatedBy",
+            "name": "rated_by",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "x-go-name": "RatingScore",
+            "name": "rating_score",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedUser"
+            },
+            "x-go-name": "FavoritedBy",
+            "name": "favorited_by",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedRecipe"
+            },
+            "x-go-name": "RelatedRecipes",
+            "name": "related_recipes",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedNote"
+            },
+            "x-go-name": "Notes",
+            "name": "notes",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "x-go-name": "DType",
+            "name": "dgraph.type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Recipe"
+          }
+        }
+      }
+    },
+    "/recipes/{id}": {
+      "get": {
+        "description": "Fetch a recipe by ID",
+        "tags": [
+          "recipes"
+        ],
+        "operationId": "getRecipe",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Recipe"
+          }
+        }
+      },
+      "put": {
+        "description": "Update a recipe",
+        "tags": [
+          "recipes"
+        ],
+        "operationId": "updateRecipe",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/Recipe"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a recipe",
+        "tags": [
+          "recipe"
+        ],
+        "operationId": "deleteRecipe",
+        "responses": {}
+      }
+    },
+    "/users": {
+      "get": {
+        "description": "Fetch all users",
+        "tags": [
+          "users"
+        ],
+        "operationId": "getAllUsers",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ManyUsers"
+          }
+        }
+      },
+      "post": {
+        "description": "Create a new user",
+        "tags": [
+          "users"
+        ],
+        "operationId": "createUser",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "name": "uid",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Username",
+            "name": "username",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedRecipe"
+            },
+            "x-go-name": "Favorites",
+            "name": "favorites",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedNote"
+            },
+            "x-go-name": "Notes",
+            "name": "notes",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedRecipe"
+            },
+            "x-go-name": "Ratings",
+            "name": "ratings",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "x-go-name": "DType",
+            "name": "dgraph.type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/User"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "description": "Fetch all users",
+        "tags": [
+          "users"
+        ],
+        "operationId": "getUser",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/User"
+          }
+        }
+      },
+      "put": {
+        "description": "Update a user",
+        "tags": [
+          "users"
+        ],
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "ID",
+            "name": "uid",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Username",
+            "name": "username",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedRecipe"
+            },
+            "x-go-name": "Favorites",
+            "name": "favorites",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedNote"
+            },
+            "x-go-name": "Notes",
+            "name": "notes",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/NestedRecipe"
+            },
+            "x-go-name": "Ratings",
+            "name": "ratings",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "x-go-name": "DType",
+            "name": "dgraph.type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/User"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete a user",
+        "tags": [
+          "users"
+        ],
+        "operationId": "deleteUser",
+        "responses": {}
+      }
+    }
+  },
+  "definitions": {
+    "CategoryResponse": {
+      "description": "CategoryResponse is a struct that represents a single category. It is used exclusively\nfor marshalling responses back to API clients.",
+      "type": "object",
+      "properties": {
+        "dgraph.type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DType"
+        },
+        "ingredients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedIngredient"
+          },
+          "x-go-name": "Ingredients"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "recipes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedRecipe"
+          },
+          "x-go-name": "Recipes"
+        },
+        "uid": {
+          "type": "string",
+          "x-go-name": "ID"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "IngredientResponse": {
+      "description": "IngredientResponse is a struct that represents a single ingredient. It is used exclusively\nfor marshalling responses back to API clients.",
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "string",
+          "x-go-name": "Amount"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedCategory"
+          },
+          "x-go-name": "Categories"
+        },
+        "dgraph.type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DType"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "uid": {
+          "type": "string",
+          "x-go-name": "ID"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "NestedCategory": {
+      "description": "NestedCategory is a stripped down struct used when a Category is nested\nwithin a parent struct in an API response",
+      "type": "object",
+      "properties": {
+        "dgraph.type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DType"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "uid": {
+          "type": "string",
+          "x-go-name": "ID"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "NestedIngredient": {
+      "description": "NestedIngredient is a stripped down struct used when an Ingredient is nested\nwithin a parent struct in an API response",
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "string",
+          "x-go-name": "Amount"
+        },
+        "dgraph.type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DType"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "uid": {
+          "type": "string",
+          "x-go-name": "ID"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "NestedNote": {
+      "description": "NestedNote is a stripped down struct used when a Note is nested\nwithin a parent struct in an API response",
+      "type": "object",
+      "properties": {
+        "dgraph.type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DType"
+        },
+        "text": {
+          "type": "string",
+          "x-go-name": "Text"
+        },
+        "uid": {
+          "type": "string",
+          "x-go-name": "ID"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "NestedRecipe": {
+      "description": "NestedRecipe is a stripped down struct used when a Recipe is nested\nwithin a parent struct in an API response",
+      "type": "object",
+      "properties": {
+        "dgraph.type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DType"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "uid": {
+          "type": "string",
+          "x-go-name": "ID"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "NestedUser": {
+      "description": "NestedUser is a stripped down struct used when a User is nested\nwithin a parent struct within an API response",
+      "type": "object",
+      "properties": {
+        "dgraph.type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DType"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "uid": {
+          "type": "string",
+          "x-go-name": "ID"
+        },
+        "username": {
+          "type": "string",
+          "x-go-name": "Username"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "RecipeResponse": {
+      "description": "RecipeResponse is a struct that represents a single recipe. It is used exclusively\nfor marshalling responses back to API clients.",
+      "type": "object",
+      "properties": {
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedCategory"
+          },
+          "x-go-name": "Categories"
+        },
+        "cook_time": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "CookTime"
+        },
+        "dgraph.type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DType"
+        },
+        "directions": {
+          "type": "string",
+          "x-go-name": "Directions"
+        },
+        "domain": {
+          "type": "string",
+          "x-go-name": "Domain"
+        },
+        "favorited_by": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedUser"
+          },
+          "x-go-name": "FavoritedBy"
+        },
+        "has_been_tried": {
+          "type": "boolean",
+          "x-go-name": "HasBeenTried"
+        },
+        "ingredients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IngredientResponse"
+          },
+          "x-go-name": "Ingredients"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedNote"
+          },
+          "x-go-name": "Notes"
+        },
+        "prep_time": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "PrepTime"
+        },
+        "rated_by": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedUser"
+          },
+          "x-go-name": "RatedBy"
+        },
+        "rating_score": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "RatingScore"
+        },
+        "related_recipes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedRecipe"
+          },
+          "x-go-name": "RelatedRecipes"
+        },
+        "total_servings": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "TotalServings"
+        },
+        "uid": {
+          "type": "string",
+          "x-go-name": "ID"
+        },
+        "url": {
+          "type": "string",
+          "x-go-name": "URL"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "UserResponse": {
+      "description": "UserResponse is a struct that represents a single user. It is used exclusively\nfor marshalling responses back to API clients.",
+      "type": "object",
+      "properties": {
+        "dgraph.type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "DType"
+        },
+        "favorites": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedRecipe"
+          },
+          "x-go-name": "Favorites"
+        },
+        "name": {
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedNote"
+          },
+          "x-go-name": "Notes"
+        },
+        "ratings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NestedRecipe"
+          },
+          "x-go-name": "Ratings"
+        },
+        "uid": {
+          "type": "string",
+          "x-go-name": "ID"
+        },
+        "username": {
+          "type": "string",
+          "x-go-name": "Username"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    }
+  },
+  "responses": {
+    "Category": {
+      "description": "body comment",
+      "schema": {
+        "$ref": "#/definitions/CategoryResponse"
+      }
+    },
+    "Ingredient": {
+      "schema": {
+        "$ref": "#/definitions/IngredientResponse"
+      }
+    },
+    "ManyCategories": {
+      "description": "body comment",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/CategoryResponse"
+        }
+      }
+    },
+    "ManyIngredients": {
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/IngredientResponse"
+        }
+      }
+    },
+    "ManyRecipes": {
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/RecipeResponse"
+        }
+      }
+    },
+    "ManyUsers": {
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/UserResponse"
+        }
+      }
+    },
+    "Recipe": {
+      "schema": {
+        "$ref": "#/definitions/RecipeResponse"
+      }
+    },
+    "User": {
+      "schema": {
+        "$ref": "#/definitions/UserResponse"
+      }
+    }
+  }
+}
