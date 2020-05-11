@@ -1,6 +1,6 @@
-// Testing go-swagger generation
+// ChefConnect API Docs
 //
-// The purpose of this application is to test go-swagger in a simple GET request.
+// The ChefConnect app is built using a modern Angular + back end API architecture. All API endpoints are detailed here. Many endpoints can be called as both an authenticated or unauthenticated user, though the data returned may differ. For example, when pulling back recipe details, the notes and ratings associated with that recipe will not be included unless authenticated.
 //
 //     Schemes: http
 //     Host: localhost:8080
@@ -9,10 +9,10 @@
 //     Contact: atticuss<jonn.callahan@gmail.com>
 //
 //     Consumes:
-//     - text/plain
+//     - application/json
 //
 //     Produces:
-//     - text/plain
+//     - application/json
 //
 // swagger:meta
 package main
@@ -39,7 +39,7 @@ type app struct {
 func main() {
 	a := app{}
 	a.initialize("ec2-34-238-150-16.compute-1.amazonaws.com:9080")
-	a.run(":8010")
+	a.run(":8080")
 }
 
 func (a *app) initialize(dgraphURL string) {
