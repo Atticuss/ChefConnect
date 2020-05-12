@@ -55,15 +55,6 @@
             "x-go-name": "Name",
             "name": "name",
             "in": "query"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "x-go-name": "DType",
-            "name": "dgraph.type",
-            "in": "query"
           }
         ],
         "responses": {
@@ -103,15 +94,6 @@
             "type": "string",
             "x-go-name": "Name",
             "name": "name",
-            "in": "query"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "x-go-name": "DType",
-            "name": "dgraph.type",
             "in": "query"
           }
         ],
@@ -167,15 +149,6 @@
             "x-go-name": "Amount",
             "name": "amount",
             "in": "query"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "x-go-name": "DType",
-            "name": "dgraph.type",
-            "in": "query"
           }
         ],
         "responses": {
@@ -221,15 +194,6 @@
             "type": "string",
             "x-go-name": "Amount",
             "name": "amount",
-            "in": "query"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "x-go-name": "DType",
-            "name": "dgraph.type",
             "in": "query"
           }
         ],
@@ -385,15 +349,6 @@
             "x-go-name": "Notes",
             "name": "notes",
             "in": "query"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "x-go-name": "DType",
-            "name": "dgraph.type",
-            "in": "query"
           }
         ],
         "responses": {
@@ -431,7 +386,7 @@
       "delete": {
         "description": "Delete a recipe",
         "tags": [
-          "recipe"
+          "recipes"
         ],
         "operationId": "deleteRecipe",
         "responses": {}
@@ -500,15 +455,6 @@
             },
             "x-go-name": "Ratings",
             "name": "ratings",
-            "in": "query"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "x-go-name": "DType",
-            "name": "dgraph.type",
             "in": "query"
           }
         ],
@@ -583,15 +529,6 @@
             "x-go-name": "Ratings",
             "name": "ratings",
             "in": "query"
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "x-go-name": "DType",
-            "name": "dgraph.type",
-            "in": "query"
           }
         ],
         "responses": {
@@ -615,13 +552,6 @@
       "description": "CategoryResponse is a struct that represents a single category. It is used exclusively\nfor marshalling responses back to API clients.",
       "type": "object",
       "properties": {
-        "dgraph.type": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "DType"
-        },
         "ingredients": {
           "type": "array",
           "items": {
@@ -662,13 +592,6 @@
           },
           "x-go-name": "Categories"
         },
-        "dgraph.type": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "DType"
-        },
         "name": {
           "type": "string",
           "x-go-name": "Name"
@@ -680,17 +603,66 @@
       },
       "x-go-package": "github.com/atticuss/chefconnect/models"
     },
+    "ManyCategoriesResponse": {
+      "description": "ManyCategoriesResponse is a struct that represents multiple categories. It is used\nexclusively for marshalling responsesback to API clients.",
+      "type": "object",
+      "properties": {
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CategoryResponse"
+          },
+          "x-go-name": "Categories"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "ManyIngredientsResponse": {
+      "description": "ManyIngredientsResponse is a struct that represents multiple ingredients. It is used\nexclusively for marshalling responsesback to API clients.",
+      "type": "object",
+      "properties": {
+        "ingredients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UserResponse"
+          },
+          "x-go-name": "Ingredients"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "ManyRecipesResponse": {
+      "description": "ManyRecipesResponse is a struct that represents multiple recipes. It is used\nexclusively for marshalling responsesback to API clients.",
+      "type": "object",
+      "properties": {
+        "recipes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RecipeResponse"
+          },
+          "x-go-name": "Recipes"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
+    "ManyUsersResponse": {
+      "description": "ManyUsersResponse is a struct that represents multiple users. It is used\nexclusively for marshalling responsesback to API clients.",
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UserResponse"
+          },
+          "x-go-name": "Users"
+        }
+      },
+      "x-go-package": "github.com/atticuss/chefconnect/models"
+    },
     "NestedCategory": {
       "description": "NestedCategory is a stripped down struct used when a Category is nested\nwithin a parent struct in an API response",
       "type": "object",
       "properties": {
-        "dgraph.type": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "DType"
-        },
         "name": {
           "type": "string",
           "x-go-name": "Name"
@@ -709,13 +681,6 @@
         "amount": {
           "type": "string",
           "x-go-name": "Amount"
-        },
-        "dgraph.type": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "DType"
         },
         "name": {
           "type": "string",
@@ -754,13 +719,6 @@
       "description": "NestedRecipe is a stripped down struct used when a Recipe is nested\nwithin a parent struct in an API response",
       "type": "object",
       "properties": {
-        "dgraph.type": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "DType"
-        },
         "name": {
           "type": "string",
           "x-go-name": "Name"
@@ -776,13 +734,6 @@
       "description": "NestedUser is a stripped down struct used when a User is nested\nwithin a parent struct within an API response",
       "type": "object",
       "properties": {
-        "dgraph.type": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "DType"
-        },
         "name": {
           "type": "string",
           "x-go-name": "Name"
@@ -813,13 +764,6 @@
           "type": "integer",
           "format": "int64",
           "x-go-name": "CookTime"
-        },
-        "dgraph.type": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "DType"
         },
         "directions": {
           "type": "string",
@@ -902,13 +846,6 @@
       "description": "UserResponse is a struct that represents a single user. It is used exclusively\nfor marshalling responses back to API clients.",
       "type": "object",
       "properties": {
-        "dgraph.type": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "x-go-name": "DType"
-        },
         "favorites": {
           "type": "array",
           "items": {
@@ -961,34 +898,22 @@
     "ManyCategories": {
       "description": "body comment",
       "schema": {
-        "type": "array",
-        "items": {
-          "$ref": "#/definitions/CategoryResponse"
-        }
+        "$ref": "#/definitions/ManyCategoriesResponse"
       }
     },
     "ManyIngredients": {
       "schema": {
-        "type": "array",
-        "items": {
-          "$ref": "#/definitions/IngredientResponse"
-        }
+        "$ref": "#/definitions/ManyIngredientsResponse"
       }
     },
     "ManyRecipes": {
       "schema": {
-        "type": "array",
-        "items": {
-          "$ref": "#/definitions/RecipeResponse"
-        }
+        "$ref": "#/definitions/ManyRecipesResponse"
       }
     },
     "ManyUsers": {
       "schema": {
-        "type": "array",
-        "items": {
-          "$ref": "#/definitions/UserResponse"
-        }
+        "$ref": "#/definitions/ManyUsersResponse"
       }
     },
     "Recipe": {

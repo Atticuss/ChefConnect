@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/atticuss/chefconnect/models"
+
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/copier"
 )
 
 // body comment
@@ -24,7 +26,7 @@ type ingredient struct {
 // swagger:response ManyIngredients
 type manyIngredients struct {
 	// in:body
-	Body []models.IngredientResponse
+	Body models.ManyIngredientsResponse `json:"ingredients"`
 }
 
 // GetAllIngredients handles the GET /ingredients req for fetching all ingredients
@@ -34,13 +36,15 @@ func (ctx *ControllerCtx) GetAllIngredients(w http.ResponseWriter, r *http.Reque
 	// responses:
 	//   200: ManyIngredients
 
-	resp, err := models.GetAllIngredients(ctx.DgraphClient)
+	manyIngredients, err := models.GetAllIngredients(ctx.DgraphClient)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, resp)
+	apiResp := models.ManyIngredientsResponse{}
+	copier.Copy(&apiResp, &manyIngredients)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // GetIngredient handles the GET /ingredients/{id} req for fetching a specific ingredient
@@ -59,7 +63,9 @@ func (ctx *ControllerCtx) GetIngredient(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, ingredient)
+	apiResp := models.IngredientResponse{}
+	copier.Copy(&apiResp, &ingredient)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // CreateIngredient handles the POST /ingredients req for creating an ingredient
@@ -89,7 +95,9 @@ func (ctx *ControllerCtx) CreateIngredient(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, ingredient)
+	apiResp := models.IngredientResponse{}
+	copier.Copy(&apiResp, &ingredient)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // UpdateIngredient handles the PUT /ingredients/{id} req for updating an ingredient
@@ -118,7 +126,9 @@ func (ctx *ControllerCtx) UpdateIngredient(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, ingredient)
+	apiResp := models.IngredientResponse{}
+	copier.Copy(&apiResp, &ingredient)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // DeleteIngredient handles the DELETE /ingredients/{id} req for deleting an ingredient
@@ -144,5 +154,5 @@ func (ctx *ControllerCtx) DeleteIngredient(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, ingredient)
+	respondWithJSON(w, http.StatusCreated, nil)
 }

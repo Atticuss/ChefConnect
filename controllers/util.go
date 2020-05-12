@@ -20,22 +20,6 @@ type ControllerCtx struct {
 	Validator    *validator.Validate
 }
 
-// Unfinshed (obviously). The goal of this function is to provide a general purpose conversion
-// between ManyFoo{} and ManyFooResponse{} types. For example, in the controllers.GetAllUsers()
-// function, the following must be performed:
-//   cleanResp := models.ManyUsersResponse{}
-//   for _, user := range resp.Users {
-//   	cleanResp.Users = append(cleanResp.Users, models.UserResponse(user))
-//   }
-// This logic could be replaced with a general purpose utility function leveraging reflection
-// to dynamically pull and convert the fields between the two structs.
-
-//func convertParentStruct(src interface{}, dst interface{}) {
-//	srcVal := reflect.Indirect(reflect.ValueOf(src))
-//	srcRootField := srcVal.Type().Field(0).Name
-//	srcFieldValues := srcVal.FieldByName(srcRootField)
-//}
-
 func resolveFieldToTag(s interface{}, field string) string {
 	t := reflect.TypeOf(s)
 	f, _ := t.FieldByName(field)
@@ -59,7 +43,11 @@ func respondWithError(w http.ResponseWriter, code int, message string) {
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	response, _ := json.Marshal(payload)
+
+	response := []byte("{}")
+	if payload != nil {
+		response, _ = json.Marshal(payload)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)

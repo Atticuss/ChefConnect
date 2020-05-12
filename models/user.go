@@ -16,13 +16,10 @@ type UserResponse struct {
 	ID       string `json:"uid,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Username string `json:"username,omitempty"`
-	Password string `json:"-"`
 
 	Favorites []NestedRecipe `json:"favorites,omitempty"`
 	Notes     []NestedNote   `json:"notes,omitempty"`
 	Ratings   []NestedRecipe `json:"ratings,omitempty"`
-
-	DType []string `json:"dgraph.type,omitempty"`
 }
 
 // NestedUser is a stripped down struct used when a User is nested
@@ -31,8 +28,6 @@ type NestedUser struct {
 	ID       string `json:"uid,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Username string `json:"username,omitempty"`
-
-	DType []string `json:"dgraph.type,omitempty"`
 }
 
 // ManyUsersResponse is a struct that represents multiple users. It is used
@@ -72,35 +67,7 @@ func GetAllUsers(c *dgo.Dgraph) (*ManyUsers, error) {
 
 	const q = `
 		{
-			root(func: type(User)) {
-				uid
-				name
-				dgraph.type
-			}
-		}
-	`
-	resp, err := txn.Query(context.Background(), q)
-	if err != nil {
-		return nil, err
-	}
-
-	root := rootUser{}
-	err = json.Unmarshal(resp.Json, &root)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ManyUsers{root.Users}, nil
-}
-
-// GetUser will fetch a user via a given ID
-func (user *User) GetUser(c *dgo.Dgraph) error {
-	txn := c.NewReadOnlyTxn()
-
-	variables := map[string]string{"$id": user.ID}
-	const q = `
-		query all($id: string) {
-			root(func: uid($id)) @filter(type(User)) {
+			users(func: type(User)) {
 				uid
 				name
 				password
@@ -113,18 +80,54 @@ func (user *User) GetUser(c *dgo.Dgraph) error {
 			}
 		}
 	`
+
+	resp, err := txn.Query(context.Background(), q)
+	if err != nil {
+		return nil, err
+	}
+
+	users := ManyUsers{}
+	err = json.Unmarshal(resp.Json, &users)
+	if err != nil {
+		return nil, err
+	}
+
+	return &users, nil
+}
+
+// GetUser will fetch a user via a given ID
+func (user *User) GetUser(c *dgo.Dgraph) error {
+	txn := c.NewReadOnlyTxn()
+
+	variables := map[string]string{"$id": user.ID}
+	const q = `
+		query all($id: string) {
+			users(func: uid($id)) @filter(type(User)) {
+				uid
+				name
+				password
+				dgraph.type
+
+				favorites {
+					uid
+					name
+				}
+			}
+		}
+	`
+
 	resp, err := txn.QueryWithVars(context.Background(), q, variables)
 	if err != nil {
 		return err
 	}
 
-	root := rootUser{}
-	err = json.Unmarshal(resp.Json, &root)
+	users := ManyUsers{}
+	err = json.Unmarshal(resp.Json, &users)
 	if err != nil {
 		return err
 	}
 
-	*user = root.Users[0]
+	*user = users.Users[0]
 
 	return nil
 }
