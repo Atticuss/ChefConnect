@@ -39,7 +39,7 @@ type app struct {
 func main() {
 	a := app{}
 	a.initialize("ec2-34-238-150-16.compute-1.amazonaws.com:9080")
-	a.run(":8080")
+	a.run(":8000")
 }
 
 func (a *app) initialize(dgraphURL string) {
