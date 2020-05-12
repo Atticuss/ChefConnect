@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/atticuss/chefconnect/models"
+
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/copier"
 )
 
 // body comment
@@ -24,7 +26,7 @@ type recipe struct {
 // swagger:response ManyRecipes
 type manyRecipes struct {
 	// in:body
-	Body []models.RecipeResponse
+	Body models.ManyRecipesResponse `json:"recipes"`
 }
 
 // GetAllRecipes handles the GET /recipes req for fetching all recipes
@@ -34,13 +36,15 @@ func (ctx *ControllerCtx) GetAllRecipes(w http.ResponseWriter, r *http.Request) 
 	// responses:
 	//   200: ManyRecipes
 
-	resp, err := models.GetAllRecipes(ctx.DgraphClient)
+	manyRecipes, err := models.GetAllRecipes(ctx.DgraphClient)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, resp)
+	apiResp := models.ManyRecipesResponse{}
+	copier.Copy(&apiResp, &manyRecipes)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // GetRecipe handles the GET /recipes/{id} req for fetching a specific recipes
@@ -59,8 +63,9 @@ func (ctx *ControllerCtx) GetRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//respondWithJSON(w, http.StatusOK, models.RecipeResponse(recipe))
-	respondWithJSON(w, http.StatusOK, recipe)
+	apiResp := models.RecipeResponse{}
+	copier.Copy(&apiResp, &recipe)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // CreateRecipe handles the POST /recipes req for creating a recipe
@@ -90,7 +95,9 @@ func (ctx *ControllerCtx) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, recipe)
+	apiResp := models.RecipeResponse{}
+	copier.Copy(&apiResp, &recipe)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // UpdateRecipe handles the PUT /recipes/{id} req for updating a recipe
@@ -119,7 +126,9 @@ func (ctx *ControllerCtx) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, recipe)
+	apiResp := models.RecipeResponse{}
+	copier.Copy(&apiResp, &recipe)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // DeleteRecipe handles the DELETE /recipes/{id} req for deleting a recipe
@@ -145,5 +154,5 @@ func (ctx *ControllerCtx) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, recipe)
+	respondWithJSON(w, http.StatusCreated, nil)
 }

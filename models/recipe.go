@@ -30,8 +30,6 @@ type RecipeResponse struct {
 	FavoritedBy    []NestedUser         `json:"favorited_by,omitempty"`
 	RelatedRecipes []NestedRecipe       `json:"related_recipes,omitempty"`
 	Notes          []NestedNote         `json:"notes,omitempty"`
-
-	DType []string `json:"dgraph.type,omitempty"`
 }
 
 // NestedRecipe is a stripped down struct used when a Recipe is nested
@@ -39,8 +37,12 @@ type RecipeResponse struct {
 type NestedRecipe struct {
 	ID   string `json:"uid,omitempty"`
 	Name string `json:"name,omitempty" validate:"required"`
+}
 
-	DType []string `json:"dgraph.type,omitempty"`
+// ManyRecipesResponse is a struct that represents multiple recipes. It is used
+// exclusively for marshalling responsesback to API clients.
+type ManyRecipesResponse struct {
+	Recipes []RecipeResponse `json:"recipes"`
 }
 
 // Recipe is a struct that represents a single recipe. It is used exclusively

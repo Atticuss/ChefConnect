@@ -7,6 +7,7 @@ import (
 	"github.com/atticuss/chefconnect/models"
 
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/copier"
 )
 
 // body comment
@@ -27,7 +28,7 @@ type category struct {
 // swagger:response ManyCategories
 type manyCategories struct {
 	// in:body
-	Body []models.CategoryResponse
+	Body models.ManyCategoriesResponse `json:"categories"`
 }
 
 // GetAllCategories handles the GET /categories req for fetching all categories
@@ -37,13 +38,15 @@ func (ctx *ControllerCtx) GetAllCategories(w http.ResponseWriter, r *http.Reques
 	// responses:
 	//   200: ManyCategories
 
-	resp, err := models.GetAllCategories(ctx.DgraphClient)
+	manyCategories, err := models.GetAllCategories(ctx.DgraphClient)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, resp)
+	apiResp := models.ManyCategoriesResponse{}
+	copier.Copy(&apiResp, &manyCategories)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // GetCategory handles the GET /categories/{id} req for fetching a specific user
@@ -62,7 +65,9 @@ func (ctx *ControllerCtx) GetCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, category)
+	apiResp := models.CategoryResponse{}
+	copier.Copy(&apiResp, &category)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // CreateCategory handles the POST /categories req for creating a category
@@ -92,7 +97,9 @@ func (ctx *ControllerCtx) CreateCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, category)
+	apiResp := models.CategoryResponse{}
+	copier.Copy(&apiResp, &category)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // UpdateCategory handles the PUT /categories/{id} req for updating a category
@@ -121,7 +128,9 @@ func (ctx *ControllerCtx) UpdateCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, category)
+	apiResp := models.CategoryResponse{}
+	copier.Copy(&apiResp, &category)
+	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // DeleteCategory handles the DELETE /categories/{id} req for deleting a category
@@ -147,5 +156,5 @@ func (ctx *ControllerCtx) DeleteCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, category)
+	respondWithJSON(w, http.StatusCreated, nil)
 }

@@ -17,8 +17,6 @@ type IngredientResponse struct {
 	Amount string `json:"amount",omitempty`
 
 	Categories []NestedCategory `json:"categories,omitempty"`
-
-	DType []string `json:"dgraph.type,omitempty"`
 }
 
 // NestedIngredient is a stripped down struct used when an Ingredient is nested
@@ -27,8 +25,12 @@ type NestedIngredient struct {
 	ID     string `json:"uid,omitempty"`
 	Name   string `json:"name,omitempty" validate:"required"`
 	Amount string `json:"amount",omitempty`
+}
 
-	DType []string `json:"dgraph.type,omitempty"`
+// ManyIngredientsResponse is a struct that represents multiple ingredients. It is used
+// exclusively for marshalling responsesback to API clients.
+type ManyIngredientsResponse struct {
+	Ingredients []UserResponse `json:"ingredients"`
 }
 
 // Ingredient is a struct that represents a single ingredient

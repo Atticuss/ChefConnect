@@ -18,8 +18,6 @@ type NoteResponse struct {
 
 	User   []NestedUser   `json:"author,omitempty"`
 	Recipe []NestedRecipe `json:"recipe,omitempty"`
-
-	DType []string `json:"dgraph.type,omitempty"`
 }
 
 // NestedNote is a stripped down struct used when a Note is nested
@@ -27,8 +25,12 @@ type NoteResponse struct {
 type NestedNote struct {
 	ID   string `json:"uid,omitempty"`
 	Text string `json:"text,omitempty"`
+}
 
-	DType []string `json:"dgraph.type,omitempty"`
+// ManyNotesResponse is a struct that represents multiple notes. It is used
+// exclusively for marshalling responsesback to API clients.
+type ManyNotesResponse struct {
+	Notes []NoteResponse `json:"notes"`
 }
 
 // Note is a struct that represents a single note

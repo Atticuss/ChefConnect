@@ -18,8 +18,6 @@ type CategoryResponse struct {
 
 	Recipes     []NestedRecipe     `json:"recipes,omitempty"`
 	Ingredients []NestedIngredient `json:"ingredients,omitempty"`
-
-	DType []string `json:"dgraph.type,omitempty"`
 }
 
 // NestedCategory is a stripped down struct used when a Category is nested
@@ -27,8 +25,12 @@ type CategoryResponse struct {
 type NestedCategory struct {
 	ID   string `json:"uid,omitempty"`
 	Name string `json:"name,omitempty" validate:"required"`
+}
 
-	DType []string `json:"dgraph.type,omitempty"`
+// ManyCategoriesResponse is a struct that represents multiple categories. It is used
+// exclusively for marshalling responsesback to API clients.
+type ManyCategoriesResponse struct {
+	Categories []CategoryResponse `json:"categories"`
 }
 
 // Category is a struct that represents a single category
@@ -53,12 +55,12 @@ type rootCategory struct {
 }
 
 // GetAllCategories will fetch all categories
-func GetAllCategories(c *dgo.Dgraph) (*[]Category, error) {
+func GetAllCategories(c *dgo.Dgraph) (*ManyCategories, error) {
 	txn := c.NewReadOnlyTxn()
 
 	const q = `
 		{
-			root(func: type(Category)) {
+			categories(func: type(Category)) {
 				uid
 				name
 				dgraph.type
@@ -70,13 +72,13 @@ func GetAllCategories(c *dgo.Dgraph) (*[]Category, error) {
 		return nil, err
 	}
 
-	root := rootCategory{}
-	err = json.Unmarshal(resp.Json, &root)
+	categories := ManyCategories{}
+	err = json.Unmarshal(resp.Json, &categories)
 	if err != nil {
 		return nil, err
 	}
 
-	return &root.Categories, nil
+	return &categories, nil
 }
 
 // GetCategory will fetch a category via a given ID
