@@ -133,27 +133,27 @@ func (user *User) GetUser(c *dgo.Dgraph) error {
 }
 
 // UpdateUser will update a user via a given by ID
-func (u *User) UpdateUser(c *dgo.Dgraph) error {
+func (user *User) UpdateUser(c *dgo.Dgraph) error {
 	return errors.New("Not implemented")
 }
 
 // DeleteUser will delete a user via a given by ID
-func (u *User) DeleteUser(c *dgo.Dgraph) error {
+func (user *User) DeleteUser(c *dgo.Dgraph) error {
 	return errors.New("Not implemented")
 }
 
 // CreateUser will create a new user from the given User struct
-func (u *User) CreateUser(c *dgo.Dgraph) error {
+func (user *User) CreateUser(c *dgo.Dgraph) error {
 	fmt.Println("CreateUser() start")
 
 	txn := c.NewTxn()
 	defer txn.Discard(context.Background())
 
 	// assign an alias ID that can be ref'd out of the response's uid []string map
-	u.ID = "_:user"
-	u.DType = []string{"User"}
+	user.ID = "_:user"
+	user.DType = []string{"User"}
 
-	pb, err := json.Marshal(u)
+	pb, err := json.Marshal(user)
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func (u *User) CreateUser(c *dgo.Dgraph) error {
 	fmt.Println("CreateUser mutation resp: ")
 	fmt.Printf("%+v\n", res)
 
-	u.ID = res.Uids["user"]
+	user.ID = res.Uids["user"]
 
 	return nil
 }
