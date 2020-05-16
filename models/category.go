@@ -4,15 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 )
 
-// CategoryResponse is a struct that represents a single category. It is used exclusively
-// for marshalling responses back to API clients.
-type CategoryResponse struct {
+// APICategory is a struct that represents a single category. It is used exclusively
+// for interaction with clients.
+type APICategory struct {
 	ID   string `json:"uid,omitempty"`
 	Name string `json:"name,omitempty" validate:"required"`
 
@@ -27,10 +26,10 @@ type NestedCategory struct {
 	Name string `json:"name,omitempty" validate:"required"`
 }
 
-// ManyCategoriesResponse is a struct that represents multiple categories. It is used
-// exclusively for marshalling responsesback to API clients.
-type ManyCategoriesResponse struct {
-	Categories []CategoryResponse `json:"categories"`
+// ManyAPICategories is a struct that represents multiple categories. It is used
+// exclusively for interaction with clients.
+type ManyAPICategories struct {
+	Categories []APICategory `json:"categories"`
 }
 
 // Category is a struct that represents a single category
@@ -38,24 +37,19 @@ type Category struct {
 	ID   string `json:"uid,omitempty"`
 	Name string `json:"name,omitempty" validate:"required"`
 
-	Recipes     []Recipe     `json:"recipe_categories,omitempty"`
-	Ingredients []Ingredient `json:"ingredient_categories,omitempty"`
+	Recipes     []Recipe     `json:"~recipe_categories,omitempty"`
+	Ingredients []Ingredient `json:"~ingredient_categories,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }
 
 // ManyCategories is a struct that represents multiple categories
 type ManyCategories struct {
-	ManyCategories []Category `json:"categories"`
-}
-
-// parent struct for dgraph responses
-type rootCategory struct {
-	Categories []Category `json:"root"`
+	Categories []Category `json:"categories"`
 }
 
 // GetAllCategories will fetch all categories
-func GetAllCategories(c *dgo.Dgraph) (*ManyCategories, error) {
+func GetAllCategories(c *dgo.Dgraph) (*ManyCategories, ModelError) {
 	txn := c.NewReadOnlyTxn()
 
 	const q = `
@@ -67,64 +61,68 @@ func GetAllCategories(c *dgo.Dgraph) (*ManyCategories, error) {
 			}
 		}
 	`
+
 	resp, err := txn.Query(context.Background(), q)
 	if err != nil {
-		return nil, err
+		return nil, ModelError{Error: err, ErrorCode: Unhandled}
 	}
 
 	categories := ManyCategories{}
 	err = json.Unmarshal(resp.Json, &categories)
 	if err != nil {
-		return nil, err
+		return nil, ModelError{Error: err, ErrorCode: Unhandled}
 	}
 
-	return &categories, nil
+	return &categories, nilErr
 }
 
 // GetCategory will fetch a category via a given ID
-func (category *Category) GetCategory(c *dgo.Dgraph) error {
+func (category *Category) GetCategory(c *dgo.Dgraph) ModelError {
 	txn := c.NewReadOnlyTxn()
 
 	variables := map[string]string{"$id": category.ID}
 	const q = `
 		query all($id: string) {
-			root(func: uid($id)) @filter(type(Category)) {
+			categories(func: uid($id)) @filter(type(Category)) {
 				uid
 				name
 				dgraph.type
 
-				recipe_categories {
+				~recipe_categories {
 					uid
 					name
 				}
 
-				ingredient_categories {
+				~ingredient_categories {
 					uid
 					name
 				}
 			}
 		}
 	`
+
 	resp, err := txn.QueryWithVars(context.Background(), q, variables)
 	if err != nil {
-		return err
+		return ModelError{Error: err, ErrorCode: Unhandled}
 	}
 
-	root := rootCategory{}
-	err = json.Unmarshal(resp.Json, &root)
+	categories := ManyCategories{}
+	err = json.Unmarshal(resp.Json, &categories)
 	if err != nil {
-		return err
+		return ModelError{Error: err, ErrorCode: Unhandled}
 	}
 
-	*category = root.Categories[0]
+	if len(categories.Categories) == 0 {
+		return ModelError{Error: errors.New("Category not found"), ErrorCode: NotFound}
+	}
 
-	return nil
+	*category = categories.Categories[0]
+
+	return nilErr
 }
 
 // CreateCategory will create a new ingredient from the given Ingredient struct
-func (category *Category) CreateCategory(c *dgo.Dgraph) error {
-	fmt.Println("CreateCategory() start")
-
+func (category *Category) CreateCategory(c *dgo.Dgraph) ModelError {
 	txn := c.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -134,32 +132,72 @@ func (category *Category) CreateCategory(c *dgo.Dgraph) error {
 
 	pb, err := json.Marshal(category)
 	if err != nil {
-		return err
+		return ModelError{Error: err, ErrorCode: Unhandled}
 	}
 
 	mu := &api.Mutation{
 		CommitNow: true,
-	}
-	mu.SetJson = pb
-	res, err := txn.Mutate(context.Background(), mu)
-	if err != nil {
-		return err
+		SetJson:   pb,
 	}
 
-	fmt.Println("CreateCategory mutation resp: ")
-	fmt.Printf("%+v\n", res)
+	res, err := txn.Mutate(context.Background(), mu)
+	if err != nil {
+		return ModelError{Error: err, ErrorCode: Unhandled}
+	}
 
 	category.ID = res.Uids["category"]
 
-	return nil
+	return nilErr
 }
 
 // UpdateCategory will update an category via a given ID
-func (category *Category) UpdateCategory(c *dgo.Dgraph) error {
-	return errors.New("Not implemented")
+func (category *Category) UpdateCategory(c *dgo.Dgraph) ModelError {
+	txn := c.NewTxn()
+	defer txn.Discard(context.Background())
+
+	// assign an alias ID that can be ref'd out of the response's uid []string map
+	category.ID = "_:category"
+	category.DType = []string{"Category"}
+
+	pb, err := json.Marshal(category)
+	if err != nil {
+		return ModelError{Error: err, ErrorCode: Unhandled}
+	}
+
+	mu := &api.Mutation{
+		CommitNow: true,
+		SetJson:   pb,
+	}
+
+	res, err := txn.Mutate(context.Background(), mu)
+	if err != nil {
+		return ModelError{Error: err, ErrorCode: Unhandled}
+	}
+
+	category.ID = res.Uids["category"]
+
+	return nilErr
 }
 
 // DeleteCategory will delete a category via a given ID
-func (category *Category) DeleteCategory(c *dgo.Dgraph) error {
-	return errors.New("Not implemented")
+func (category *Category) DeleteCategory(c *dgo.Dgraph) ModelError {
+	txn := c.NewTxn()
+
+	variables := map[string]string{"uid": category.ID}
+	pb, err := json.Marshal(variables)
+	if err != nil {
+		return ModelError{Error: err, ErrorCode: Unhandled}
+	}
+
+	mu := &api.Mutation{
+		CommitNow:  true,
+		DeleteJson: pb,
+	}
+
+	_, err = txn.Mutate(context.Background(), mu)
+	if err != nil {
+		return ModelError{Error: err, ErrorCode: Unhandled}
+	}
+
+	return nilErr
 }

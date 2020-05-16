@@ -22,18 +22,20 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/atticuss/chefconnect/controllers"
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
+
+	"github.com/atticuss/chefconnect/controllers"
+	"github.com/atticuss/chefconnect/repositories/dgraph"
+	"github.com/atticuss/chefconnect/services"
 )
 
 type app struct {
 	Router *mux.Router
-	Ctx    *controllers.ControllerCtx
 }
 
 func main() {
@@ -43,14 +45,14 @@ func main() {
 }
 
 func (a *app) initialize(dgraphURL string) {
-	ctx := controllers.ControllerCtx{}
+	controllerCtx := controllers.ControllerCtx{}
 
 	conn, err := grpc.Dial(dgraphURL, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ctx.DgraphClient = dgo.NewDgraphClient(api.NewDgraphClient(conn))
+	controllerCtx.DgraphClient = dgo.NewDgraphClient(api.NewDgraphClient(conn))
 
 	// no longer need func-specific validation. will leave for now in case i end up
 	// needing it for other controllers down the line.
@@ -68,34 +70,43 @@ func (a *app) initialize(dgraphURL string) {
 		return len(fl.Field().String()) == 0
 	})
 
-	ctx.Validator = v
-	a.Ctx = &ctx
+	controllerCtx.Validator = v
+
+	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
+	categoryRepo := dgraph.NewDgraphCategoryRepository(client)
+
+	serviceCtx := services.ServiceCtx{
+		Validator:          v,
+		CategoryRepository: categoryRepo,
+	}
+
+	controllerCtx.ServiceCtx = &serviceCtx
 
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/ingredients", ctx.GetAllIngredients).Methods("GET")
-	router.HandleFunc("/ingredients", ctx.CreateIngredient).Methods("POST")
-	router.HandleFunc("/ingredients/{id}", ctx.GetIngredient).Methods("GET")
-	router.HandleFunc("/ingredients/{id}", ctx.UpdateIngredient).Methods("PUT")
-	router.HandleFunc("/ingredients/{id}", ctx.DeleteIngredient).Methods("DELETE")
+	router.HandleFunc("/ingredients", controllerCtx.GetAllIngredients).Methods("GET")
+	router.HandleFunc("/ingredients", controllerCtx.CreateIngredient).Methods("POST")
+	router.HandleFunc("/ingredients/{id}", controllerCtx.GetIngredient).Methods("GET")
+	router.HandleFunc("/ingredients/{id}", controllerCtx.UpdateIngredient).Methods("PUT")
+	router.HandleFunc("/ingredients/{id}", controllerCtx.DeleteIngredient).Methods("DELETE")
 
-	router.HandleFunc("/recipes", ctx.GetAllRecipes).Methods("GET")
-	router.HandleFunc("/recipes", ctx.CreateRecipe).Methods("POST")
-	router.HandleFunc("/recipes/{id}", ctx.GetRecipe).Methods("GET")
-	router.HandleFunc("/recipes/{id}", ctx.UpdateRecipe).Methods("PUT")
-	router.HandleFunc("/recipes/{id}", ctx.DeleteRecipe).Methods("DELETE")
+	router.HandleFunc("/recipes", controllerCtx.GetAllRecipes).Methods("GET")
+	router.HandleFunc("/recipes", controllerCtx.CreateRecipe).Methods("POST")
+	router.HandleFunc("/recipes/{id}", controllerCtx.GetRecipe).Methods("GET")
+	router.HandleFunc("/recipes/{id}", controllerCtx.UpdateRecipe).Methods("PUT")
+	router.HandleFunc("/recipes/{id}", controllerCtx.DeleteRecipe).Methods("DELETE")
 
-	router.HandleFunc("/users", ctx.GetAllUsers).Methods("GET")
-	router.HandleFunc("/users", ctx.CreateUser).Methods("POST")
-	router.HandleFunc("/users/{id}", ctx.GetUser).Methods("GET")
-	router.HandleFunc("/users/{id}", ctx.UpdateIngredient).Methods("PUT")
-	router.HandleFunc("/users/{id}", ctx.DeleteUser).Methods("DELETE")
+	router.HandleFunc("/users", controllerCtx.GetAllUsers).Methods("GET")
+	router.HandleFunc("/users", controllerCtx.CreateUser).Methods("POST")
+	router.HandleFunc("/users/{id}", controllerCtx.GetUser).Methods("GET")
+	router.HandleFunc("/users/{id}", controllerCtx.UpdateIngredient).Methods("PUT")
+	router.HandleFunc("/users/{id}", controllerCtx.DeleteUser).Methods("DELETE")
 
-	router.HandleFunc("/categories", ctx.GetAllCategories).Methods("GET")
-	router.HandleFunc("/categories", ctx.CreateCategory).Methods("POST")
-	router.HandleFunc("/categories/{id}", ctx.GetCategory).Methods("GET")
-	router.HandleFunc("/categories/{id}", ctx.UpdateCategory).Methods("PUT")
-	router.HandleFunc("/categories/{id}", ctx.DeleteCategory).Methods("DELETE")
+	router.HandleFunc("/categories", controllerCtx.GetAllCategories).Methods("GET")
+	router.HandleFunc("/categories", controllerCtx.CreateCategory).Methods("POST")
+	router.HandleFunc("/categories/{id}", controllerCtx.GetCategory).Methods("GET")
+	router.HandleFunc("/categories/{id}", controllerCtx.UpdateCategory).Methods("PUT")
+	router.HandleFunc("/categories/{id}", controllerCtx.DeleteCategory).Methods("DELETE")
 
 	router.HandleFunc("/ping", healthCheck).Methods("GET")
 	router.HandleFunc("/swagger.json", swagger).Methods("GET")

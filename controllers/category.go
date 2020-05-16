@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/atticuss/chefconnect/models"
-
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/copier"
+
+	"github.com/atticuss/chefconnect/models"
 )
 
 // body comment
@@ -38,15 +37,11 @@ func (ctx *ControllerCtx) GetAllCategories(w http.ResponseWriter, r *http.Reques
 	// responses:
 	//   200: ManyCategories
 
-	manyCategories, err := models.GetAllCategories(ctx.DgraphClient)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.GetAllCategories(); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.ManyCategoriesResponse{}
-	copier.Copy(&apiResp, &manyCategories)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // GetCategory handles the GET /categories/{id} req for fetching a specific user
@@ -59,15 +54,11 @@ func (ctx *ControllerCtx) GetCategory(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	category := models.Category{ID: id}
-	if err := category.GetCategory(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.GetCategory(id); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.CategoryResponse{}
-	copier.Copy(&apiResp, &category)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // CreateCategory handles the POST /categories req for creating a category
@@ -86,20 +77,11 @@ func (ctx *ControllerCtx) CreateCategory(w http.ResponseWriter, r *http.Request)
 	}
 	defer r.Body.Close()
 
-	err := ctx.Validator.Struct(category)
-	if err != nil {
-		respondWithValidationError(w, err, category)
-		return
+	if resp, sErr := ctx.ServiceCtx.CreateCategory(category); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	if err := category.CreateCategory(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	apiResp := models.CategoryResponse{}
-	copier.Copy(&apiResp, &category)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // UpdateCategory handles the PUT /categories/{id} req for updating a category
@@ -117,20 +99,14 @@ func (ctx *ControllerCtx) UpdateCategory(w http.ResponseWriter, r *http.Request)
 	}
 	defer r.Body.Close()
 
-	err := ctx.Validator.Struct(category)
-	if err != nil {
-		respondWithValidationError(w, err, category)
-		return
-	}
+	vars := mux.Vars(r)
+	category.ID = vars["id"]
 
-	if err := category.UpdateCategory(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.UpdateCategory(category); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.CategoryResponse{}
-	copier.Copy(&apiResp, &category)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // DeleteCategory handles the DELETE /categories/{id} req for deleting a category
@@ -140,21 +116,12 @@ func (ctx *ControllerCtx) DeleteCategory(w http.ResponseWriter, r *http.Request)
 	// responses:
 	//   200
 
-	respondWithError(w, http.StatusNotImplemented, "Not implemented yet")
-	return
+	vars := mux.Vars(r)
+	id := vars["id"]
 
-	var category models.Category
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&category); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
+	if sErr := ctx.ServiceCtx.DeleteCategory(id); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, models.Category{})
 	}
-	defer r.Body.Close()
-
-	if err := category.DeleteCategory(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	respondWithJSON(w, http.StatusCreated, nil)
 }
