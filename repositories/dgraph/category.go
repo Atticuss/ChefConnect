@@ -3,11 +3,10 @@ package dgraph
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
-	"github.com/jinzhu/copier"
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
+	"github.com/jinzhu/copier"
 
 	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/repositories"
@@ -156,9 +155,8 @@ func (d *dgraphCategoryRepo) Update(category *models.Category) (*models.Category
 	copier.Copy(&dCategory, category)
 
 	dCategory.DType = []string{"Category"}
-	fmt.Printf("updating category: %+v\n", dCategory)
 
-	pb, err := json.Marshal(category)
+	pb, err := json.Marshal(dCategory)
 	if err != nil {
 		return category, err
 	}
@@ -168,12 +166,10 @@ func (d *dgraphCategoryRepo) Update(category *models.Category) (*models.Category
 		SetJson:   pb,
 	}
 
-	res, err := txn.Mutate(context.Background(), mu)
+	_, err = txn.Mutate(context.Background(), mu)
 	if err != nil {
 		return category, err
 	}
-
-	fmt.Printf("update response: %+v\n", res)
 
 	return category, nil
 }

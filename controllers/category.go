@@ -20,14 +20,14 @@ type categoryRequest struct {
 // swagger:response Category
 type category struct {
 	// in:body
-	Body models.CategoryResponse
+	Body models.APICategory
 }
 
 // body comment
 // swagger:response ManyCategories
 type manyCategories struct {
 	// in:body
-	Body models.ManyCategoriesResponse `json:"categories"`
+	Body models.ManyAPICategories `json:"categories"`
 }
 
 // GetAllCategories handles the GET /categories req for fetching all categories

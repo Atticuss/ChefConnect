@@ -7,8 +7,8 @@ import (
 )
 
 // GetAllCategories handles the business logic when a client requests all categories
-func (ctx *ServiceCtx) GetAllCategories() (models.ManyCategoriesResponse, ServiceError) {
-	categoriesResp := models.ManyCategoriesResponse{}
+func (ctx *ServiceCtx) GetAllCategories() (models.ManyAPICategories, ServiceError) {
+	categoriesResp := models.ManyAPICategories{}
 	categories, err := ctx.CategoryRepository.GetAll()
 	if err != nil {
 		return categoriesResp, ServiceError{Error: err}
@@ -20,8 +20,8 @@ func (ctx *ServiceCtx) GetAllCategories() (models.ManyCategoriesResponse, Servic
 }
 
 // GetCategory handles the business logic when a client requests a specific category
-func (ctx *ServiceCtx) GetCategory(id string) (models.CategoryResponse, ServiceError) {
-	categoryResp := models.CategoryResponse{}
+func (ctx *ServiceCtx) GetCategory(id string) (models.APICategory, ServiceError) {
+	categoryResp := models.APICategory{}
 	category, err := ctx.CategoryRepository.Get(id)
 	if err != nil {
 		return categoryResp, ServiceError{Error: err}
@@ -33,8 +33,8 @@ func (ctx *ServiceCtx) GetCategory(id string) (models.CategoryResponse, ServiceE
 }
 
 // CreateCategory handles the business logic when a client creates a new category
-func (ctx *ServiceCtx) CreateCategory(category models.Category) (models.CategoryResponse, ServiceError) {
-	categoryResp := models.CategoryResponse{}
+func (ctx *ServiceCtx) CreateCategory(category models.Category) (models.APICategory, ServiceError) {
+	categoryResp := models.APICategory{}
 
 	repoCategory, err := ctx.CategoryRepository.Create(&category)
 	if err != nil {
@@ -47,8 +47,8 @@ func (ctx *ServiceCtx) CreateCategory(category models.Category) (models.Category
 }
 
 // UpdateCategory handles the business logic when a client updates a category
-func (ctx *ServiceCtx) UpdateCategory(category models.Category) (models.CategoryResponse, ServiceError) {
-	categoryResp := models.CategoryResponse{}
+func (ctx *ServiceCtx) UpdateCategory(category models.Category) (models.APICategory, ServiceError) {
+	categoryResp := models.APICategory{}
 
 	repoCategory, err := ctx.CategoryRepository.Update(&category)
 	if err != nil {
