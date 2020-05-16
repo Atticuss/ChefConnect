@@ -25,7 +25,8 @@ func buildSchema(c *dgo.Dgraph) {
 		domain: string .
 		directions: string .
 		ingredients: [uid] @reverse .
-		categories: [uid] @reverse .
+		ingredient_categories: [uid] @reverse .
+		recipe_categories: [uid] @reverse .
 		prep_time: int @index(int) .
 		cook_time: int @index(int) .
 		total_servings: int .
@@ -48,14 +49,15 @@ func buildSchema(c *dgo.Dgraph) {
 		type Ingredient {
 			name
 			<~ingredients>
-			categories
+			ingredient_categories
 
 			amount
 		}
 
 		type Category {
 			name
-			<~categories>
+			<~ingredient_categories>
+			<~recipe_categories>
 		}
 
 		type Recipe {
@@ -68,14 +70,10 @@ func buildSchema(c *dgo.Dgraph) {
 			cook_time
 			total_servings
 			related_recipes
-			categories
-			ratings
+			recipe_categories
 			has_been_tried
 			
 			<~recipe>
-
-			score
-
 			<~ratings>
 			<~favorites>
 			<~related_recipes>
@@ -134,8 +132,8 @@ func initCategories(c *dgo.Dgraph) *[]models.Category {
 	categories := []models.Category{cat1, cat2, cat3}
 
 	for idx, cat := range categories {
-		if err := cat.CreateCategory(c); err != nil {
-			log.Fatal(err)
+		if mErr := cat.CreateCategory(c); mErr.Error != nil {
+			log.Fatal(mErr.Error)
 		}
 		categories[idx] = cat
 	}
@@ -152,8 +150,8 @@ func initIngredients(c *dgo.Dgraph, categories *[]models.Category) *[]models.Ing
 	}
 
 	ing2 := models.Ingredient{
-		Name:       "Soy Curls",
-		Categories: []models.Category{{ID: (*categories)[2].ID}},
+		Name:                 "Soy Curls",
+		IngredientCategories: []models.Category{{ID: (*categories)[2].ID}},
 	}
 
 	ing3 := models.Ingredient{
@@ -161,17 +159,18 @@ func initIngredients(c *dgo.Dgraph, categories *[]models.Category) *[]models.Ing
 	}
 
 	ing4 := models.Ingredient{
-		Name:       "Buffalo Sauce",
-		Categories: []models.Category{{ID: (*categories)[1].ID}},
+		Name:                 "Buffalo Sauce",
+		IngredientCategories: []models.Category{{ID: (*categories)[1].ID}},
 	}
 
 	ingredients := []models.Ingredient{ing1, ing2, ing3, ing4}
 
-	for idx, ing := range ingredients {
-		if err := ing.CreateIngredient(c); err != nil {
-			log.Fatal(err)
+	for idx, ingredient := range ingredients {
+		if mErr := ingredient.CreateIngredient(c); mErr.Error != nil {
+			log.Fatal(mErr.Error)
 		}
-		ingredients[idx] = ing
+		fmt.Printf("ingredient created: %+v\n", ingredient)
+		ingredients[idx] = ingredient
 	}
 
 	return &ingredients
@@ -198,11 +197,11 @@ func initRecipes(c *dgo.Dgraph, categories *[]models.Category, ingredients *[]mo
 
 	recipes := []models.Recipe{recipe1}
 
-	for idx, rec := range recipes {
-		if err := rec.CreateRecipe(c); err != nil {
-			log.Fatal(err)
+	for idx, recipe := range recipes {
+		if mErr := recipe.CreateRecipe(c); mErr.Error != nil {
+			log.Fatal(mErr.Error)
 		}
-		recipes[idx] = rec
+		recipes[idx] = recipe
 	}
 
 	return &recipes
@@ -216,14 +215,14 @@ func initUsers(c *dgo.Dgraph, recipes *[]models.Recipe) *[]models.User {
 		Username:  "jay.sea@gmail.com",
 		Password:  "Password1!",
 		Favorites: *recipes,
-		Ratings:   []models.Recipe{{ID: (*recipes)[0].ID, RatingScore: 4}},
+		//Ratings:   []models.Recipe{{ID: (*recipes)[0].ID, RatingScore: 4}},
 	}
 
 	users := []models.User{user1}
 
 	for idx, u := range users {
-		if err := u.CreateUser(c); err != nil {
-			log.Fatal(err)
+		if mErr := u.CreateUser(c); mErr.Error != nil {
+			log.Fatal(mErr.Error)
 		}
 		users[idx] = u
 	}
@@ -243,8 +242,8 @@ func initNotes(c *dgo.Dgraph, recipes *[]models.Recipe, users *[]models.User) *[
 	notes := []models.Note{note1}
 
 	for idx, n := range notes {
-		if err := n.CreateNote(c); err != nil {
-			log.Fatal(err)
+		if mErr := n.CreateNote(c); mErr.Error != nil {
+			log.Fatal(mErr.Error)
 		}
 		notes[idx] = n
 	}
