@@ -16,6 +16,8 @@ type dgraphCategoryRepo struct {
 	Client *dgo.Dgraph
 }
 
+// NewDgraphCategoryRepository configures a dgraph repository for accessing
+// category data
 func NewDgraphCategoryRepository(db *dgo.Dgraph) repositories.CategoryRepository {
 	return &dgraphCategoryRepo{
 		Client: db,
