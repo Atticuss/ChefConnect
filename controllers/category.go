@@ -13,7 +13,7 @@ import (
 // swagger:parameters createCategory updateCategory
 type categoryRequest struct {
 	// in:body
-	models.NestedCategory
+	models.APICategory
 }
 
 // body comment
