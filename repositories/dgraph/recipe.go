@@ -41,15 +41,27 @@ type dgraphRecipe struct {
 	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
 
 	Ingredients       []dgraphIngredient `json:"ingredients,omitempty"`
-	IngredientAmounts map[string]string  `json:"ingredients|amount,omitempty"`
+	IngredientAmounts map[int]string     `json:"ingredients|amount,omitempty"`
 	Categories        []dgraphCategory   `json:"categories,omitempty"`
-	RatedBy           []models.User      `json:"~ratings,omitempty"`
-	RatingScore       map[string]int     `json:"~ratings|score,omitempty"`
-	FavoritedBy       []models.User      `json:"~favorites,omitempty"`
+	RatedBy           []dgraphUser       `json:"~ratings,omitempty"`
+	RatingScore       map[int]int        `json:"~ratings|score,omitempty"`
+	FavoritedBy       []dgraphUser       `json:"~favorites,omitempty"`
 	RelatedRecipes    []dgraphRecipe     `json:"related_recipes,omitempty"`
 	Notes             []models.Note      `json:"~recipe,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
+}
+
+func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) {
+	copier.Copy(&recipe, &dRecipe)
+
+	for idx, value := range dRecipe.IngredientAmounts {
+		recipe.Ingredients[idx].Amount = value
+	}
+
+	for idx, value := range dRecipe.RatingScore {
+		recipe.RatedBy[idx].RatingScore = value
+	}
 }
 
 // GetAll recipes out of dgraph
@@ -94,7 +106,7 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 	variables := map[string]string{"$id": id}
 	const q = `
 		query all($id: string) {
-			recipe(func: uid($id)) @filter(type(Recipe)) {
+			recipes(func: uid($id)) @filter(type(Recipe)) {
 				uid
 				name
 				url
@@ -145,7 +157,7 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 	}
 
 	if len(dRecipes.Recipes) > 0 {
-		copier.Copy(&recipe, &dRecipes.Recipes[0])
+		dRecipes.Recipes[0].dgraphToModel(&recipe)
 		return &recipe, nil
 	}
 

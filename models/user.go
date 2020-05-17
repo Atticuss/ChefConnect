@@ -15,9 +15,10 @@ type APIUser struct {
 // NestedUser is a stripped down struct used when a User is nested
 // within a parent struct within an API response
 type NestedUser struct {
-	ID       string `json:"uid,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Username string `json:"username,omitempty"`
+	ID          string `json:"uid,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Username    string `json:"username,omitempty"`
+	RatingScore int    `json:"ratingScore,omitempty"`
 }
 
 // ManyAPIUsers is a struct that represents multiple users. It is used
@@ -29,10 +30,11 @@ type ManyAPIUsers struct {
 // User is a struct that represents a single user. It is used exclusively
 // for unmarshalling responses from dgraph
 type User struct {
-	ID       string `json:"uid,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
+	ID          string `json:"uid,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Username    string `json:"username,omitempty"`
+	Password    string `json:"password,omitempty"`
+	RatingScore int
 
 	Favorites []Recipe `json:"favorites,omitempty"`
 	Notes     []Note   `json:"~author,omitempty"`

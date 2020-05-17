@@ -49,14 +49,12 @@ type Recipe struct {
 	TotalServings int    `json:"total_servings,omitempty"`
 	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
 
-	Ingredients       []Ingredient      `json:"ingredients,omitempty"`
-	IngredientAmounts map[string]string `json:"ingredients|amount,omitempty"`
-	Categories        []Category        `json:"categories,omitempty"`
-	RatedBy           []User            `json:"~ratings,omitempty"`
-	RatingScore       map[string]int    `json:"~ratings|score,omitempty"`
-	FavoritedBy       []User            `json:"~favorites,omitempty"`
-	RelatedRecipes    []Recipe          `json:"related_recipes,omitempty"`
-	Notes             []Note            `json:"~recipe,omitempty"`
+	Ingredients    []Ingredient `json:"ingredients,omitempty"`
+	Categories     []Category   `json:"categories,omitempty"`
+	RatedBy        []User       `json:"~ratings,omitempty"`
+	FavoritedBy    []User       `json:"~favorites,omitempty"`
+	RelatedRecipes []Recipe     `json:"related_recipes,omitempty"`
+	Notes          []Note       `json:"~recipe,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }
