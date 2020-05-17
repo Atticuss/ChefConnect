@@ -4,6 +4,11 @@ import (
 	"github.com/atticuss/chefconnect/models"
 )
 
+type RepositoryUtility interface {
+	InitializeSchema() error
+	ClearDatastore() error
+}
+
 type CategoryRepository interface {
 	Get(id string) (*models.Category, error)
 	GetAll() (*models.ManyCategories, error)

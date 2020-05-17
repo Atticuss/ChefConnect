@@ -31,4 +31,5 @@ type ServiceCtx struct {
 	IngredientRepository repositories.IngredientRepository
 	RecipeRepository     repositories.RecipeRepository
 	UserRepository       repositories.UserRepository
+	RepositoryUtility    repositories.RepositoryUtility
 }
