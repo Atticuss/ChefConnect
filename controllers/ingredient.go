@@ -4,29 +4,28 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/atticuss/chefconnect/models"
-
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/copier"
+
+	"github.com/atticuss/chefconnect/models"
 )
 
 // body comment
 // swagger:parameters createIngredient updateIngredient
 type ingredientRequest struct {
 	// in:body
-	models.NestedIngredient
+	models.APIIngredient
 }
 
 // swagger:response Ingredient
 type ingredient struct {
 	// in:body
-	Body models.IngredientResponse
+	Body models.APIIngredient
 }
 
 // swagger:response ManyIngredients
 type manyIngredients struct {
 	// in:body
-	Body models.ManyIngredientsResponse `json:"ingredients"`
+	Body models.ManyAPIIngredients `json:"ingredients"`
 }
 
 // GetAllIngredients handles the GET /ingredients req for fetching all ingredients
@@ -36,15 +35,11 @@ func (ctx *ControllerCtx) GetAllIngredients(w http.ResponseWriter, r *http.Reque
 	// responses:
 	//   200: ManyIngredients
 
-	manyIngredients, err := models.GetAllIngredients(ctx.DgraphClient)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.GetAllIngredients(); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.ManyIngredientsResponse{}
-	copier.Copy(&apiResp, &manyIngredients)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // GetIngredient handles the GET /ingredients/{id} req for fetching a specific ingredient
@@ -57,15 +52,11 @@ func (ctx *ControllerCtx) GetIngredient(w http.ResponseWriter, r *http.Request) 
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	ingredient := models.Ingredient{ID: id}
-	if err := ingredient.GetIngredient(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.GetIngredient(id); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.IngredientResponse{}
-	copier.Copy(&apiResp, &ingredient)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // CreateIngredient handles the POST /ingredients req for creating an ingredient
@@ -84,20 +75,11 @@ func (ctx *ControllerCtx) CreateIngredient(w http.ResponseWriter, r *http.Reques
 	}
 	defer r.Body.Close()
 
-	err := ctx.Validator.Struct(ingredient)
-	if err != nil {
-		respondWithValidationError(w, err, ingredient)
-		return
+	if resp, sErr := ctx.ServiceCtx.CreateIngredient(ingredient); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	if err := ingredient.CreateIngredient(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	apiResp := models.IngredientResponse{}
-	copier.Copy(&apiResp, &ingredient)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // UpdateIngredient handles the PUT /ingredients/{id} req for updating an ingredient
@@ -115,20 +97,14 @@ func (ctx *ControllerCtx) UpdateIngredient(w http.ResponseWriter, r *http.Reques
 	}
 	defer r.Body.Close()
 
-	err := ctx.Validator.Struct(ingredient)
-	if err != nil {
-		respondWithValidationError(w, err, ingredient)
-		return
-	}
+	vars := mux.Vars(r)
+	ingredient.ID = vars["id"]
 
-	if err := ingredient.UpdateIngredient(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.UpdateIngredient(ingredient); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.IngredientResponse{}
-	copier.Copy(&apiResp, &ingredient)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // DeleteIngredient handles the DELETE /ingredients/{id} req for deleting an ingredient
@@ -138,21 +114,12 @@ func (ctx *ControllerCtx) DeleteIngredient(w http.ResponseWriter, r *http.Reques
 	// responses:
 	//   200
 
-	respondWithError(w, http.StatusNotImplemented, "Not implemented yet")
-	return
+	vars := mux.Vars(r)
+	id := vars["id"]
 
-	var ingredient models.Ingredient
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&ingredient); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
+	if sErr := ctx.ServiceCtx.DeleteIngredient(id); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, models.Ingredient{})
 	}
-	defer r.Body.Close()
-
-	if err := ingredient.DeleteIngredient(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	respondWithJSON(w, http.StatusCreated, nil)
 }

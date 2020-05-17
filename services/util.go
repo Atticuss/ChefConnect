@@ -26,6 +26,7 @@ type ServiceError struct {
 }
 
 type ServiceCtx struct {
-	Validator          *validator.Validate
-	CategoryRepository repositories.CategoryRepository
+	Validator            *validator.Validate
+	CategoryRepository   repositories.CategoryRepository
+	IngredientRepository repositories.IngredientRepository
 }
