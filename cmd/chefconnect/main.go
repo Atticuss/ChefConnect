@@ -76,12 +76,14 @@ func (a *app) initialize(dgraphURL string) {
 	categoryRepo := dgraph.NewDgraphCategoryRepository(client)
 	ingredientRepo := dgraph.NewDgraphIngredientRepository(client)
 	recipeRepo := dgraph.NewDgraphRecipeRepository(client)
+	userRepo := dgraph.NewDgraphUserRepository(client)
 
 	serviceCtx := services.ServiceCtx{
 		Validator:            v,
 		CategoryRepository:   categoryRepo,
 		IngredientRepository: ingredientRepo,
 		RecipeRepository:     recipeRepo,
+		UserRepository:       userRepo,
 	}
 
 	controllerCtx.ServiceCtx = &serviceCtx

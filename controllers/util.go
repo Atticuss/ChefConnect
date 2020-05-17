@@ -9,7 +9,6 @@ import (
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/go-playground/validator/v10"
 
-	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/services"
 )
 
@@ -25,8 +24,8 @@ type ControllerCtx struct {
 }
 
 var statusCodeMap = [...]int{
-	models.Unhandled: http.StatusBadRequest,
-	models.NotFound:  http.StatusNotFound,
+	services.Unhandled: http.StatusBadRequest,
+	services.NotFound:  http.StatusNotFound,
 }
 
 func resolveFieldToTag(s interface{}, field string) string {
@@ -45,10 +44,6 @@ func respondWithValidationError(w http.ResponseWriter, err error, model interfac
 
 	errorMsg := "Required fields are missing: " + strings.Join(missingFields, ", ")
 	respondWithError(w, http.StatusBadRequest, errorMsg)
-}
-
-func respondWithModelError(w http.ResponseWriter, mErr models.ModelError) {
-	respondWithError(w, statusCodeMap[mErr.ErrorCode], mErr.Error.Error())
 }
 
 func respondWithServiceError(w http.ResponseWriter, sErr services.ServiceError) {

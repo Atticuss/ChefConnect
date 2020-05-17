@@ -27,3 +27,11 @@ type RecipeRepository interface {
 	Update(*models.Recipe) (*models.Recipe, error)
 	Delete(id string) error
 }
+
+type UserRepository interface {
+	Get(id string) (*models.User, error)
+	GetAll() (*models.ManyUsers, error)
+	Create(*models.User) (*models.User, error)
+	Update(*models.User) (*models.User, error)
+	Delete(id string) error
+}

@@ -4,29 +4,28 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/atticuss/chefconnect/models"
-
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/copier"
+
+	"github.com/atticuss/chefconnect/models"
 )
 
 // body comment
 // swagger:parameters createUser updateUser
 type userRequest struct {
 	// in:body
-	models.UserResponse
+	models.APIUser
 }
 
 // swagger:response User
 type user struct {
 	// in:body
-	Body models.UserResponse
+	Body models.APIUser
 }
 
 // swagger:response ManyUsers
 type manyUsers struct {
 	// in:body
-	Body models.ManyUsersResponse `json:"users"`
+	Body models.ManyAPIUsers `json:"users"`
 }
 
 // GetAllUsers handles the GET /users req for fetching all users
@@ -36,15 +35,11 @@ func (ctx *ControllerCtx) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	// responses:
 	//   200: ManyUsers
 
-	manyUsers, err := models.GetAllUsers(ctx.DgraphClient)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.GetAllUsers(); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.ManyUsersResponse{}
-	copier.Copy(&apiResp, &manyUsers)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // GetUser handles the GET /users/{id} req for fetching a specific user
@@ -57,15 +52,11 @@ func (ctx *ControllerCtx) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	user := models.User{ID: id}
-	if err := user.GetUser(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.GetUser(id); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.UserResponse{}
-	copier.Copy(&apiResp, &user)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // CreateUser handles the POST /users req for creating a user
@@ -84,20 +75,11 @@ func (ctx *ControllerCtx) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	err := ctx.Validator.Struct(user)
-	if err != nil {
-		respondWithValidationError(w, err, user)
-		return
+	if resp, sErr := ctx.ServiceCtx.CreateUser(user); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	if err := user.CreateUser(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	apiResp := models.UserResponse{}
-	copier.Copy(&apiResp, &user)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // UpdateUser handles the PUT /users/{id} req for updating a user
@@ -115,20 +97,11 @@ func (ctx *ControllerCtx) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	err := ctx.Validator.Struct(user)
-	if err != nil {
-		respondWithValidationError(w, err, user)
-		return
+	if resp, sErr := ctx.ServiceCtx.UpdateUser(user); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	if err := user.UpdateUser(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	apiResp := models.UserResponse{}
-	copier.Copy(&apiResp, &user)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // DeleteUser handles the DELETE /users/{id} req for deleting a user
@@ -138,21 +111,12 @@ func (ctx *ControllerCtx) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	// responses:
 	//   200
 
-	respondWithError(w, http.StatusNotImplemented, "Not implemented yet")
-	return
+	vars := mux.Vars(r)
+	id := vars["id"]
 
-	var user models.User
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&user); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
+	if sErr := ctx.ServiceCtx.DeleteUser(id); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, models.Ingredient{})
 	}
-	defer r.Body.Close()
-
-	if err := user.DeleteUser(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	respondWithJSON(w, http.StatusCreated, nil)
 }
