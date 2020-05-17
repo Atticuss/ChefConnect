@@ -43,5 +43,5 @@ type User struct {
 
 // ManyUsers is a struct that represents multiple users
 type ManyUsers struct {
-	Users []User `json:"users"`
+	Users []User
 }
