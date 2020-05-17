@@ -114,9 +114,6 @@ func (ctx *ControllerCtx) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 	// responses:
 	//   200
 
-	respondWithError(w, http.StatusNotImplemented, "Not implemented yet")
-	return
-
 	vars := mux.Vars(r)
 	id := vars["id"]
 
