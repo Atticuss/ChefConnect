@@ -8,6 +8,9 @@ import (
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/go-playground/validator/v10"
+
+	"github.com/atticuss/chefconnect/models"
+	"github.com/atticuss/chefconnect/services"
 )
 
 // ControllerCtx holds all contextual data for the controller package. Fields are configured
@@ -18,6 +21,12 @@ import (
 type ControllerCtx struct {
 	DgraphClient *dgo.Dgraph
 	Validator    *validator.Validate
+	ServiceCtx   *services.ServiceCtx
+}
+
+var statusCodeMap = [...]int{
+	models.Unhandled: http.StatusBadRequest,
+	models.NotFound:  http.StatusNotFound,
 }
 
 func resolveFieldToTag(s interface{}, field string) string {
@@ -36,6 +45,14 @@ func respondWithValidationError(w http.ResponseWriter, err error, model interfac
 
 	errorMsg := "Required fields are missing: " + strings.Join(missingFields, ", ")
 	respondWithError(w, http.StatusBadRequest, errorMsg)
+}
+
+func respondWithModelError(w http.ResponseWriter, mErr models.ModelError) {
+	respondWithError(w, statusCodeMap[mErr.ErrorCode], mErr.Error.Error())
+}
+
+func respondWithServiceError(w http.ResponseWriter, sErr services.ServiceError) {
+	respondWithError(w, statusCodeMap[sErr.ErrorCode], sErr.Error.Error())
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
