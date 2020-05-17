@@ -65,8 +65,3 @@ type Recipe struct {
 type ManyRecipes struct {
 	Recipes []Recipe `json:"recipes"`
 }
-
-// parent struct for dgraph responses
-type rootRecipe struct {
-	Recipe []Recipe `json:"root"`
-}
