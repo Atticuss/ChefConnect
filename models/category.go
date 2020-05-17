@@ -30,8 +30,6 @@ type Category struct {
 
 	Recipes     []Recipe     `json:"~recipe_categories,omitempty"`
 	Ingredients []Ingredient `json:"~ingredient_categories,omitempty"`
-
-	DType []string `json:"dgraph.type,omitempty"`
 }
 
 // ManyCategories is a struct that represents multiple categories
