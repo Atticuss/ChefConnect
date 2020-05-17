@@ -5,10 +5,9 @@ package models
 type APIIngredient struct {
 	ID     string `json:"uid,omitempty"`
 	Name   string `json:"name,omitempty" validate:"required"`
-	Amount string `json:"amount",omitempty`
+	Amount string `json:"amount,omitempty"`
 
-	IngredientCategories []NestedCategory `json:"ingredientCategories,omitempty"`
-	RecipeCategories     []NestedCategory `json:"recipeCategories,omitempty"`
+	Categories []NestedCategory `json:"categories,omitempty"`
 }
 
 // NestedIngredient is a stripped down struct used when an Ingredient is nested
@@ -31,8 +30,7 @@ type Ingredient struct {
 	Name   string
 	Amount string
 
-	IngredientCategories []Category
-	RecipeCategories     []Category
+	Categories []Category
 }
 
 // ManyIngredients is a struct that represents multiple ingredients

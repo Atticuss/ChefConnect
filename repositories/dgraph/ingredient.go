@@ -33,8 +33,9 @@ type dgraphIngredient struct {
 	ID   string `json:"uid,omitempty"`
 	Name string `json:"name,omitempty" validate:"required"`
 
-	Recipes     []models.Recipe     `json:"~recipe_categories,omitempty"`
-	Ingredients []models.Ingredient `json:"~ingredient_categories,omitempty"`
+	Recipes []models.Recipe `json:"~recipe_categories,omitempty"`
+	//Ingredients []models.Ingredient `json:"~ingredient_categories,omitempty"`
+	Categories []dgraphCategory `json:"ingredient_categories,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }
@@ -78,14 +79,18 @@ func (d *dgraphIngredientRepo) Get(id string) (*models.Ingredient, error) {
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
-	variables := map[string]string{"$id": ingredient.ID}
+	variables := map[string]string{"$id": id}
 	const q = `
 		query all($id: string) {
 			ingredients(func: uid($id)) @filter(type(Ingredient)) {
 				uid
 				name
-				
 				dgraph.type
+
+				ingredient_categories {
+					uid
+					name
+				}
 			}
 		}
 	`
