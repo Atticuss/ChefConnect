@@ -115,6 +115,7 @@ func (d *dgraphIngredientRepo) Create(ingredient *models.Ingredient) (*models.In
 	defer txn.Discard(context.Background())
 
 	copier.Copy(&dIngredient, ingredient)
+	dIngredient.ID = "_:ingredient"
 	dIngredient.DType = []string{"Ingredient"}
 
 	pb, err := json.Marshal(dIngredient)
