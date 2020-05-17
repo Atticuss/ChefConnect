@@ -25,14 +25,14 @@ type ManyAPICategories struct {
 
 // Category is a struct that represents a single category
 type Category struct {
-	ID   string `json:"uid,omitempty"`
-	Name string `json:"name,omitempty" validate:"required"`
+	ID   string
+	Name string
 
-	Recipes     []Recipe     `json:"~recipe_categories,omitempty"`
-	Ingredients []Ingredient `json:"~ingredient_categories,omitempty"`
+	Recipes     []Recipe
+	Ingredients []Ingredient
 }
 
 // ManyCategories is a struct that represents multiple categories
 type ManyCategories struct {
-	Categories []Category `json:"categories"`
+	Categories []Category
 }

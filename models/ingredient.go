@@ -27,15 +27,15 @@ type ManyAPIIngredients struct {
 
 // Ingredient is a struct that represents a single ingredient
 type Ingredient struct {
-	ID     string `json:"uid,omitempty"`
-	Name   string `json:"name,omitempty" validate:"required"`
-	Amount string `json:"ingredients|amount",omitempty`
+	ID     string
+	Name   string
+	Amount string
 
-	IngredientCategories []Category `json:"ingredientCategories,omitempty"`
-	RecipeCategories     []Category `json:"recipeCategories,omitempty"`
+	IngredientCategories []Category
+	RecipeCategories     []Category
 }
 
 // ManyIngredients is a struct that represents multiple ingredients
 type ManyIngredients struct {
-	Ingredients []Ingredient `json:"ingredients"`
+	Ingredients []Ingredient
 }

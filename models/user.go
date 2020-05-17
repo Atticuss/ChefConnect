@@ -30,17 +30,15 @@ type ManyAPIUsers struct {
 // User is a struct that represents a single user. It is used exclusively
 // for unmarshalling responses from dgraph
 type User struct {
-	ID          string `json:"uid,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Username    string `json:"username,omitempty"`
-	Password    string `json:"password,omitempty"`
+	ID          string
+	Name        string
+	Username    string
+	Password    string
 	RatingScore int
 
-	Favorites []Recipe `json:"favorites,omitempty"`
-	Notes     []Note   `json:"~author,omitempty"`
-	Ratings   []Recipe `json:"ratings,omitempty"`
-
-	DType []string `json:"dgraph.type,omitempty"`
+	Favorites []Recipe
+	Notes     []Note
+	Ratings   []Recipe
 }
 
 // ManyUsers is a struct that represents multiple users

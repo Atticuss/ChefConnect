@@ -39,27 +39,25 @@ type ManyAPIRecipes struct {
 // Recipe is a struct that represents a single recipe. It is used exclusively
 // for unmarshalling responses from dgraph
 type Recipe struct {
-	ID            string `json:"uid,omitempty"`
-	Name          string `json:"name,omitempty" validate:"required"`
-	URL           string `json:"url,omitempty"`
-	Domain        string `json:"domain,omitempty"`
-	Directions    string `json:"directions,omitempty"`
-	PrepTime      int    `json:"prep_time,omitempty"`
-	CookTime      int    `json:"cook_time,omitempty"`
-	TotalServings int    `json:"total_servings,omitempty"`
-	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
+	ID            string
+	Name          string
+	URL           string
+	Domain        string
+	Directions    string
+	PrepTime      int
+	CookTime      int
+	TotalServings int
+	HasBeenTried  bool
 
-	Ingredients    []Ingredient `json:"ingredients,omitempty"`
-	Categories     []Category   `json:"categories,omitempty"`
-	RatedBy        []User       `json:"~ratings,omitempty"`
-	FavoritedBy    []User       `json:"~favorites,omitempty"`
-	RelatedRecipes []Recipe     `json:"related_recipes,omitempty"`
-	Notes          []Note       `json:"~recipe,omitempty"`
-
-	DType []string `json:"dgraph.type,omitempty"`
+	Ingredients    []Ingredient
+	Categories     []Category
+	RatedBy        []User
+	FavoritedBy    []User
+	RelatedRecipes []Recipe
+	Notes          []Note
 }
 
 // ManyRecipes is a struct that represents multiple recipes
 type ManyRecipes struct {
-	Recipes []Recipe `json:"recipes"`
+	Recipes []Recipe
 }

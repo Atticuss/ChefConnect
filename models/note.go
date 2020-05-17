@@ -1,8 +1,8 @@
 package models
 
-// NoteResponse is a struct that represents a single note. It is used exclusively
+// APINote is a struct that represents a single note. It is used exclusively
 // for marshalling responses back to API clients.
-type NoteResponse struct {
+type APINote struct {
 	ID   string `json:"uid,omitempty"`
 	Text string `json:"text,omitempty"`
 
@@ -17,24 +17,22 @@ type NestedNote struct {
 	Text string `json:"text,omitempty"`
 }
 
-// ManyNotesResponse is a struct that represents multiple notes. It is used
+// ManyAPINotes is a struct that represents multiple notes. It is used
 // exclusively for marshalling responsesback to API clients.
-type ManyNotesResponse struct {
-	Notes []NoteResponse `json:"notes"`
+type ManyAPINotes struct {
+	Notes []APINote `json:"notes"`
 }
 
 // Note is a struct that represents a single note
 type Note struct {
-	ID   string `json:"uid,omitempty"`
-	Text string `json:"text,omitempty"`
+	ID   string
+	Text string
 
-	User   []User   `json:"author,omitempty"`
-	Recipe []Recipe `json:"recipe,omitempty"`
-
-	DType []string `json:"dgraph.type,omitempty"`
+	User   []User
+	Recipe []Recipe
 }
 
 // ManyNotes is a struct that represents multiple notes
 type ManyNotes struct {
-	Notes []Note `json:"notes"`
+	Notes []Note
 }
