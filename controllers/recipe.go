@@ -4,29 +4,28 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/atticuss/chefconnect/models"
-
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/copier"
+
+	"github.com/atticuss/chefconnect/models"
 )
 
 // body comment
 // swagger:parameters createRecipe udpateRecipe
 type recipeRequest struct {
 	// in:body
-	models.RecipeResponse
+	models.APIRecipe
 }
 
 // swagger:response Recipe
 type recipe struct {
 	// in:body
-	Body models.RecipeResponse
+	Body models.APIRecipe
 }
 
 // swagger:response ManyRecipes
 type manyRecipes struct {
 	// in:body
-	Body models.ManyRecipesResponse `json:"recipes"`
+	Body models.ManyAPIRecipes `json:"recipes"`
 }
 
 // GetAllRecipes handles the GET /recipes req for fetching all recipes
@@ -36,15 +35,11 @@ func (ctx *ControllerCtx) GetAllRecipes(w http.ResponseWriter, r *http.Request) 
 	// responses:
 	//   200: ManyRecipes
 
-	manyRecipes, err := models.GetAllRecipes(ctx.DgraphClient)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.GetAllRecipes(); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.ManyRecipesResponse{}
-	copier.Copy(&apiResp, &manyRecipes)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // GetRecipe handles the GET /recipes/{id} req for fetching a specific recipes
@@ -57,15 +52,11 @@ func (ctx *ControllerCtx) GetRecipe(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	recipe := models.Recipe{ID: id}
-	if err := recipe.GetRecipe(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.GetRecipe(id); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.RecipeResponse{}
-	copier.Copy(&apiResp, &recipe)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // CreateRecipe handles the POST /recipes req for creating a recipe
@@ -84,20 +75,11 @@ func (ctx *ControllerCtx) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	err := ctx.Validator.Struct(recipe)
-	if err != nil {
-		respondWithValidationError(w, err, recipe)
-		return
+	if resp, sErr := ctx.ServiceCtx.CreateRecipe(recipe); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	if err := recipe.CreateRecipe(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	apiResp := models.RecipeResponse{}
-	copier.Copy(&apiResp, &recipe)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // UpdateRecipe handles the PUT /recipes/{id} req for updating a recipe
@@ -115,20 +97,14 @@ func (ctx *ControllerCtx) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	err := ctx.Validator.Struct(recipe)
-	if err != nil {
-		respondWithValidationError(w, err, recipe)
-		return
-	}
+	vars := mux.Vars(r)
+	recipe.ID = vars["id"]
 
-	if err := recipe.UpdateRecipe(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if resp, sErr := ctx.ServiceCtx.UpdateRecipe(recipe); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, resp)
 	}
-
-	apiResp := models.RecipeResponse{}
-	copier.Copy(&apiResp, &recipe)
-	respondWithJSON(w, http.StatusOK, apiResp)
 }
 
 // DeleteRecipe handles the DELETE /recipes/{id} req for deleting a recipe
@@ -141,18 +117,12 @@ func (ctx *ControllerCtx) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 	respondWithError(w, http.StatusNotImplemented, "Not implemented yet")
 	return
 
-	var recipe models.Recipe
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&recipe); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-	defer r.Body.Close()
+	vars := mux.Vars(r)
+	id := vars["id"]
 
-	if err := recipe.DeleteRecipe(ctx.DgraphClient); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
+	if sErr := ctx.ServiceCtx.DeleteRecipe(id); sErr.Error != nil {
+		respondWithServiceError(w, sErr)
+	} else {
+		respondWithJSON(w, http.StatusOK, models.Ingredient{})
 	}
-
-	respondWithJSON(w, http.StatusCreated, nil)
 }

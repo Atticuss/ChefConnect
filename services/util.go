@@ -29,4 +29,5 @@ type ServiceCtx struct {
 	Validator            *validator.Validate
 	CategoryRepository   repositories.CategoryRepository
 	IngredientRepository repositories.IngredientRepository
+	RecipeRepository     repositories.RecipeRepository
 }

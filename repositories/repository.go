@@ -19,3 +19,11 @@ type IngredientRepository interface {
 	Update(*models.Ingredient) (*models.Ingredient, error)
 	Delete(id string) error
 }
+
+type RecipeRepository interface {
+	Get(id string) (*models.Recipe, error)
+	GetAll() (*models.ManyRecipes, error)
+	Create(*models.Recipe) (*models.Recipe, error)
+	Update(*models.Recipe) (*models.Recipe, error)
+	Delete(id string) error
+}
