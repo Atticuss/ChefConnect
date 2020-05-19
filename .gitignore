@@ -19,6 +19,8 @@ _obj
 _test
 _testmain.go
 bin/*
+.idea/*
+.vscode/*
 
 #Angular Build
 static
