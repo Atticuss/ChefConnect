@@ -35,7 +35,7 @@ func (ctx *ControllerCtx) GetAllIngredients(w http.ResponseWriter, r *http.Reque
 	// responses:
 	//   200: ManyIngredients
 
-	if resp, sErr := ctx.ServiceCtx.GetAllIngredients(); sErr.Error != nil {
+	if resp, sErr := ctx.Service.GetAllIngredients(); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -52,7 +52,7 @@ func (ctx *ControllerCtx) GetIngredient(w http.ResponseWriter, r *http.Request) 
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	if resp, sErr := ctx.ServiceCtx.GetIngredient(id); sErr.Error != nil {
+	if resp, sErr := ctx.Service.GetIngredient(id); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -75,7 +75,7 @@ func (ctx *ControllerCtx) CreateIngredient(w http.ResponseWriter, r *http.Reques
 	}
 	defer r.Body.Close()
 
-	if resp, sErr := ctx.ServiceCtx.CreateIngredient(ingredient); sErr.Error != nil {
+	if resp, sErr := ctx.Service.CreateIngredient(ingredient); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -100,7 +100,7 @@ func (ctx *ControllerCtx) UpdateIngredient(w http.ResponseWriter, r *http.Reques
 	vars := mux.Vars(r)
 	ingredient.ID = vars["id"]
 
-	if resp, sErr := ctx.ServiceCtx.UpdateIngredient(ingredient); sErr.Error != nil {
+	if resp, sErr := ctx.Service.UpdateIngredient(ingredient); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -117,7 +117,7 @@ func (ctx *ControllerCtx) DeleteIngredient(w http.ResponseWriter, r *http.Reques
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	if sErr := ctx.ServiceCtx.DeleteIngredient(id); sErr.Error != nil {
+	if sErr := ctx.Service.DeleteIngredient(id); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, models.Ingredient{})

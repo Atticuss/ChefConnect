@@ -18,20 +18,18 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
-	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/controllers"
 	"github.com/atticuss/chefconnect/repositories/dgraph"
-	"github.com/atticuss/chefconnect/services"
+	"github.com/atticuss/chefconnect/services/v1"
 )
 
 type app struct {
@@ -45,48 +43,30 @@ func main() {
 }
 
 func (a *app) initialize(dgraphURL string) {
-	controllerCtx := controllers.ControllerCtx{}
-
 	conn, err := grpc.Dial(dgraphURL, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	controllerCtx.DgraphClient = dgo.NewDgraphClient(api.NewDgraphClient(conn))
-
-	// no longer need func-specific validation. will leave for now in case i end up
-	// needing it for other controllers down the line.
-	v := validator.New()
-	_ = v.RegisterValidation("required-update", func(fl validator.FieldLevel) bool {
-		fmt.Printf("inside 'required-update' check with value: %+v\n", fl.Field())
-		fmt.Printf("kind is %+v\n", fl.Field().Kind())
-		fmt.Printf("len is %+v\n", len(fl.Field().String()))
-		return len(fl.Field().String()) > 0
-	})
-	_ = v.RegisterValidation("banned-create", func(fl validator.FieldLevel) bool {
-		fmt.Printf("inside 'banned-create' check with value: %+v\n", fl.Field())
-		fmt.Printf("kind is %+v\n", fl.Field().Kind())
-		fmt.Printf("len is %+v\n", len(fl.Field().String()))
-		return len(fl.Field().String()) == 0
-	})
-
-	controllerCtx.Validator = v
-
 	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
+
 	categoryRepo := dgraph.NewDgraphCategoryRepository(client)
 	ingredientRepo := dgraph.NewDgraphIngredientRepository(client)
 	recipeRepo := dgraph.NewDgraphRecipeRepository(client)
 	userRepo := dgraph.NewDgraphUserRepository(client)
+	utilRepo := dgraph.NewDgraphRepositoryUtility(client)
 
-	serviceCtx := services.ServiceCtx{
-		Validator:            v,
-		CategoryRepository:   categoryRepo,
-		IngredientRepository: ingredientRepo,
-		RecipeRepository:     recipeRepo,
-		UserRepository:       userRepo,
+	service := v1.NewV1Service(
+		&categoryRepo,
+		&ingredientRepo,
+		&recipeRepo,
+		&userRepo,
+		&utilRepo,
+	)
+
+	controllerCtx := controllers.ControllerCtx{
+		Service: service,
 	}
-
-	controllerCtx.ServiceCtx = &serviceCtx
 
 	router := mux.NewRouter().StrictSlash(true)
 

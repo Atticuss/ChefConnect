@@ -37,7 +37,7 @@ func (ctx *ControllerCtx) GetAllCategories(w http.ResponseWriter, r *http.Reques
 	// responses:
 	//   200: ManyCategories
 
-	if resp, sErr := ctx.ServiceCtx.GetAllCategories(); sErr.Error != nil {
+	if resp, sErr := ctx.Service.GetAllCategories(); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -54,7 +54,7 @@ func (ctx *ControllerCtx) GetCategory(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	if resp, sErr := ctx.ServiceCtx.GetCategory(id); sErr.Error != nil {
+	if resp, sErr := ctx.Service.GetCategory(id); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -77,7 +77,7 @@ func (ctx *ControllerCtx) CreateCategory(w http.ResponseWriter, r *http.Request)
 	}
 	defer r.Body.Close()
 
-	if resp, sErr := ctx.ServiceCtx.CreateCategory(category); sErr.Error != nil {
+	if resp, sErr := ctx.Service.CreateCategory(category); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -102,7 +102,7 @@ func (ctx *ControllerCtx) UpdateCategory(w http.ResponseWriter, r *http.Request)
 	vars := mux.Vars(r)
 	category.ID = vars["id"]
 
-	if resp, sErr := ctx.ServiceCtx.UpdateCategory(category); sErr.Error != nil {
+	if resp, sErr := ctx.Service.UpdateCategory(category); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -119,7 +119,7 @@ func (ctx *ControllerCtx) DeleteCategory(w http.ResponseWriter, r *http.Request)
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	if sErr := ctx.ServiceCtx.DeleteCategory(id); sErr.Error != nil {
+	if sErr := ctx.Service.DeleteCategory(id); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, models.Category{})

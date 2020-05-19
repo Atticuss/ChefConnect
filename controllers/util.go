@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/dgraph-io/dgo/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/atticuss/chefconnect/services"
@@ -18,9 +17,7 @@ import (
 // to the `models` package to avoid passing via params, but more contextual data may be
 // added here later.
 type ControllerCtx struct {
-	DgraphClient *dgo.Dgraph
-	Validator    *validator.Validate
-	ServiceCtx   *services.ServiceCtx
+	Service services.Service
 }
 
 var statusCodeMap = [...]int{

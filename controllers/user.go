@@ -35,7 +35,7 @@ func (ctx *ControllerCtx) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	// responses:
 	//   200: ManyUsers
 
-	if resp, sErr := ctx.ServiceCtx.GetAllUsers(); sErr.Error != nil {
+	if resp, sErr := ctx.Service.GetAllUsers(); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -52,7 +52,7 @@ func (ctx *ControllerCtx) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	if resp, sErr := ctx.ServiceCtx.GetUser(id); sErr.Error != nil {
+	if resp, sErr := ctx.Service.GetUser(id); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -75,7 +75,7 @@ func (ctx *ControllerCtx) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if resp, sErr := ctx.ServiceCtx.CreateUser(user); sErr.Error != nil {
+	if resp, sErr := ctx.Service.CreateUser(user); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -97,7 +97,7 @@ func (ctx *ControllerCtx) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if resp, sErr := ctx.ServiceCtx.UpdateUser(user); sErr.Error != nil {
+	if resp, sErr := ctx.Service.UpdateUser(user); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -114,7 +114,7 @@ func (ctx *ControllerCtx) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	if sErr := ctx.ServiceCtx.DeleteUser(id); sErr.Error != nil {
+	if sErr := ctx.Service.DeleteUser(id); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, models.Ingredient{})

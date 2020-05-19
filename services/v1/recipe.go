@@ -1,17 +1,18 @@
-package services
+package v1
 
 import (
 	"github.com/jinzhu/copier"
 
 	"github.com/atticuss/chefconnect/models"
+	"github.com/atticuss/chefconnect/services"
 )
 
 // GetAllRecipes handles the business logic when a client requests all recipes
-func (ctx *ServiceCtx) GetAllRecipes() (models.ManyAPIRecipes, ServiceError) {
+func (s *v1Service) GetAllRecipes() (models.ManyAPIRecipes, services.ServiceError) {
 	recipesResp := models.ManyAPIRecipes{}
-	recipes, err := ctx.RecipeRepository.GetAll()
+	recipes, err := s.RecipeRepository.GetAll()
 	if err != nil {
-		return recipesResp, ServiceError{Error: err}
+		return recipesResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&recipesResp, &recipes)
@@ -20,11 +21,11 @@ func (ctx *ServiceCtx) GetAllRecipes() (models.ManyAPIRecipes, ServiceError) {
 }
 
 // GetRecipe handles the business logic when a client requests a specific recipe
-func (ctx *ServiceCtx) GetRecipe(id string) (models.APIRecipe, ServiceError) {
+func (s *v1Service) GetRecipe(id string) (models.APIRecipe, services.ServiceError) {
 	recipeResp := models.APIRecipe{}
-	recipe, err := ctx.RecipeRepository.Get(id)
+	recipe, err := s.RecipeRepository.Get(id)
 	if err != nil {
-		return recipeResp, ServiceError{Error: err}
+		return recipeResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&recipeResp, &recipe)
@@ -33,12 +34,12 @@ func (ctx *ServiceCtx) GetRecipe(id string) (models.APIRecipe, ServiceError) {
 }
 
 // CreateRecipe handles the business logic when a client creates a new recipe
-func (ctx *ServiceCtx) CreateRecipe(recipe models.Recipe) (models.APIRecipe, ServiceError) {
+func (s *v1Service) CreateRecipe(recipe models.Recipe) (models.APIRecipe, services.ServiceError) {
 	recipeResp := models.APIRecipe{}
 
-	repoRecipe, err := ctx.RecipeRepository.Create(&recipe)
+	repoRecipe, err := s.RecipeRepository.Create(&recipe)
 	if err != nil {
-		return recipeResp, ServiceError{Error: err}
+		return recipeResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&recipeResp, &repoRecipe)
@@ -47,12 +48,12 @@ func (ctx *ServiceCtx) CreateRecipe(recipe models.Recipe) (models.APIRecipe, Ser
 }
 
 // UpdateRecipe handles the business logic when a client updates a recipe
-func (ctx *ServiceCtx) UpdateRecipe(recipe models.Recipe) (models.APIRecipe, ServiceError) {
+func (s *v1Service) UpdateRecipe(recipe models.Recipe) (models.APIRecipe, services.ServiceError) {
 	recipeResp := models.APIRecipe{}
 
-	repoRecipe, err := ctx.RecipeRepository.Update(&recipe)
+	repoRecipe, err := s.RecipeRepository.Update(&recipe)
 	if err != nil {
-		return recipeResp, ServiceError{Error: err}
+		return recipeResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&recipeResp, &repoRecipe)
@@ -61,10 +62,10 @@ func (ctx *ServiceCtx) UpdateRecipe(recipe models.Recipe) (models.APIRecipe, Ser
 }
 
 // DeleteRecipe handles the business logic when a client deletes a recipe
-func (ctx *ServiceCtx) DeleteRecipe(id string) ServiceError {
-	err := ctx.RecipeRepository.Delete(id)
+func (s *v1Service) DeleteRecipe(id string) services.ServiceError {
+	err := s.RecipeRepository.Delete(id)
 	if err != nil {
-		return ServiceError{Error: err}
+		return services.ServiceError{Error: err}
 	}
 
 	return nilErr

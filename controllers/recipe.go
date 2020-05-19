@@ -35,7 +35,7 @@ func (ctx *ControllerCtx) GetAllRecipes(w http.ResponseWriter, r *http.Request) 
 	// responses:
 	//   200: ManyRecipes
 
-	if resp, sErr := ctx.ServiceCtx.GetAllRecipes(); sErr.Error != nil {
+	if resp, sErr := ctx.Service.GetAllRecipes(); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -52,7 +52,7 @@ func (ctx *ControllerCtx) GetRecipe(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	if resp, sErr := ctx.ServiceCtx.GetRecipe(id); sErr.Error != nil {
+	if resp, sErr := ctx.Service.GetRecipe(id); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -75,7 +75,7 @@ func (ctx *ControllerCtx) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if resp, sErr := ctx.ServiceCtx.CreateRecipe(recipe); sErr.Error != nil {
+	if resp, sErr := ctx.Service.CreateRecipe(recipe); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -100,7 +100,7 @@ func (ctx *ControllerCtx) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	recipe.ID = vars["id"]
 
-	if resp, sErr := ctx.ServiceCtx.UpdateRecipe(recipe); sErr.Error != nil {
+	if resp, sErr := ctx.Service.UpdateRecipe(recipe); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, resp)
@@ -117,7 +117,7 @@ func (ctx *ControllerCtx) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	if sErr := ctx.ServiceCtx.DeleteRecipe(id); sErr.Error != nil {
+	if sErr := ctx.Service.DeleteRecipe(id); sErr.Error != nil {
 		respondWithServiceError(w, sErr)
 	} else {
 		respondWithJSON(w, http.StatusOK, models.Ingredient{})

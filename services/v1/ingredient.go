@@ -1,17 +1,18 @@
-package services
+package v1
 
 import (
 	"github.com/jinzhu/copier"
 
 	"github.com/atticuss/chefconnect/models"
+	"github.com/atticuss/chefconnect/services"
 )
 
 // GetAllIngredients handles the business logic when a client requests all ingredients
-func (ctx *ServiceCtx) GetAllIngredients() (models.ManyAPIIngredients, ServiceError) {
+func (s *v1Service) GetAllIngredients() (models.ManyAPIIngredients, services.ServiceError) {
 	ingredientsResp := models.ManyAPIIngredients{}
-	ingredients, err := ctx.IngredientRepository.GetAll()
+	ingredients, err := s.IngredientRepository.GetAll()
 	if err != nil {
-		return ingredientsResp, ServiceError{Error: err}
+		return ingredientsResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&ingredientsResp, &ingredients)
@@ -20,11 +21,11 @@ func (ctx *ServiceCtx) GetAllIngredients() (models.ManyAPIIngredients, ServiceEr
 }
 
 // GetIngredient handles the business logic when a client requests a specific ingredient
-func (ctx *ServiceCtx) GetIngredient(id string) (models.APIIngredient, ServiceError) {
+func (s *v1Service) GetIngredient(id string) (models.APIIngredient, services.ServiceError) {
 	ingredientResp := models.APIIngredient{}
-	ingredient, err := ctx.IngredientRepository.Get(id)
+	ingredient, err := s.IngredientRepository.Get(id)
 	if err != nil {
-		return ingredientResp, ServiceError{Error: err}
+		return ingredientResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&ingredientResp, &ingredient)
@@ -33,12 +34,12 @@ func (ctx *ServiceCtx) GetIngredient(id string) (models.APIIngredient, ServiceEr
 }
 
 // CreateIngredient handles the business logic when a client creates a new ingredient
-func (ctx *ServiceCtx) CreateIngredient(ingredient models.Ingredient) (models.APIIngredient, ServiceError) {
+func (s *v1Service) CreateIngredient(ingredient models.Ingredient) (models.APIIngredient, services.ServiceError) {
 	ingredientResp := models.APIIngredient{}
 
-	repoIngredient, err := ctx.IngredientRepository.Create(&ingredient)
+	repoIngredient, err := s.IngredientRepository.Create(&ingredient)
 	if err != nil {
-		return ingredientResp, ServiceError{Error: err}
+		return ingredientResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&ingredientResp, &repoIngredient)
@@ -47,12 +48,12 @@ func (ctx *ServiceCtx) CreateIngredient(ingredient models.Ingredient) (models.AP
 }
 
 // UpdateIngredient handles the business logic when a client updates an ingredient
-func (ctx *ServiceCtx) UpdateIngredient(ingredient models.Ingredient) (models.APIIngredient, ServiceError) {
+func (s *v1Service) UpdateIngredient(ingredient models.Ingredient) (models.APIIngredient, services.ServiceError) {
 	ingredientResp := models.APIIngredient{}
 
-	repoIngredient, err := ctx.IngredientRepository.Update(&ingredient)
+	repoIngredient, err := s.IngredientRepository.Update(&ingredient)
 	if err != nil {
-		return ingredientResp, ServiceError{Error: err}
+		return ingredientResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&ingredientResp, &repoIngredient)
@@ -61,10 +62,10 @@ func (ctx *ServiceCtx) UpdateIngredient(ingredient models.Ingredient) (models.AP
 }
 
 // DeleteIngredient handles the business logic when a client deletes an ingredient
-func (ctx *ServiceCtx) DeleteIngredient(id string) ServiceError {
-	err := ctx.IngredientRepository.Delete(id)
+func (s *v1Service) DeleteIngredient(id string) services.ServiceError {
+	err := s.IngredientRepository.Delete(id)
 	if err != nil {
-		return ServiceError{Error: err}
+		return services.ServiceError{Error: err}
 	}
 
 	return nilErr

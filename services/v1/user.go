@@ -1,17 +1,18 @@
-package services
+package v1
 
 import (
 	"github.com/jinzhu/copier"
 
 	"github.com/atticuss/chefconnect/models"
+	"github.com/atticuss/chefconnect/services"
 )
 
 // GetAllUsers handles the business logic when a client requests all users
-func (ctx *ServiceCtx) GetAllUsers() (models.ManyAPIUsers, ServiceError) {
+func (s *v1Service) GetAllUsers() (models.ManyAPIUsers, services.ServiceError) {
 	usersResp := models.ManyAPIUsers{}
-	users, err := ctx.UserRepository.GetAll()
+	users, err := s.UserRepository.GetAll()
 	if err != nil {
-		return usersResp, ServiceError{Error: err}
+		return usersResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&usersResp, &users)
@@ -20,11 +21,11 @@ func (ctx *ServiceCtx) GetAllUsers() (models.ManyAPIUsers, ServiceError) {
 }
 
 // GetUser handles the business logic when a client requests a specific user
-func (ctx *ServiceCtx) GetUser(id string) (models.APIUser, ServiceError) {
+func (s *v1Service) GetUser(id string) (models.APIUser, services.ServiceError) {
 	userResp := models.APIUser{}
-	user, err := ctx.UserRepository.Get(id)
+	user, err := s.UserRepository.Get(id)
 	if err != nil {
-		return userResp, ServiceError{Error: err}
+		return userResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&userResp, &user)
@@ -33,12 +34,12 @@ func (ctx *ServiceCtx) GetUser(id string) (models.APIUser, ServiceError) {
 }
 
 // CreateUser handles the business logic when a client creates a new recipe
-func (ctx *ServiceCtx) CreateUser(user models.User) (models.APIUser, ServiceError) {
+func (s *v1Service) CreateUser(user models.User) (models.APIUser, services.ServiceError) {
 	userResp := models.APIUser{}
 
-	repoUser, err := ctx.UserRepository.Create(&user)
+	repoUser, err := s.UserRepository.Create(&user)
 	if err != nil {
-		return userResp, ServiceError{Error: err}
+		return userResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&userResp, &repoUser)
@@ -47,12 +48,12 @@ func (ctx *ServiceCtx) CreateUser(user models.User) (models.APIUser, ServiceErro
 }
 
 // UpdateUser handles the business logic when a client updates a user
-func (ctx *ServiceCtx) UpdateUser(user models.User) (models.APIUser, ServiceError) {
+func (s *v1Service) UpdateUser(user models.User) (models.APIUser, services.ServiceError) {
 	userResp := models.APIUser{}
 
-	repoUser, err := ctx.UserRepository.Update(&user)
+	repoUser, err := s.UserRepository.Update(&user)
 	if err != nil {
-		return userResp, ServiceError{Error: err}
+		return userResp, services.ServiceError{Error: err}
 	}
 
 	copier.Copy(&userResp, &repoUser)
@@ -61,10 +62,10 @@ func (ctx *ServiceCtx) UpdateUser(user models.User) (models.APIUser, ServiceErro
 }
 
 // DeleteUser handles the business logic when a client deletes a recipe
-func (ctx *ServiceCtx) DeleteUser(id string) ServiceError {
-	err := ctx.UserRepository.Delete(id)
+func (s *v1Service) DeleteUser(id string) services.ServiceError {
+	err := s.UserRepository.Delete(id)
 	if err != nil {
-		return ServiceError{Error: err}
+		return services.ServiceError{Error: err}
 	}
 
 	return nilErr
