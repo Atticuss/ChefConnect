@@ -67,7 +67,7 @@ func (ctx *ControllerCtx) CreateUser(w http.ResponseWriter, r *http.Request) {
 	// responses:
 	//   200: User
 
-	var user models.User
+	var user models.APIUser
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&user); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -89,7 +89,7 @@ func (ctx *ControllerCtx) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// responses:
 	//   200: User
 
-	var user models.User
+	var user models.APIUser
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&user); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")

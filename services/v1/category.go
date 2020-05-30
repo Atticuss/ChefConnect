@@ -34,31 +34,33 @@ func (s *v1Service) GetCategory(id string) (models.APICategory, services.Service
 }
 
 // CreateCategory handles the business logic when a client creates a new category
-func (s *v1Service) CreateCategory(category models.Category) (models.APICategory, services.ServiceError) {
-	categoryResp := models.APICategory{}
+func (s *v1Service) CreateCategory(apiCategory models.APICategory) (models.APICategory, services.ServiceError) {
+	category := models.Category{}
+	copier.Copy(&category, &apiCategory)
 
 	repoCategory, err := s.CategoryRepository.Create(&category)
+	copier.Copy(&apiCategory, &repoCategory)
+
 	if err != nil {
-		return categoryResp, services.ServiceError{Error: err}
+		return apiCategory, services.ServiceError{Error: err}
 	}
 
-	copier.Copy(&categoryResp, &repoCategory)
-
-	return categoryResp, nilErr
+	return apiCategory, nilErr
 }
 
 // UpdateCategory handles the business logic when a client updates a category
-func (s *v1Service) UpdateCategory(category models.Category) (models.APICategory, services.ServiceError) {
-	categoryResp := models.APICategory{}
+func (s *v1Service) UpdateCategory(apiCategory models.APICategory) (models.APICategory, services.ServiceError) {
+	category := models.Category{}
+	copier.Copy(&category, &apiCategory)
 
 	repoCategory, err := s.CategoryRepository.Update(&category)
+	copier.Copy(&apiCategory, &repoCategory)
+
 	if err != nil {
-		return categoryResp, services.ServiceError{Error: err}
+		return apiCategory, services.ServiceError{Error: err}
 	}
 
-	copier.Copy(&categoryResp, &repoCategory)
-
-	return categoryResp, nilErr
+	return apiCategory, nilErr
 }
 
 // DeleteCategory handles the business logic when a client deletes a category

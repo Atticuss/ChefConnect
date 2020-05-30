@@ -5,28 +5,30 @@ import (
 )
 
 type Service interface {
+	//Login(authnRequest models.AuthnRequest) models.AuthnResponse
+
 	GetAllCategories() (models.ManyAPICategories, ServiceError)
 	GetCategory(id string) (models.APICategory, ServiceError)
-	CreateCategory(category models.Category) (models.APICategory, ServiceError)
-	UpdateCategory(category models.Category) (models.APICategory, ServiceError)
+	CreateCategory(category models.APICategory) (models.APICategory, ServiceError)
+	UpdateCategory(category models.APICategory) (models.APICategory, ServiceError)
 	DeleteCategory(id string) ServiceError
 
 	GetAllIngredients() (models.ManyAPIIngredients, ServiceError)
 	GetIngredient(id string) (models.APIIngredient, ServiceError)
-	CreateIngredient(ingredient models.Ingredient) (models.APIIngredient, ServiceError)
-	UpdateIngredient(ingredient models.Ingredient) (models.APIIngredient, ServiceError)
+	CreateIngredient(ingredient models.APIIngredient) (models.APIIngredient, ServiceError)
+	UpdateIngredient(ingredient models.APIIngredient) (models.APIIngredient, ServiceError)
 	DeleteIngredient(id string) ServiceError
 
 	GetAllRecipes() (models.ManyAPIRecipes, ServiceError)
 	GetRecipe(id string) (models.APIRecipe, ServiceError)
-	CreateRecipe(recipe models.Recipe) (models.APIRecipe, ServiceError)
-	UpdateRecipe(recipe models.Recipe) (models.APIRecipe, ServiceError)
+	CreateRecipe(recipe models.APIRecipe) (models.APIRecipe, ServiceError)
+	UpdateRecipe(recipe models.APIRecipe) (models.APIRecipe, ServiceError)
 	DeleteRecipe(id string) ServiceError
 
 	GetAllUsers() (models.ManyAPIUsers, ServiceError)
 	GetUser(id string) (models.APIUser, ServiceError)
-	CreateUser(user models.User) (models.APIUser, ServiceError)
-	UpdateUser(user models.User) (models.APIUser, ServiceError)
+	CreateUser(user models.APIUser) (models.APIUser, ServiceError)
+	UpdateUser(user models.APIUser) (models.APIUser, ServiceError)
 	DeleteUser(id string) ServiceError
 }
 

@@ -67,7 +67,7 @@ func (ctx *ControllerCtx) CreateRecipe(w http.ResponseWriter, r *http.Request) {
 	// responses:
 	//   200: Recipe
 
-	var recipe models.Recipe
+	var recipe models.APIRecipe
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&recipe); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -89,7 +89,7 @@ func (ctx *ControllerCtx) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
 	// responses:
 	//   200: Recipe
 
-	var recipe models.Recipe
+	var recipe models.APIRecipe
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&recipe); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")

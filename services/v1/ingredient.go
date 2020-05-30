@@ -34,31 +34,33 @@ func (s *v1Service) GetIngredient(id string) (models.APIIngredient, services.Ser
 }
 
 // CreateIngredient handles the business logic when a client creates a new ingredient
-func (s *v1Service) CreateIngredient(ingredient models.Ingredient) (models.APIIngredient, services.ServiceError) {
-	ingredientResp := models.APIIngredient{}
+func (s *v1Service) CreateIngredient(apiIngredient models.APIIngredient) (models.APIIngredient, services.ServiceError) {
+	ingredient := models.Ingredient{}
+	copier.Copy(&ingredient, &apiIngredient)
 
 	repoIngredient, err := s.IngredientRepository.Create(&ingredient)
+	copier.Copy(&apiIngredient, &repoIngredient)
+
 	if err != nil {
-		return ingredientResp, services.ServiceError{Error: err}
+		return apiIngredient, services.ServiceError{Error: err}
 	}
 
-	copier.Copy(&ingredientResp, &repoIngredient)
-
-	return ingredientResp, nilErr
+	return apiIngredient, nilErr
 }
 
 // UpdateIngredient handles the business logic when a client updates an ingredient
-func (s *v1Service) UpdateIngredient(ingredient models.Ingredient) (models.APIIngredient, services.ServiceError) {
-	ingredientResp := models.APIIngredient{}
+func (s *v1Service) UpdateIngredient(apiIngredient models.APIIngredient) (models.APIIngredient, services.ServiceError) {
+	ingredient := models.Ingredient{}
+	copier.Copy(&ingredient, &apiIngredient)
 
 	repoIngredient, err := s.IngredientRepository.Update(&ingredient)
+	copier.Copy(&apiIngredient, &repoIngredient)
+
 	if err != nil {
-		return ingredientResp, services.ServiceError{Error: err}
+		return apiIngredient, services.ServiceError{Error: err}
 	}
 
-	copier.Copy(&ingredientResp, &repoIngredient)
-
-	return ingredientResp, nilErr
+	return apiIngredient, nilErr
 }
 
 // DeleteIngredient handles the business logic when a client deletes an ingredient

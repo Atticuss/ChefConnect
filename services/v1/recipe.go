@@ -34,31 +34,33 @@ func (s *v1Service) GetRecipe(id string) (models.APIRecipe, services.ServiceErro
 }
 
 // CreateRecipe handles the business logic when a client creates a new recipe
-func (s *v1Service) CreateRecipe(recipe models.Recipe) (models.APIRecipe, services.ServiceError) {
-	recipeResp := models.APIRecipe{}
+func (s *v1Service) CreateRecipe(apiRecipe models.APIRecipe) (models.APIRecipe, services.ServiceError) {
+	recipe := models.Recipe{}
+	copier.Copy(&recipe, &apiRecipe)
 
 	repoRecipe, err := s.RecipeRepository.Create(&recipe)
+	copier.Copy(&apiRecipe, &repoRecipe)
+
 	if err != nil {
-		return recipeResp, services.ServiceError{Error: err}
+		return apiRecipe, services.ServiceError{Error: err}
 	}
 
-	copier.Copy(&recipeResp, &repoRecipe)
-
-	return recipeResp, nilErr
+	return apiRecipe, nilErr
 }
 
 // UpdateRecipe handles the business logic when a client updates a recipe
-func (s *v1Service) UpdateRecipe(recipe models.Recipe) (models.APIRecipe, services.ServiceError) {
-	recipeResp := models.APIRecipe{}
+func (s *v1Service) UpdateRecipe(apiRecipe models.APIRecipe) (models.APIRecipe, services.ServiceError) {
+	recipe := models.Recipe{}
+	copier.Copy(&recipe, &apiRecipe)
 
 	repoRecipe, err := s.RecipeRepository.Update(&recipe)
+	copier.Copy(&apiRecipe, &repoRecipe)
+
 	if err != nil {
-		return recipeResp, services.ServiceError{Error: err}
+		return apiRecipe, services.ServiceError{Error: err}
 	}
 
-	copier.Copy(&recipeResp, &repoRecipe)
-
-	return recipeResp, nilErr
+	return apiRecipe, nilErr
 }
 
 // DeleteRecipe handles the business logic when a client deletes a recipe

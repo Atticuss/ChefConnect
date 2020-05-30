@@ -69,7 +69,7 @@ func (ctx *ControllerCtx) CreateCategory(w http.ResponseWriter, r *http.Request)
 	// responses:
 	//   200: Category
 
-	var category models.Category
+	var category models.APICategory
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&category); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -91,7 +91,7 @@ func (ctx *ControllerCtx) UpdateCategory(w http.ResponseWriter, r *http.Request)
 	// responses:
 	//   200: Category
 
-	var category models.Category
+	var category models.APICategory
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&category); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")

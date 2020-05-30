@@ -67,7 +67,7 @@ func (ctx *ControllerCtx) CreateIngredient(w http.ResponseWriter, r *http.Reques
 	// responses:
 	//   200: Ingredient
 
-	var ingredient models.Ingredient
+	var ingredient models.APIIngredient
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&ingredient); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -89,7 +89,7 @@ func (ctx *ControllerCtx) UpdateIngredient(w http.ResponseWriter, r *http.Reques
 	// responses:
 	//   200: Ingredient
 
-	var ingredient models.Ingredient
+	var ingredient models.APIIngredient
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&ingredient); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")

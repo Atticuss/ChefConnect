@@ -34,31 +34,33 @@ func (s *v1Service) GetUser(id string) (models.APIUser, services.ServiceError) {
 }
 
 // CreateUser handles the business logic when a client creates a new recipe
-func (s *v1Service) CreateUser(user models.User) (models.APIUser, services.ServiceError) {
-	userResp := models.APIUser{}
+func (s *v1Service) CreateUser(apiUser models.APIUser) (models.APIUser, services.ServiceError) {
+	user := models.User{}
+	copier.Copy(&user, &apiUser)
 
 	repoUser, err := s.UserRepository.Create(&user)
+	copier.Copy(&apiUser, &repoUser)
+
 	if err != nil {
-		return userResp, services.ServiceError{Error: err}
+		return apiUser, services.ServiceError{Error: err}
 	}
 
-	copier.Copy(&userResp, &repoUser)
-
-	return userResp, nilErr
+	return apiUser, nilErr
 }
 
 // UpdateUser handles the business logic when a client updates a user
-func (s *v1Service) UpdateUser(user models.User) (models.APIUser, services.ServiceError) {
-	userResp := models.APIUser{}
+func (s *v1Service) UpdateUser(apiUser models.APIUser) (models.APIUser, services.ServiceError) {
+	user := models.User{}
+	copier.Copy(&user, &apiUser)
 
 	repoUser, err := s.UserRepository.Update(&user)
+	copier.Copy(&apiUser, &repoUser)
+
 	if err != nil {
-		return userResp, services.ServiceError{Error: err}
+		return apiUser, services.ServiceError{Error: err}
 	}
 
-	copier.Copy(&userResp, &repoUser)
-
-	return userResp, nilErr
+	return apiUser, nilErr
 }
 
 // DeleteUser handles the business logic when a client deletes a recipe
