@@ -6,6 +6,7 @@ type APIUser struct {
 	ID       string `json:"uid,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
 
 	Favorites []NestedRecipe `json:"favorites,omitempty"`
 	Notes     []NestedNote   `json:"notes,omitempty"`
@@ -24,7 +25,7 @@ type NestedUser struct {
 // ManyAPIUsers is a struct that represents multiple users. It is used
 // exclusively for marshalling responsesback to API clients.
 type ManyAPIUsers struct {
-	Users []NestedUser `json:"users"`
+	Users []APIUser `json:"users"`
 }
 
 // User is a struct that represents a single user. It is used exclusively
