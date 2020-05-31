@@ -9,8 +9,6 @@ import (
 	"github.com/atticuss/chefconnect/services"
 )
 
-// Exposed struct for easier creation of the service itself, as opposed to passing in a large
-// number of pointers as function params
 type v1Service struct {
 	Validator            *validator.Validate
 	CategoryRepository   repositories.CategoryRepository
@@ -56,3 +54,11 @@ func NewV1Service(
 }
 
 var nilErr = services.ServiceError{Error: nil}
+
+func (s *v1Service) ClearDatastore() {
+	s.RepositoryUtility.ClearDatastore()
+}
+
+func (s *v1Service) InitializeSchema() {
+	s.RepositoryUtility.InitializeSchema()
+}

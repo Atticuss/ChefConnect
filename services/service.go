@@ -7,6 +7,9 @@ import (
 type Service interface {
 	//Login(authnRequest models.AuthnRequest) models.AuthnResponse
 
+	ClearDatastore()
+	InitializeSchema()
+
 	GetAllCategories() (models.ManyAPICategories, ServiceError)
 	GetCategory(id string) (models.APICategory, ServiceError)
 	CreateCategory(category models.APICategory) (models.APICategory, ServiceError)
