@@ -36,8 +36,7 @@ type ManyAPIRecipes struct {
 	Recipes []APIRecipe `json:"recipes"`
 }
 
-// Recipe is a struct that represents a single recipe. It is used exclusively
-// for unmarshalling responses from dgraph
+// Recipe is a struct that represents a single recipe.
 type Recipe struct {
 	ID            string
 	Name          string

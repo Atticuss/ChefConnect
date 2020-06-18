@@ -28,8 +28,7 @@ type ManyAPIUsers struct {
 	Users []APIUser `json:"users"`
 }
 
-// User is a struct that represents a single user. It is used exclusively
-// for unmarshalling responses from dgraph
+// User is a struct that represents a single user.
 type User struct {
 	ID          string
 	Name        string

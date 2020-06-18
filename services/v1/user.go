@@ -16,6 +16,10 @@ func (s *v1Service) GetAllUsers() (models.ManyAPIUsers, services.ServiceError) {
 	}
 
 	copier.Copy(&usersResp, &users)
+	for idx, user := range usersResp.Users {
+		user.Password = ""
+		usersResp.Users[idx] = user
+	}
 
 	return usersResp, nilErr
 }
@@ -29,6 +33,7 @@ func (s *v1Service) GetUser(id string) (models.APIUser, services.ServiceError) {
 	}
 
 	copier.Copy(&userResp, &user)
+	userResp.Password = ""
 
 	return userResp, nilErr
 }
