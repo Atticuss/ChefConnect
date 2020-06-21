@@ -7,6 +7,7 @@ import (
 type RepositoryUtility interface {
 	InitializeSchema() error
 	ClearDatastore() error
+	InitializeBaseData() error
 }
 
 type CategoryRepository interface {
@@ -36,6 +37,7 @@ type RecipeRepository interface {
 type UserRepository interface {
 	Get(id string) (*models.User, error)
 	GetAll() (*models.ManyUsers, error)
+	GetByUsername(username string) (*models.User, error)
 	Create(*models.User) (*models.User, error)
 	Update(*models.User) (*models.User, error)
 	Delete(id string) error

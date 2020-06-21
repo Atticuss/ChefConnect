@@ -2,6 +2,7 @@ package dgraph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -41,6 +42,7 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 		score: int @index(int) .
 		username: string @index(exact) .
 		password: string .
+		roles: [uid] @reverse .
 		favorites: [uid] @reverse .
 		user_notes: [uid] @reverse .
 		recipe_notes: [uid] @reverse .
@@ -95,13 +97,58 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 			name
 			username
 			password
+			roles
 			favorites
 			<~author>
 			ratings
 		}
+
+		type Role {
+			name
+			<~roles>
+		}
 	`
 
 	if err := d.Client.Alter(context.Background(), op); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *dgraphUtilRepo) InitializeBaseData() error {
+	txn := d.Client.NewTxn()
+	defer txn.Discard(context.Background())
+
+	//$2a$14$zR/r6hmGbPk1mh1G8fsvJOE/iKfhosK5YjVoiA51zgKmDnp6lETja -> Password1!
+	nquads := `
+		_:role_admin <name> "SiteAdmin" .
+		_:role_admin <dgraph.type> "Role" .
+
+		_:role_user <name> "User" .
+		_:role_user <dgraph.type> "Role" .
+
+		_:user_jay <name> "Jay Sea" .
+		_:user_jay <username> "jay.sea" .
+		_:user_jay <password> "$2a$14$zR/r6hmGbPk1mh1G8fsvJOE/iKfhosK5YjVoiA51zgKmDnp6lETja" .
+		_:user_jay <roles> _:role_user .
+		_:user_jay <dgraph.type> "User" .
+
+		_:user_el <name> "El Dubs" .
+		_:user_el <username> "el.dubs" .
+		_:user_el <password> "$2a$14$zR/r6hmGbPk1mh1G8fsvJOE/iKfhosK5YjVoiA51zgKmDnp6lETja" .
+		_:user_el <roles> _:role_admin .
+		_:user_el <dgraph.type> "User" .
+	`
+
+	mu := &api.Mutation{
+		CommitNow: true,
+		SetNquads: []byte(nquads),
+	}
+
+	res, err := txn.Mutate(context.Background(), mu)
+	fmt.Printf("result: %+v\n", res)
+	if err != nil {
 		return err
 	}
 

@@ -29,7 +29,7 @@ import (
 
 	"github.com/atticuss/chefconnect/controllers"
 	"github.com/atticuss/chefconnect/repositories/dgraph"
-	"github.com/atticuss/chefconnect/services/v1"
+	v1 "github.com/atticuss/chefconnect/services/v1"
 )
 
 type app struct {
@@ -70,6 +70,8 @@ func (a *app) initialize(dgraphURL string) {
 
 	router := mux.NewRouter().StrictSlash(true)
 
+	router.HandleFunc("/login", controllerCtx.Login).Methods("POST")
+
 	router.HandleFunc("/ingredients", controllerCtx.GetAllIngredients).Methods("GET")
 	router.HandleFunc("/ingredients", controllerCtx.CreateIngredient).Methods("POST")
 	router.HandleFunc("/ingredients/{id}", controllerCtx.GetIngredient).Methods("GET")
@@ -88,11 +90,11 @@ func (a *app) initialize(dgraphURL string) {
 	router.HandleFunc("/users/{id}", controllerCtx.UpdateIngredient).Methods("PUT")
 	router.HandleFunc("/users/{id}", controllerCtx.DeleteUser).Methods("DELETE")
 
-	router.HandleFunc("/categories", controllerCtx.GetAllCategories).Methods("GET")
-	router.HandleFunc("/categories", controllerCtx.CreateCategory).Methods("POST")
-	router.HandleFunc("/categories/{id}", controllerCtx.GetCategory).Methods("GET")
-	router.HandleFunc("/categories/{id}", controllerCtx.UpdateCategory).Methods("PUT")
-	router.HandleFunc("/categories/{id}", controllerCtx.DeleteCategory).Methods("DELETE")
+	router.HandleFunc("/tags", controllerCtx.GetAllCategories).Methods("GET")
+	router.HandleFunc("/tags", controllerCtx.CreateCategory).Methods("POST")
+	router.HandleFunc("/tags/{id}", controllerCtx.GetCategory).Methods("GET")
+	router.HandleFunc("/tags/{id}", controllerCtx.UpdateCategory).Methods("PUT")
+	router.HandleFunc("/tags/{id}", controllerCtx.DeleteCategory).Methods("DELETE")
 
 	router.HandleFunc("/ping", healthCheck).Methods("GET")
 	router.HandleFunc("/swagger.json", swagger).Methods("GET")

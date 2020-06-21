@@ -11,6 +11,7 @@ type APIUser struct {
 	Favorites []NestedRecipe `json:"favorites,omitempty"`
 	Notes     []NestedNote   `json:"notes,omitempty"`
 	Ratings   []NestedRecipe `json:"ratings,omitempty"`
+	Roles     []NestedRole   `json:"roles,omitempty"`
 }
 
 // NestedUser is a stripped down struct used when a User is nested
@@ -39,6 +40,7 @@ type User struct {
 	Favorites []Recipe
 	Notes     []Note
 	Ratings   []Recipe
+	Roles     []Role
 }
 
 // ManyUsers is a struct that represents multiple users

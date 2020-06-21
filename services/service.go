@@ -5,7 +5,7 @@ import (
 )
 
 type Service interface {
-	//Login(authnRequest models.AuthnRequest) models.AuthnResponse
+	Login(authnRequest models.AuthnRequest) (models.AuthnResponse, ServiceError)
 
 	ClearDatastore()
 	InitializeSchema()

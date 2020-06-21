@@ -38,8 +38,14 @@ type dgraphUser struct {
 	Favorites []dgraphRecipe `json:"favorites,omitempty"`
 	Notes     []models.Note  `json:"~author,omitempty"`
 	Ratings   []dgraphRecipe `json:"ratings,omitempty"`
+	Roles     []dgraphRole   `json:"roles,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
+}
+
+type dgraphRole struct {
+	ID   string `json:"uid,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 // GetAll users out of dgraph
@@ -54,10 +60,16 @@ func (d *dgraphUserRepo) GetAll() (*models.ManyUsers, error) {
 			users(func: type(User)) {
 				uid
 				name
+				username
 				password
 				dgraph.type
 
 				favorites {
+					uid
+					name
+				}
+
+				roles {
 					uid
 					name
 				}
@@ -92,10 +104,64 @@ func (d *dgraphUserRepo) Get(id string) (*models.User, error) {
 			users(func: uid($id)) @filter(type(User)) {
 				uid
 				name
+				username
 				password
 				dgraph.type
 
 				favorites {
+					uid
+					name
+				}
+
+				roles {
+					uid
+					name
+				}
+			}
+		}
+	`
+
+	resp, err := txn.QueryWithVars(context.Background(), q, variables)
+	if err != nil {
+		return &user, err
+	}
+
+	err = json.Unmarshal(resp.Json, &dUsers)
+	if err != nil {
+		return &user, err
+	}
+
+	if len(dUsers.Users) > 0 {
+		copier.Copy(&user, &dUsers.Users[0])
+		return &user, nil
+	}
+
+	return &user, nil
+}
+
+// Get a user out of dgraph by name
+func (d *dgraphUserRepo) GetByUsername(username string) (*models.User, error) {
+	user := models.User{}
+	dUsers := manyDgraphUsers{}
+	txn := d.Client.NewReadOnlyTxn()
+	defer txn.Discard(context.Background())
+
+	variables := map[string]string{"$username": username}
+	const q = `
+		query all($username: string) {
+			users(func: eq(username, $username)) @filter(type(User)) {
+				uid
+				name
+				username
+				password
+				dgraph.type
+
+				favorites {
+					uid
+					name
+				}
+
+				roles {
 					uid
 					name
 				}
