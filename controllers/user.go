@@ -1,10 +1,9 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 
 	"github.com/atticuss/chefconnect/models"
 )
@@ -29,94 +28,90 @@ type manyUsers struct {
 }
 
 // GetAllUsers handles the GET /users req for fetching all users
-func (ctx *ControllerCtx) GetAllUsers(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) GetAllUsers(c *gin.Context) {
 	// swagger:route GET /users users getAllUsers
 	// Fetch all users
 	// responses:
 	//   200: ManyUsers
 
 	if resp, sErr := ctx.Service.GetAllUsers(); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // GetUser handles the GET /users/{id} req for fetching a specific user
-func (ctx *ControllerCtx) GetUser(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) GetUser(c *gin.Context) {
 	// swagger:route GET /users/{id} users getUser
 	// Fetch all users
 	// responses:
 	//   200: User
 
-	vars := mux.Vars(r)
-	id := vars["id"]
+	id := c.Param("id")
 
 	if resp, sErr := ctx.Service.GetUser(id); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // CreateUser handles the POST /users req for creating a user
 // TODO: prevent dupes - https://dgraph.io/docs/mutations/#example-of-conditional-upsert
-func (ctx *ControllerCtx) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) CreateUser(c *gin.Context) {
 	// swagger:route POST /users users createUser
 	// Create a new user
 	// responses:
 	//   200: User
 
 	var user models.APIUser
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&user); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	defer r.Body.Close()
 
 	if resp, sErr := ctx.Service.CreateUser(user); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // UpdateUser handles the PUT /users/{id} req for updating a user
-func (ctx *ControllerCtx) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) UpdateUser(c *gin.Context) {
 	// swagger:route PUT /users/{id} users updateUser
 	// Update a user
 	// responses:
 	//   200: User
 
 	var user models.APIUser
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&user); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	defer r.Body.Close()
+
+	user.ID = c.Param("id")
 
 	if resp, sErr := ctx.Service.UpdateUser(user); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // DeleteUser handles the DELETE /users/{id} req for deleting a user
-func (ctx *ControllerCtx) DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) DeleteUser(c *gin.Context) {
 	// swagger:route DELETE /users/{id} users deleteUser
 	// Delete a user
 	// responses:
 	//   200
 
-	vars := mux.Vars(r)
-	id := vars["id"]
+	id := c.Param("id")
 
 	if sErr := ctx.Service.DeleteUser(id); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, models.Ingredient{})
+		c.Status(http.StatusNoContent)
 	}
 }

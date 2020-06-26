@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/atticuss/chefconnect/models"
+	"github.com/gin-gonic/gin"
 )
 
 // body comment
@@ -20,23 +21,31 @@ type authn struct {
 	Body models.AuthnResponse
 }
 
-func (ctx *ControllerCtx) Login(w http.ResponseWriter, r *http.Request) {
+// ValidateJwt is the middleware responsible for ensuring a JWT, if present, is valid
+func ValidateJwt(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Executing ValidateJwt()")
+		next.ServeHTTP(w, r)
+		log.Println("Executing ValidateJwt() again")
+	})
+}
+
+// Login handles the POST /login req during authentication
+func (ctx *ControllerCtx) Login(c *gin.Context) {
 	// swagger:route POST /login authn login
 	// Authenticate against the app
 	// responses:
 	//   200: AuthnResponse
 
-	var authReq models.AuthnRequest
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&authReq); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	var authnReq models.AuthnRequest
+	if err := c.ShouldBindJSON(&authnReq); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	defer r.Body.Close()
 
-	if resp, sErr := ctx.Service.Login(authReq); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+	if resp, sErr := ctx.Service.Login(authnReq); sErr.Error != nil {
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }

@@ -20,11 +20,11 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
+	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/controllers"
@@ -33,13 +33,27 @@ import (
 )
 
 type app struct {
-	Router *mux.Router
+	Router *gin.Engine
 }
 
 func main() {
 	a := app{}
 	a.initialize("ec2-34-238-150-16.compute-1.amazonaws.com:9080")
 	a.run(":8000")
+}
+
+func healthCheck(c *gin.Context) {
+	c.JSON(http.StatusOK, []string{})
+}
+
+func swagger(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
+	jsonFile, err := os.Open("swagger.json")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, jsonFile)
 }
 
 func (a *app) initialize(dgraphURL string) {
@@ -68,51 +82,58 @@ func (a *app) initialize(dgraphURL string) {
 		Service: service,
 	}
 
-	router := mux.NewRouter().StrictSlash(true)
+	router := gin.Default()
+	router.POST("/login", controllerCtx.Login)
+	router.GET("/ping", healthCheck)
+	router.GET("/swagger.json", swagger)
 
-	router.HandleFunc("/login", controllerCtx.Login).Methods("POST")
+	ingredientRouter := router.Group("/ingredients")
+	{
+		ingredientRouter.GET("/", controllerCtx.GetAllIngredients)
+		ingredientRouter.POST("/", controllerCtx.CreateIngredient)
+		ingredientRouter.GET("/:id", controllerCtx.GetIngredient)
+		ingredientRouter.PUT("/:id", controllerCtx.UpdateIngredient)
+		ingredientRouter.DELETE("/:id", controllerCtx.DeleteIngredient)
+	}
 
-	router.HandleFunc("/ingredients", controllerCtx.GetAllIngredients).Methods("GET")
-	router.HandleFunc("/ingredients", controllerCtx.CreateIngredient).Methods("POST")
-	router.HandleFunc("/ingredients/{id}", controllerCtx.GetIngredient).Methods("GET")
-	router.HandleFunc("/ingredients/{id}", controllerCtx.UpdateIngredient).Methods("PUT")
-	router.HandleFunc("/ingredients/{id}", controllerCtx.DeleteIngredient).Methods("DELETE")
+	recipeRouter := router.Group("/recipes")
+	{
+		recipeRouter.GET("/", controllerCtx.GetAllRecipes)
+		recipeRouter.POST("/", controllerCtx.CreateRecipe)
+		recipeRouter.GET("/:id", controllerCtx.GetRecipe)
+		recipeRouter.PUT("/:id", controllerCtx.UpdateRecipe)
+		recipeRouter.DELETE("/:id", controllerCtx.DeleteIngredient)
+	}
 
-	router.HandleFunc("/recipes", controllerCtx.GetAllRecipes).Methods("GET")
-	router.HandleFunc("/recipes", controllerCtx.CreateRecipe).Methods("POST")
-	router.HandleFunc("/recipes/{id}", controllerCtx.GetRecipe).Methods("GET")
-	router.HandleFunc("/recipes/{id}", controllerCtx.UpdateRecipe).Methods("PUT")
-	router.HandleFunc("/recipes/{id}", controllerCtx.DeleteRecipe).Methods("DELETE")
+	userRouter := router.Group("/users")
+	{
+		userRouter.GET("/", controllerCtx.GetAllUsers)
+		userRouter.POST("/", controllerCtx.CreateUser)
+		userRouter.GET("/:id", controllerCtx.GetUser)
+		userRouter.PUT("/:id", controllerCtx.UpdateUser)
+		userRouter.DELETE("/:id", controllerCtx.DeleteUser)
+	}
 
-	router.HandleFunc("/users", controllerCtx.GetAllUsers).Methods("GET")
-	router.HandleFunc("/users", controllerCtx.CreateUser).Methods("POST")
-	router.HandleFunc("/users/{id}", controllerCtx.GetUser).Methods("GET")
-	router.HandleFunc("/users/{id}", controllerCtx.UpdateIngredient).Methods("PUT")
-	router.HandleFunc("/users/{id}", controllerCtx.DeleteUser).Methods("DELETE")
+	tagRouter := router.Group("/tags")
+	{
+		tagRouter.GET("/", controllerCtx.GetAllCategories)
+		tagRouter.POST("/", controllerCtx.CreateCategory)
+		tagRouter.GET("/:id", controllerCtx.GetCategory)
+		tagRouter.PUT("/:id", controllerCtx.UpdateCategory)
+		tagRouter.DELETE("/:id", controllerCtx.DeleteCategory)
+	}
 
-	router.HandleFunc("/tags", controllerCtx.GetAllCategories).Methods("GET")
-	router.HandleFunc("/tags", controllerCtx.CreateCategory).Methods("POST")
-	router.HandleFunc("/tags/{id}", controllerCtx.GetCategory).Methods("GET")
-	router.HandleFunc("/tags/{id}", controllerCtx.UpdateCategory).Methods("PUT")
-	router.HandleFunc("/tags/{id}", controllerCtx.DeleteCategory).Methods("DELETE")
-
-	router.HandleFunc("/ping", healthCheck).Methods("GET")
-	router.HandleFunc("/swagger.json", swagger).Methods("GET")
+	/*
+		router.HandleFunc("/ping", healthCheck).Methods("GET")
+		router.HandleFunc("/swagger.json", swagger).Methods("GET")
+	*/
 
 	a.Router = router
 }
 
 func (a *app) run(addr string) {
 	//defer a.DgraphClient.Close()
-	handler := cors.Default().Handler(a.Router)
-	log.Fatal(http.ListenAndServe(addr, handler))
-}
-
-func healthCheck(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-}
-
-func swagger(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	http.ServeFile(w, r, "swagger.json")
+	//handler := cors.Default().Handler(a.Router)
+	a.Router.Run(addr)
+	//log.Fatal(http.ListenAndServe(addr, handler))
 }

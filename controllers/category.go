@@ -1,10 +1,9 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 
 	"github.com/atticuss/chefconnect/models"
 )
@@ -31,97 +30,90 @@ type manyCategories struct {
 }
 
 // GetAllCategories handles the GET /categories req for fetching all categories
-func (ctx *ControllerCtx) GetAllCategories(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) GetAllCategories(c *gin.Context) {
 	// swagger:route GET /categories categories getAllCategories
 	// Fetch all categories
 	// responses:
 	//   200: ManyCategories
 
 	if resp, sErr := ctx.Service.GetAllCategories(); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // GetCategory handles the GET /categories/{id} req for fetching a specific user
-func (ctx *ControllerCtx) GetCategory(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) GetCategory(c *gin.Context) {
 	// swagger:route GET /categories/{id} categories getCategory
 	// Fetch a single category by ID
 	// responses:
 	//   200: Category
 
-	vars := mux.Vars(r)
-	id := vars["id"]
+	id := c.Param("id")
 
 	if resp, sErr := ctx.Service.GetCategory(id); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // CreateCategory handles the POST /categories req for creating a category
 // TODO: prevent dupes - https://dgraph.io/docs/mutations/#example-of-conditional-upsert
-func (ctx *ControllerCtx) CreateCategory(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) CreateCategory(c *gin.Context) {
 	// swagger:route POST /categories categories createCategory
 	// Create a new category
 	// responses:
 	//   200: Category
 
 	var category models.APICategory
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&category); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	if err := c.ShouldBindJSON(&category); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	defer r.Body.Close()
 
 	if resp, sErr := ctx.Service.CreateCategory(category); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // UpdateCategory handles the PUT /categories/{id} req for updating a category
-func (ctx *ControllerCtx) UpdateCategory(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) UpdateCategory(c *gin.Context) {
 	// swagger:route PUT /categories/{id} categories updateCategory
 	// Update a category
 	// responses:
 	//   200: Category
 
 	var category models.APICategory
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&category); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	if err := c.ShouldBindJSON(&category); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	defer r.Body.Close()
 
-	vars := mux.Vars(r)
-	category.ID = vars["id"]
+	category.ID = c.Param("id")
 
 	if resp, sErr := ctx.Service.UpdateCategory(category); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // DeleteCategory handles the DELETE /categories/{id} req for deleting a category
-func (ctx *ControllerCtx) DeleteCategory(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) DeleteCategory(c *gin.Context) {
 	// swagger:route DELETE /categories/{id} categories deleteCategory
 	// Delete a category
 	// responses:
 	//   200
 
-	vars := mux.Vars(r)
-	id := vars["id"]
+	id := c.Param("id")
 
 	if sErr := ctx.Service.DeleteCategory(id); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, models.Category{})
+		c.Status(http.StatusNoContent)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/atticuss/chefconnect/services"
@@ -21,8 +22,10 @@ type ControllerCtx struct {
 }
 
 var statusCodeMap = [...]int{
-	services.Unhandled: http.StatusBadRequest,
-	services.NotFound:  http.StatusNotFound,
+	services.Unhandled:      http.StatusBadRequest,
+	services.NotImplemented: http.StatusInternalServerError,
+	services.NotFound:       http.StatusNotFound,
+	services.NotAuthorized:  http.StatusUnauthorized,
 }
 
 func resolveFieldToTag(s interface{}, field string) string {
@@ -30,6 +33,25 @@ func resolveFieldToTag(s interface{}, field string) string {
 	f, _ := t.FieldByName(field)
 	v, _ := f.Tag.Lookup("json")
 	return v
+}
+
+func respondWithValidationErrorGin(c *gin.Context, err error, model interface{}) {
+	validationErrors := err.(validator.ValidationErrors)
+	missingFields := make([]string, len(validationErrors))
+	for idx, err := range validationErrors {
+		missingFields[idx] = resolveFieldToTag(model, err.Field())
+	}
+
+	errorMsg := "Required fields are missing: " + strings.Join(missingFields, ", ")
+	respondWithErrorGin(c, http.StatusBadRequest, errorMsg)
+}
+
+func respondWithServiceErrorGin(c *gin.Context, sErr services.ServiceError) {
+	respondWithErrorGin(c, statusCodeMap[sErr.ErrorCode], sErr.Error.Error())
+}
+
+func respondWithErrorGin(c *gin.Context, code int, message string) {
+	c.JSON(code, gin.H{"error": message})
 }
 
 func respondWithValidationError(w http.ResponseWriter, err error, model interface{}) {

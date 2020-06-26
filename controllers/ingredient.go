@@ -1,10 +1,9 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 
 	"github.com/atticuss/chefconnect/models"
 )
@@ -29,97 +28,91 @@ type manyIngredients struct {
 }
 
 // GetAllIngredients handles the GET /ingredients req for fetching all ingredients
-func (ctx *ControllerCtx) GetAllIngredients(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) GetAllIngredients(c *gin.Context) {
 	// swagger:route GET /ingredients ingredients getAllIngredients
 	// Fetch all ingredients
 	// responses:
 	//   200: ManyIngredients
 
 	if resp, sErr := ctx.Service.GetAllIngredients(); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // GetIngredient handles the GET /ingredients/{id} req for fetching a specific ingredient
-func (ctx *ControllerCtx) GetIngredient(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) GetIngredient(c *gin.Context) {
 	// swagger:route GET /ingredients/{id} ingredients getIngredient
 	// Fetches a single ingredient by ID
 	// responses:
 	//   200: Ingredient
 
-	vars := mux.Vars(r)
-	id := vars["id"]
+	id := c.Param("id")
 
 	if resp, sErr := ctx.Service.GetIngredient(id); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // CreateIngredient handles the POST /ingredients req for creating an ingredient
 // TODO: prevent dupes - https://dgraph.io/docs/mutations/#example-of-conditional-upsert
-func (ctx *ControllerCtx) CreateIngredient(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) CreateIngredient(c *gin.Context) {
 	// swagger:route POST /ingredients ingredients createIngredient
 	// Create a new ingredient
 	// responses:
 	//   200: Ingredient
 
 	var ingredient models.APIIngredient
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&ingredient); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	if err := c.ShouldBindJSON(&ingredient); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	defer r.Body.Close()
 
 	if resp, sErr := ctx.Service.CreateIngredient(ingredient); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // UpdateIngredient handles the PUT /ingredients/{id} req for updating an ingredient
-func (ctx *ControllerCtx) UpdateIngredient(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) UpdateIngredient(c *gin.Context) {
 	// swagger:route PUT /ingredients/{id} ingredients updateIngredient
 	// Update an ingredient
 	// responses:
 	//   200: Ingredient
 
 	var ingredient models.APIIngredient
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&ingredient); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	if err := c.ShouldBindJSON(&ingredient); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	defer r.Body.Close()
 
-	vars := mux.Vars(r)
-	ingredient.ID = vars["id"]
+	ingredient.ID = c.Param("id")
 
 	if resp, sErr := ctx.Service.UpdateIngredient(ingredient); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // DeleteIngredient handles the DELETE /ingredients/{id} req for deleting an ingredient
-func (ctx *ControllerCtx) DeleteIngredient(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) DeleteIngredient(c *gin.Context) {
 	// swagger:route DELETE /ingredients/{id} ingredients deleteIngredient
 	// Delete an ingredient
 	// responses:
 	//   200
 
-	vars := mux.Vars(r)
-	id := vars["id"]
+	id := c.Param("id")
 
 	if sErr := ctx.Service.DeleteIngredient(id); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, models.Ingredient{})
+		//c.JSON(http.StatusOK, []string{})
+		c.Status(http.StatusNoContent)
 	}
 }

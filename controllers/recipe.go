@@ -1,12 +1,10 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/atticuss/chefconnect/models"
+	"github.com/gin-gonic/gin"
 )
 
 // body comment
@@ -29,97 +27,90 @@ type manyRecipes struct {
 }
 
 // GetAllRecipes handles the GET /recipes req for fetching all recipes
-func (ctx *ControllerCtx) GetAllRecipes(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) GetAllRecipes(c *gin.Context) {
 	// swagger:route GET /recipes recipes getAllRecipes
 	// Fetch all recipes
 	// responses:
 	//   200: ManyRecipes
 
 	if resp, sErr := ctx.Service.GetAllRecipes(); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // GetRecipe handles the GET /recipes/{id} req for fetching a specific recipes
-func (ctx *ControllerCtx) GetRecipe(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) GetRecipe(c *gin.Context) {
 	// swagger:route GET /recipes/{id} recipes getRecipe
 	// Fetch a recipe by ID
 	// responses:
 	//   200: Recipe
 
-	vars := mux.Vars(r)
-	id := vars["id"]
+	id := c.Param("id")
 
 	if resp, sErr := ctx.Service.GetRecipe(id); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // CreateRecipe handles the POST /recipes req for creating a recipe
 // TODO: prevent dupes - https://dgraph.io/docs/mutations/#example-of-conditional-upsert
-func (ctx *ControllerCtx) CreateRecipe(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) CreateRecipe(c *gin.Context) {
 	// swagger:route POST /recipes recipes createRecipe
 	// Create a new recipe
 	// responses:
 	//   200: Recipe
 
 	var recipe models.APIRecipe
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&recipe); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	if err := c.ShouldBindJSON(&recipe); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	defer r.Body.Close()
 
 	if resp, sErr := ctx.Service.CreateRecipe(recipe); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // UpdateRecipe handles the PUT /recipes/{id} req for updating a recipe
-func (ctx *ControllerCtx) UpdateRecipe(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) UpdateRecipe(c *gin.Context) {
 	// swagger:route PUT /recipes/{id} recipes updateRecipe
 	// Update a recipe
 	// responses:
 	//   200: Recipe
 
 	var recipe models.APIRecipe
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&recipe); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+	if err := c.ShouldBindJSON(&recipe); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	defer r.Body.Close()
 
-	vars := mux.Vars(r)
-	recipe.ID = vars["id"]
+	recipe.ID = c.Param("id")
 
 	if resp, sErr := ctx.Service.UpdateRecipe(recipe); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
 	}
 }
 
 // DeleteRecipe handles the DELETE /recipes/{id} req for deleting a recipe
-func (ctx *ControllerCtx) DeleteRecipe(w http.ResponseWriter, r *http.Request) {
+func (ctx *ControllerCtx) DeleteRecipe(c *gin.Context) {
 	// swagger:route DELETE /recipes/{id} recipes deleteRecipe
 	// Delete a recipe
 	// responses:
 	//   200
 
-	vars := mux.Vars(r)
-	id := vars["id"]
+	id := c.Param("id")
 
 	if sErr := ctx.Service.DeleteRecipe(id); sErr.Error != nil {
-		respondWithServiceError(w, sErr)
+		respondWithServiceErrorGin(c, sErr)
 	} else {
-		respondWithJSON(w, http.StatusOK, models.Ingredient{})
+		c.Status(http.StatusNoContent)
 	}
 }
