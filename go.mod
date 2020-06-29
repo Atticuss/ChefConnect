@@ -3,6 +3,7 @@ module github.com/atticuss/chefconnect
 go 1.14
 
 require (
+	github.com/appleboy/gin-jwt/v2 v2.6.3
 	github.com/dgraph-io/dgo/v2 v2.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.3
