@@ -15,7 +15,7 @@ type APIIngredient struct {
 type NestedIngredient struct {
 	ID     string `json:"uid,omitempty"`
 	Name   string `json:"name,omitempty" validate:"required"`
-	Amount string `json:"amount",omitempty`
+	Amount string `json:"amount,omitempty"`
 }
 
 // ManyAPIIngredients is a struct that represents multiple ingredients. It is used exclusively
