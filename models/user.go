@@ -29,6 +29,16 @@ type ManyAPIUsers struct {
 	Users []APIUser `json:"users"`
 }
 
+// JwtUser is a struct holding the user data that should be present within an
+// issued JWT's claims
+type JwtUser struct {
+	ID       string `json:"uid"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+
+	Roles []NestedRole `json:"roles,omitempty"`
+}
+
 // User is a struct that represents a single user.
 type User struct {
 	ID          string

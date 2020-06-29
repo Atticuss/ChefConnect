@@ -5,7 +5,7 @@ import (
 )
 
 type Service interface {
-	Login(authnRequest models.AuthnRequest) (models.AuthnResponse, ServiceError)
+	Login(authnRequest models.AuthnRequest) (models.JwtUser, ServiceError)
 
 	ClearDatastore()
 	InitializeSchema()
@@ -50,4 +50,5 @@ const (
 	Unhandled      errorCode = 0
 	NotImplemented errorCode = 1
 	NotFound       errorCode = 2
+	NotAuthorized  errorCode = 3
 )
