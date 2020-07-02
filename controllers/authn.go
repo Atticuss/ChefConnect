@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 
@@ -22,6 +25,57 @@ type authnRequest struct {
 type authn struct {
 	// in:body
 	Body models.AuthnResponse
+}
+
+// ConfigureMiddleware generates
+func ConfigureMiddleware(controllerCtx *ControllerCtx) (*jwt.GinJWTMiddleware, error) {
+	secretKey, err := generateRandomBytes(100)
+	if err != nil {
+		return &jwt.GinJWTMiddleware{}, err
+	}
+
+	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
+		Realm:       "chefconnect",
+		Key:         secretKey,
+		Timeout:     time.Hour,
+		MaxRefresh:  time.Hour,
+		IdentityKey: "uid",
+		PayloadFunc: func(data interface{}) jwt.MapClaims {
+			fmt.Println("inside payloadfunc")
+			if v, ok := data.(models.JwtUser); ok {
+				// this logic is for converting the JwtUser struct to a map[string]interface{}
+				// https://stackoverflow.com/a/42849112/13203635
+				var claims jwt.MapClaims
+				jsonbody, _ := json.Marshal(v)
+				json.Unmarshal(jsonbody, &claims)
+
+				return claims
+			}
+			return jwt.MapClaims{}
+		},
+		IdentityHandler: func(c *gin.Context) interface{} {
+			claims := jwt.ExtractClaims(c)
+
+			// convert map[string]interface{} back into a JwtUser struct
+			jwtUser := models.JwtUser{}
+			jsonbody, _ := json.Marshal(claims)
+			json.Unmarshal(jsonbody, &jwtUser)
+
+			return jwtUser
+		},
+		Authenticator: controllerCtx.Login,
+		Authorizator: func(data interface{}, c *gin.Context) bool {
+			return true //push authorization off to the services layer
+		},
+		Unauthorized: func(c *gin.Context, code int, message string) {
+			c.JSON(code, gin.H{"error": message})
+		},
+		TokenLookup:   "header: Authorization, cookie: jwt",
+		TokenHeadName: "Token",
+		TimeFunc:      time.Now,
+	})
+
+	return authMiddleware, err
 }
 
 // ValidateJwt is the middleware responsible for ensuring a JWT, if present, is valid

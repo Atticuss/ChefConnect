@@ -18,57 +18,22 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/json"
-	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
-	"time"
 
-	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/controllers"
-	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/repositories/dgraph"
 	v1 "github.com/atticuss/chefconnect/services/v1"
 )
 
 type app struct {
 	Router *gin.Engine
-}
-
-// shamelessly stolen from: https://gist.github.com/dopey/c69559607800d2f2f90b1b1ed4e550fb
-func assertAvailablePRNG() error {
-	// Assert that a cryptographically secure PRNG is available.
-	// Panic otherwise.
-	buf := make([]byte, 1)
-
-	if _, err := io.ReadFull(rand.Reader, buf); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func generateRandomBytes(n int) ([]byte, error) {
-	if err := assertAvailablePRNG(); err != nil {
-		return nil, fmt.Errorf("crypto/rand is unavailable: Read() failed with %#v", err)
-	}
-
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	// Note that err == nil only if we read len(b) bytes.
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
 }
 
 func main() {
@@ -121,63 +86,22 @@ func (a *app) initialize(dgraphURL string) {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	var identityKey = "uid"
-	secretKey, err := generateRandomBytes(100)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
-		Realm:       "chefconnect",
-		Key:         secretKey,
-		Timeout:     time.Hour,
-		MaxRefresh:  time.Hour,
-		IdentityKey: identityKey,
-		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(models.JwtUser); ok {
-				// this logic is for converting the JwtUser struct to a map[string]interface{}
-				// https://stackoverflow.com/a/42849112/13203635
-				var claims jwt.MapClaims
-				inrec, _ := json.Marshal(v)
-				json.Unmarshal(inrec, &claims)
-
-				return claims
-			}
-			return jwt.MapClaims{}
-		},
-		IdentityHandler: func(c *gin.Context) interface{} {
-			claims := jwt.ExtractClaims(c)
-			fmt.Printf("claims: %+v\n", claims)
-			jwtUser := &models.JwtUser{
-				Username: claims[identityKey].(string),
-			}
-			fmt.Printf("jwtUser: %+v\n", jwtUser)
-			return jwtUser
-		},
-		Authenticator: controllerCtx.Login,
-		Authorizator: func(data interface{}, c *gin.Context) bool {
-			return true //push authorization off to the services layer
-		},
-		Unauthorized: func(c *gin.Context, code int, message string) {
-			c.JSON(code, gin.H{
-				"code":    code,
-				"message": message,
-			})
-		},
-		TokenLookup:   "header: Authorization, cookie: jwt",
-		TokenHeadName: "Token",
-		TimeFunc:      time.Now,
-	})
-
+	authMiddleware, err := controllers.ConfigureMiddleware(&controllerCtx)
 	if err != nil {
 		log.Fatal("JWT Error:" + err.Error())
 	}
 
-	router.POST("/login", authMiddleware.LoginHandler)
 	router.GET("/ping", healthCheck)
 	router.GET("/swagger.json", swagger)
 
+	authRouter := router.Group("/auth")
+	{
+		authRouter.POST("/login", authMiddleware.LoginHandler)
+		authRouter.GET("/refresh-token", authMiddleware.RefreshHandler)
+	}
+
 	ingredientRouter := router.Group("/ingredients")
+	ingredientRouter.Use(authMiddleware.MiddlewareFunc())
 	{
 		ingredientRouter.GET("/", controllerCtx.GetAllIngredients)
 		ingredientRouter.POST("/", controllerCtx.CreateIngredient)
@@ -187,6 +111,7 @@ func (a *app) initialize(dgraphURL string) {
 	}
 
 	recipeRouter := router.Group("/recipes")
+	recipeRouter.Use(authMiddleware.MiddlewareFunc())
 	{
 		recipeRouter.GET("/", controllerCtx.GetAllRecipes)
 		recipeRouter.POST("/", controllerCtx.CreateRecipe)
@@ -196,6 +121,7 @@ func (a *app) initialize(dgraphURL string) {
 	}
 
 	userRouter := router.Group("/users")
+	userRouter.Use(authMiddleware.MiddlewareFunc())
 	{
 		userRouter.GET("/", controllerCtx.GetAllUsers)
 		userRouter.POST("/", controllerCtx.CreateUser)
@@ -205,6 +131,7 @@ func (a *app) initialize(dgraphURL string) {
 	}
 
 	tagRouter := router.Group("/tags")
+	tagRouter.Use(authMiddleware.MiddlewareFunc())
 	{
 		tagRouter.GET("/", controllerCtx.GetAllCategories)
 		tagRouter.POST("/", controllerCtx.CreateCategory)
