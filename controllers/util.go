@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"crypto/rand"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -35,7 +38,7 @@ func resolveFieldToTag(s interface{}, field string) string {
 	return v
 }
 
-func respondWithValidationErrorGin(c *gin.Context, err error, model interface{}) {
+func respondWithValidationError(c *gin.Context, err error, model interface{}) {
 	validationErrors := err.(validator.ValidationErrors)
 	missingFields := make([]string, len(validationErrors))
 	for idx, err := range validationErrors {
@@ -43,34 +46,15 @@ func respondWithValidationErrorGin(c *gin.Context, err error, model interface{})
 	}
 
 	errorMsg := "Required fields are missing: " + strings.Join(missingFields, ", ")
-	respondWithErrorGin(c, http.StatusBadRequest, errorMsg)
+	respondWithError(c, http.StatusBadRequest, errorMsg)
 }
 
-func respondWithServiceErrorGin(c *gin.Context, sErr services.ServiceError) {
-	respondWithErrorGin(c, statusCodeMap[sErr.ErrorCode], sErr.Error.Error())
+func respondWithServiceError(c *gin.Context, sErr services.ServiceError) {
+	respondWithError(c, statusCodeMap[sErr.ErrorCode], sErr.Error.Error())
 }
 
-func respondWithErrorGin(c *gin.Context, code int, message string) {
+func respondWithError(c *gin.Context, code int, message string) {
 	c.JSON(code, gin.H{"error": message})
-}
-
-func respondWithValidationError(w http.ResponseWriter, err error, model interface{}) {
-	validationErrors := err.(validator.ValidationErrors)
-	missingFields := make([]string, len(validationErrors))
-	for idx, err := range validationErrors {
-		missingFields[idx] = resolveFieldToTag(model, err.Field())
-	}
-
-	errorMsg := "Required fields are missing: " + strings.Join(missingFields, ", ")
-	respondWithError(w, http.StatusBadRequest, errorMsg)
-}
-
-func respondWithServiceError(w http.ResponseWriter, sErr services.ServiceError) {
-	respondWithError(w, statusCodeMap[sErr.ErrorCode], sErr.Error.Error())
-}
-
-func respondWithError(w http.ResponseWriter, code int, message string) {
-	respondWithJSON(w, code, map[string]string{"error": message})
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
@@ -83,4 +67,32 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(response)
+}
+
+// shamelessly stolen from: https://gist.github.com/dopey/c69559607800d2f2f90b1b1ed4e550fb
+func assertAvailablePRNG() error {
+	// Assert that a cryptographically secure PRNG is available.
+	// Panic otherwise.
+	buf := make([]byte, 1)
+
+	if _, err := io.ReadFull(rand.Reader, buf); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func generateRandomBytes(n int) ([]byte, error) {
+	if err := assertAvailablePRNG(); err != nil {
+		return nil, fmt.Errorf("crypto/rand is unavailable: Read() failed with %#v", err)
+	}
+
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	// Note that err == nil only if we read len(b) bytes.
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }

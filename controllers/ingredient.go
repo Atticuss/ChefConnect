@@ -35,7 +35,7 @@ func (ctx *ControllerCtx) GetAllIngredients(c *gin.Context) {
 	//   200: ManyIngredients
 
 	if resp, sErr := ctx.Service.GetAllIngredients(); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -51,7 +51,7 @@ func (ctx *ControllerCtx) GetIngredient(c *gin.Context) {
 	id := c.Param("id")
 
 	if resp, sErr := ctx.Service.GetIngredient(id); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -72,7 +72,7 @@ func (ctx *ControllerCtx) CreateIngredient(c *gin.Context) {
 	}
 
 	if resp, sErr := ctx.Service.CreateIngredient(ingredient); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -94,7 +94,7 @@ func (ctx *ControllerCtx) UpdateIngredient(c *gin.Context) {
 	ingredient.ID = c.Param("id")
 
 	if resp, sErr := ctx.Service.UpdateIngredient(ingredient); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -110,7 +110,7 @@ func (ctx *ControllerCtx) DeleteIngredient(c *gin.Context) {
 	id := c.Param("id")
 
 	if sErr := ctx.Service.DeleteIngredient(id); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		//c.JSON(http.StatusOK, []string{})
 		c.Status(http.StatusNoContent)

@@ -35,7 +35,7 @@ func (ctx *ControllerCtx) GetAllUsers(c *gin.Context) {
 	//   200: ManyUsers
 
 	if resp, sErr := ctx.Service.GetAllUsers(); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -51,7 +51,7 @@ func (ctx *ControllerCtx) GetUser(c *gin.Context) {
 	id := c.Param("id")
 
 	if resp, sErr := ctx.Service.GetUser(id); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -72,7 +72,7 @@ func (ctx *ControllerCtx) CreateUser(c *gin.Context) {
 	}
 
 	if resp, sErr := ctx.Service.CreateUser(user); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -94,7 +94,7 @@ func (ctx *ControllerCtx) UpdateUser(c *gin.Context) {
 	user.ID = c.Param("id")
 
 	if resp, sErr := ctx.Service.UpdateUser(user); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -110,7 +110,7 @@ func (ctx *ControllerCtx) DeleteUser(c *gin.Context) {
 	id := c.Param("id")
 
 	if sErr := ctx.Service.DeleteUser(id); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.Status(http.StatusNoContent)
 	}

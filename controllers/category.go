@@ -37,7 +37,7 @@ func (ctx *ControllerCtx) GetAllCategories(c *gin.Context) {
 	//   200: ManyCategories
 
 	if resp, sErr := ctx.Service.GetAllCategories(); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -53,7 +53,7 @@ func (ctx *ControllerCtx) GetCategory(c *gin.Context) {
 	id := c.Param("id")
 
 	if resp, sErr := ctx.Service.GetCategory(id); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -74,7 +74,7 @@ func (ctx *ControllerCtx) CreateCategory(c *gin.Context) {
 	}
 
 	if resp, sErr := ctx.Service.CreateCategory(category); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -96,7 +96,7 @@ func (ctx *ControllerCtx) UpdateCategory(c *gin.Context) {
 	category.ID = c.Param("id")
 
 	if resp, sErr := ctx.Service.UpdateCategory(category); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
@@ -112,7 +112,7 @@ func (ctx *ControllerCtx) DeleteCategory(c *gin.Context) {
 	id := c.Param("id")
 
 	if sErr := ctx.Service.DeleteCategory(id); sErr.Error != nil {
-		respondWithServiceErrorGin(c, sErr)
+		respondWithServiceError(c, sErr)
 	} else {
 		c.Status(http.StatusNoContent)
 	}
