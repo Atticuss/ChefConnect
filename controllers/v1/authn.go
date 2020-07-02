@@ -2,7 +2,6 @@ package v1
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -46,7 +45,6 @@ func (ctlr *v1Controller) ConfigureMiddleware() (*jwt.GinJWTMiddleware, error) {
 		TimeFunc:      time.Now,
 		Authenticator: ctlr.Login,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			fmt.Println("inside payloadfunc")
 			if v, ok := data.(models.JwtUser); ok {
 				// this logic is for converting the JwtUser struct to a map[string]interface{}
 				// https://stackoverflow.com/a/42849112/13203635
@@ -59,7 +57,6 @@ func (ctlr *v1Controller) ConfigureMiddleware() (*jwt.GinJWTMiddleware, error) {
 			return jwt.MapClaims{}
 		},
 		IdentityHandler: func(c *gin.Context) interface{} {
-			fmt.Println("inside IdentityHandler")
 			claims := jwt.ExtractClaims(c)
 
 			// convert map[string]interface{} back into a JwtUser struct
