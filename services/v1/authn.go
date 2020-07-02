@@ -2,7 +2,6 @@ package v1
 
 import (
 	"errors"
-	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -41,8 +40,6 @@ func (s *v1Service) Login(authReq models.AuthnRequest) (models.JwtUser, services
 
 	if compareHash(authReq.Password, user.Password) {
 		copier.Copy(&jwtUser, &user)
-		fmt.Printf("user: %+v\n", user)
-		fmt.Printf("jwtuser: %+v\n", jwtUser)
 		return jwtUser, nilErr
 	}
 
