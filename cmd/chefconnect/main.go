@@ -27,9 +27,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 
-	"github.com/atticuss/chefconnect/controllers"
+	v1Ctlr "github.com/atticuss/chefconnect/controllers/v1"
 	"github.com/atticuss/chefconnect/repositories/dgraph"
-	v1 "github.com/atticuss/chefconnect/services/v1"
+	v1Svc "github.com/atticuss/chefconnect/services/v1"
 )
 
 type app struct {
@@ -70,7 +70,7 @@ func (a *app) initialize(dgraphURL string) {
 	userRepo := dgraph.NewDgraphUserRepository(client)
 	utilRepo := dgraph.NewDgraphRepositoryUtility(client)
 
-	service := v1.NewV1Service(
+	service := v1Svc.NewV1Service(
 		&categoryRepo,
 		&ingredientRepo,
 		&recipeRepo,
@@ -78,15 +78,13 @@ func (a *app) initialize(dgraphURL string) {
 		&utilRepo,
 	)
 
-	controllerCtx := controllers.ControllerCtx{
-		Service: service,
-	}
+	controller := v1Ctlr.NewV1Controller(&service)
 
 	router := gin.Default()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	authMiddleware, err := controllers.ConfigureMiddleware(&controllerCtx)
+	authMiddleware, err := controller.ConfigureMiddleware()
 	if err != nil {
 		log.Fatal("JWT Error:" + err.Error())
 	}
@@ -103,41 +101,41 @@ func (a *app) initialize(dgraphURL string) {
 	ingredientRouter := router.Group("/ingredients")
 	ingredientRouter.Use(authMiddleware.MiddlewareFunc())
 	{
-		ingredientRouter.GET("/", controllerCtx.GetAllIngredients)
-		ingredientRouter.POST("/", controllerCtx.CreateIngredient)
-		ingredientRouter.GET("/:id", controllerCtx.GetIngredient)
-		ingredientRouter.PUT("/:id", controllerCtx.UpdateIngredient)
-		ingredientRouter.DELETE("/:id", controllerCtx.DeleteIngredient)
+		ingredientRouter.GET("/", controller.GetAllIngredients)
+		ingredientRouter.POST("/", controller.CreateIngredient)
+		ingredientRouter.GET("/:id", controller.GetIngredient)
+		ingredientRouter.PUT("/:id", controller.UpdateIngredient)
+		ingredientRouter.DELETE("/:id", controller.DeleteIngredient)
 	}
 
 	recipeRouter := router.Group("/recipes")
 	recipeRouter.Use(authMiddleware.MiddlewareFunc())
 	{
-		recipeRouter.GET("/", controllerCtx.GetAllRecipes)
-		recipeRouter.POST("/", controllerCtx.CreateRecipe)
-		recipeRouter.GET("/:id", controllerCtx.GetRecipe)
-		recipeRouter.PUT("/:id", controllerCtx.UpdateRecipe)
-		recipeRouter.DELETE("/:id", controllerCtx.DeleteIngredient)
+		recipeRouter.GET("/", controller.GetAllRecipes)
+		recipeRouter.POST("/", controller.CreateRecipe)
+		recipeRouter.GET("/:id", controller.GetRecipe)
+		recipeRouter.PUT("/:id", controller.UpdateRecipe)
+		recipeRouter.DELETE("/:id", controller.DeleteIngredient)
 	}
 
 	userRouter := router.Group("/users")
 	userRouter.Use(authMiddleware.MiddlewareFunc())
 	{
-		userRouter.GET("/", controllerCtx.GetAllUsers)
-		userRouter.POST("/", controllerCtx.CreateUser)
-		userRouter.GET("/:id", controllerCtx.GetUser)
-		userRouter.PUT("/:id", controllerCtx.UpdateUser)
-		userRouter.DELETE("/:id", controllerCtx.DeleteUser)
+		userRouter.GET("/", controller.GetAllUsers)
+		userRouter.POST("/", controller.CreateUser)
+		userRouter.GET("/:id", controller.GetUser)
+		userRouter.PUT("/:id", controller.UpdateUser)
+		userRouter.DELETE("/:id", controller.DeleteUser)
 	}
 
 	tagRouter := router.Group("/tags")
 	tagRouter.Use(authMiddleware.MiddlewareFunc())
 	{
-		tagRouter.GET("/", controllerCtx.GetAllCategories)
-		tagRouter.POST("/", controllerCtx.CreateCategory)
-		tagRouter.GET("/:id", controllerCtx.GetCategory)
-		tagRouter.PUT("/:id", controllerCtx.UpdateCategory)
-		tagRouter.DELETE("/:id", controllerCtx.DeleteCategory)
+		tagRouter.GET("/", controller.GetAllCategories)
+		tagRouter.POST("/", controller.CreateCategory)
+		tagRouter.GET("/:id", controller.GetCategory)
+		tagRouter.PUT("/:id", controller.UpdateCategory)
+		tagRouter.DELETE("/:id", controller.DeleteCategory)
 	}
 
 	a.Router = router

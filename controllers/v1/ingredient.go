@@ -1,4 +1,4 @@
-package controllers
+package v1
 
 import (
 	"net/http"
@@ -28,13 +28,13 @@ type manyIngredients struct {
 }
 
 // GetAllIngredients handles the GET /ingredients req for fetching all ingredients
-func (ctx *ControllerCtx) GetAllIngredients(c *gin.Context) {
+func (ctlr *v1Controller) GetAllIngredients(c *gin.Context) {
 	// swagger:route GET /ingredients ingredients getAllIngredients
 	// Fetch all ingredients
 	// responses:
 	//   200: ManyIngredients
 
-	if resp, sErr := ctx.Service.GetAllIngredients(); sErr.Error != nil {
+	if resp, sErr := ctlr.Service.GetAllIngredients(); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
@@ -42,7 +42,7 @@ func (ctx *ControllerCtx) GetAllIngredients(c *gin.Context) {
 }
 
 // GetIngredient handles the GET /ingredients/{id} req for fetching a specific ingredient
-func (ctx *ControllerCtx) GetIngredient(c *gin.Context) {
+func (ctlr *v1Controller) GetIngredient(c *gin.Context) {
 	// swagger:route GET /ingredients/{id} ingredients getIngredient
 	// Fetches a single ingredient by ID
 	// responses:
@@ -50,7 +50,7 @@ func (ctx *ControllerCtx) GetIngredient(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if resp, sErr := ctx.Service.GetIngredient(id); sErr.Error != nil {
+	if resp, sErr := ctlr.Service.GetIngredient(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
@@ -59,7 +59,7 @@ func (ctx *ControllerCtx) GetIngredient(c *gin.Context) {
 
 // CreateIngredient handles the POST /ingredients req for creating an ingredient
 // TODO: prevent dupes - https://dgraph.io/docs/mutations/#example-of-conditional-upsert
-func (ctx *ControllerCtx) CreateIngredient(c *gin.Context) {
+func (ctlr *v1Controller) CreateIngredient(c *gin.Context) {
 	// swagger:route POST /ingredients ingredients createIngredient
 	// Create a new ingredient
 	// responses:
@@ -71,7 +71,7 @@ func (ctx *ControllerCtx) CreateIngredient(c *gin.Context) {
 		return
 	}
 
-	if resp, sErr := ctx.Service.CreateIngredient(ingredient); sErr.Error != nil {
+	if resp, sErr := ctlr.Service.CreateIngredient(ingredient); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
@@ -79,7 +79,7 @@ func (ctx *ControllerCtx) CreateIngredient(c *gin.Context) {
 }
 
 // UpdateIngredient handles the PUT /ingredients/{id} req for updating an ingredient
-func (ctx *ControllerCtx) UpdateIngredient(c *gin.Context) {
+func (ctlr *v1Controller) UpdateIngredient(c *gin.Context) {
 	// swagger:route PUT /ingredients/{id} ingredients updateIngredient
 	// Update an ingredient
 	// responses:
@@ -93,7 +93,7 @@ func (ctx *ControllerCtx) UpdateIngredient(c *gin.Context) {
 
 	ingredient.ID = c.Param("id")
 
-	if resp, sErr := ctx.Service.UpdateIngredient(ingredient); sErr.Error != nil {
+	if resp, sErr := ctlr.Service.UpdateIngredient(ingredient); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
@@ -101,7 +101,7 @@ func (ctx *ControllerCtx) UpdateIngredient(c *gin.Context) {
 }
 
 // DeleteIngredient handles the DELETE /ingredients/{id} req for deleting an ingredient
-func (ctx *ControllerCtx) DeleteIngredient(c *gin.Context) {
+func (ctlr *v1Controller) DeleteIngredient(c *gin.Context) {
 	// swagger:route DELETE /ingredients/{id} ingredients deleteIngredient
 	// Delete an ingredient
 	// responses:
@@ -109,7 +109,7 @@ func (ctx *ControllerCtx) DeleteIngredient(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if sErr := ctx.Service.DeleteIngredient(id); sErr.Error != nil {
+	if sErr := ctlr.Service.DeleteIngredient(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		//c.JSON(http.StatusOK, []string{})

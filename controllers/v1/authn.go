@@ -1,17 +1,15 @@
-package controllers
+package v1
 
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"net/http"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
+	"github.com/gin-gonic/gin"
 
 	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/services"
-	"github.com/gin-gonic/gin"
 )
 
 // body comment
@@ -28,18 +26,25 @@ type authn struct {
 }
 
 // ConfigureMiddleware generates
-func ConfigureMiddleware(controllerCtx *ControllerCtx) (*jwt.GinJWTMiddleware, error) {
+func (ctlr *v1Controller) ConfigureMiddleware() (*jwt.GinJWTMiddleware, error) {
 	secretKey, err := generateRandomBytes(100)
 	if err != nil {
 		return &jwt.GinJWTMiddleware{}, err
 	}
 
+	missingTokenMsg := "token not found"
+
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
-		Realm:       "chefconnect",
-		Key:         secretKey,
-		Timeout:     time.Hour,
-		MaxRefresh:  time.Hour,
-		IdentityKey: "uid",
+		Realm:         "chefconnect",
+		Key:           secretKey,
+		Timeout:       time.Hour,
+		MaxRefresh:    time.Hour,
+		IdentityKey:   "uid",
+		DisabledAbort: true,
+		TokenLookup:   "header: Authorization",
+		TokenHeadName: "Token",
+		TimeFunc:      time.Now,
+		Authenticator: ctlr.Login,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			fmt.Println("inside payloadfunc")
 			if v, ok := data.(models.JwtUser); ok {
@@ -54,6 +59,7 @@ func ConfigureMiddleware(controllerCtx *ControllerCtx) (*jwt.GinJWTMiddleware, e
 			return jwt.MapClaims{}
 		},
 		IdentityHandler: func(c *gin.Context) interface{} {
+			fmt.Println("inside IdentityHandler")
 			claims := jwt.ExtractClaims(c)
 
 			// convert map[string]interface{} back into a JwtUser struct
@@ -63,32 +69,37 @@ func ConfigureMiddleware(controllerCtx *ControllerCtx) (*jwt.GinJWTMiddleware, e
 
 			return jwtUser
 		},
-		Authenticator: controllerCtx.Login,
 		Authorizator: func(data interface{}, c *gin.Context) bool {
 			return true //push authorization off to the services layer
 		},
+		// standardize the error message returned if a token is not found, regardless of where is searched for
+		HTTPStatusMessageFunc: func(err error, c *gin.Context) string {
+			missingJwtSlice := []error{jwt.ErrEmptyAuthHeader, jwt.ErrEmptyQueryToken, jwt.ErrEmptyCookieToken}
+			for _, e := range missingJwtSlice {
+				if e == err {
+					return missingTokenMsg
+				}
+			}
+			return err.Error()
+		},
+		// using the standardized error message on missing token, allow the next middleware to execute if this
+		// func is being called due to a missing token. this is because most resources are accessible regardless
+		// if a user is authenticated, but some resources will return different data depending on authn status.
 		Unauthorized: func(c *gin.Context, code int, message string) {
+			if message == missingTokenMsg {
+				c.Next()
+				return
+			}
+
 			c.JSON(code, gin.H{"error": message})
 		},
-		TokenLookup:   "header: Authorization, cookie: jwt",
-		TokenHeadName: "Token",
-		TimeFunc:      time.Now,
 	})
 
 	return authMiddleware, err
 }
 
-// ValidateJwt is the middleware responsible for ensuring a JWT, if present, is valid
-func ValidateJwt(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Executing ValidateJwt()")
-		next.ServeHTTP(w, r)
-		log.Println("Executing ValidateJwt() again")
-	})
-}
-
-// Login handles the POST /login req during authentication
-func (ctx *ControllerCtx) Login(c *gin.Context) (interface{}, error) {
+// Login handles the POST request for authentication attempts
+func (ctlr *v1Controller) Login(c *gin.Context) (interface{}, error) {
 	// swagger:route POST /login authn login
 	// Authenticate against the app
 	// responses:
@@ -99,7 +110,7 @@ func (ctx *ControllerCtx) Login(c *gin.Context) (interface{}, error) {
 		return nil, jwt.ErrMissingLoginValues
 	}
 
-	user, sErr := ctx.Service.Login(authnReq)
+	user, sErr := ctlr.Service.Login(authnReq)
 	if sErr.Error != nil {
 		if sErr.ErrorCode == services.NotAuthorized {
 			return nil, jwt.ErrFailedAuthentication

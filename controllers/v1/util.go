@@ -1,4 +1,4 @@
-package controllers
+package v1
 
 import (
 	"crypto/rand"
@@ -12,16 +12,21 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 
+	"github.com/atticuss/chefconnect/controllers"
 	"github.com/atticuss/chefconnect/services"
 )
 
-// ControllerCtx holds all contextual data for the controller package. Fields are configured
-// by the `main` package when the app is initialized. Currently, all it holds is the dgraph
-// client object, passed to `models` functions as a param. Could probably move this struct
-// to the `models` package to avoid passing via params, but more contextual data may be
-// added here later.
-type ControllerCtx struct {
+type v1Controller struct {
 	Service services.Service
+}
+
+// NewV1Controller configures a controller for handling request/response logic
+func NewV1Controller(svc *services.Service) controllers.Controller {
+	ctlr := v1Controller{
+		Service: *svc,
+	}
+
+	return &ctlr
 }
 
 var statusCodeMap = [...]int{

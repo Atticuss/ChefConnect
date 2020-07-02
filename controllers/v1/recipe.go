@@ -1,4 +1,4 @@
-package controllers
+package v1
 
 import (
 	"net/http"
@@ -27,13 +27,13 @@ type manyRecipes struct {
 }
 
 // GetAllRecipes handles the GET /recipes req for fetching all recipes
-func (ctx *ControllerCtx) GetAllRecipes(c *gin.Context) {
+func (ctlr *v1Controller) GetAllRecipes(c *gin.Context) {
 	// swagger:route GET /recipes recipes getAllRecipes
 	// Fetch all recipes
 	// responses:
 	//   200: ManyRecipes
 
-	if resp, sErr := ctx.Service.GetAllRecipes(); sErr.Error != nil {
+	if resp, sErr := ctlr.Service.GetAllRecipes(); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
@@ -41,7 +41,7 @@ func (ctx *ControllerCtx) GetAllRecipes(c *gin.Context) {
 }
 
 // GetRecipe handles the GET /recipes/{id} req for fetching a specific recipes
-func (ctx *ControllerCtx) GetRecipe(c *gin.Context) {
+func (ctlr *v1Controller) GetRecipe(c *gin.Context) {
 	// swagger:route GET /recipes/{id} recipes getRecipe
 	// Fetch a recipe by ID
 	// responses:
@@ -49,7 +49,7 @@ func (ctx *ControllerCtx) GetRecipe(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if resp, sErr := ctx.Service.GetRecipe(id); sErr.Error != nil {
+	if resp, sErr := ctlr.Service.GetRecipe(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
@@ -58,7 +58,7 @@ func (ctx *ControllerCtx) GetRecipe(c *gin.Context) {
 
 // CreateRecipe handles the POST /recipes req for creating a recipe
 // TODO: prevent dupes - https://dgraph.io/docs/mutations/#example-of-conditional-upsert
-func (ctx *ControllerCtx) CreateRecipe(c *gin.Context) {
+func (ctlr *v1Controller) CreateRecipe(c *gin.Context) {
 	// swagger:route POST /recipes recipes createRecipe
 	// Create a new recipe
 	// responses:
@@ -70,7 +70,7 @@ func (ctx *ControllerCtx) CreateRecipe(c *gin.Context) {
 		return
 	}
 
-	if resp, sErr := ctx.Service.CreateRecipe(recipe); sErr.Error != nil {
+	if resp, sErr := ctlr.Service.CreateRecipe(recipe); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
@@ -78,7 +78,7 @@ func (ctx *ControllerCtx) CreateRecipe(c *gin.Context) {
 }
 
 // UpdateRecipe handles the PUT /recipes/{id} req for updating a recipe
-func (ctx *ControllerCtx) UpdateRecipe(c *gin.Context) {
+func (ctlr *v1Controller) UpdateRecipe(c *gin.Context) {
 	// swagger:route PUT /recipes/{id} recipes updateRecipe
 	// Update a recipe
 	// responses:
@@ -92,7 +92,7 @@ func (ctx *ControllerCtx) UpdateRecipe(c *gin.Context) {
 
 	recipe.ID = c.Param("id")
 
-	if resp, sErr := ctx.Service.UpdateRecipe(recipe); sErr.Error != nil {
+	if resp, sErr := ctlr.Service.UpdateRecipe(recipe); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
@@ -100,7 +100,7 @@ func (ctx *ControllerCtx) UpdateRecipe(c *gin.Context) {
 }
 
 // DeleteRecipe handles the DELETE /recipes/{id} req for deleting a recipe
-func (ctx *ControllerCtx) DeleteRecipe(c *gin.Context) {
+func (ctlr *v1Controller) DeleteRecipe(c *gin.Context) {
 	// swagger:route DELETE /recipes/{id} recipes deleteRecipe
 	// Delete a recipe
 	// responses:
@@ -108,7 +108,7 @@ func (ctx *ControllerCtx) DeleteRecipe(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if sErr := ctx.Service.DeleteRecipe(id); sErr.Error != nil {
+	if sErr := ctlr.Service.DeleteRecipe(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.Status(http.StatusNoContent)
