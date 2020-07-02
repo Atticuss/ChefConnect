@@ -72,7 +72,8 @@ func (ctlr *v1Controller) ConfigureMiddleware() (*jwt.GinJWTMiddleware, error) {
 		Authorizator: func(data interface{}, c *gin.Context) bool {
 			return true //push authorization off to the services layer
 		},
-		// standardize the error message returned if a token is not found, regardless of where is searched for
+		// standardize the error message returned if a token is not found, regardless of where is searched for.
+		// unfortunately, can't rely on the raw error interface as the HTTPStatusMessageFunc returns a string.
 		HTTPStatusMessageFunc: func(err error, c *gin.Context) string {
 			missingJwtSlice := []error{jwt.ErrEmptyAuthHeader, jwt.ErrEmptyQueryToken, jwt.ErrEmptyCookieToken}
 			for _, e := range missingJwtSlice {
@@ -84,7 +85,7 @@ func (ctlr *v1Controller) ConfigureMiddleware() (*jwt.GinJWTMiddleware, error) {
 		},
 		// using the standardized error message on missing token, allow the next middleware to execute if this
 		// func is being called due to a missing token. this is because most resources are accessible regardless
-		// if a user is authenticated, but some resources will return different data depending on authn status.
+		// if a user is authenticated, but some resources will return different data depending on authn/z status.
 		Unauthorized: func(c *gin.Context, code int, message string) {
 			if message == missingTokenMsg {
 				c.Next()
