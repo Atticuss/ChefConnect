@@ -18,18 +18,18 @@
 package main
 
 import (
-	"log"
-	"net/http"
 	"os"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 
-	v1Ctlr "github.com/atticuss/chefconnect/controllers/v1"
+	"github.com/atticuss/chefconnect/controllers/rest"
 	"github.com/atticuss/chefconnect/repositories/dgraph"
-	v1Svc "github.com/atticuss/chefconnect/services/v1"
+	v1 "github.com/atticuss/chefconnect/services/v1"
 )
 
 type app struct {
@@ -37,30 +37,7 @@ type app struct {
 }
 
 func main() {
-	a := app{}
-	a.initialize("ec2-34-238-150-16.compute-1.amazonaws.com:9080")
-	a.run(":8000")
-}
-
-func healthCheck(c *gin.Context) {
-	c.JSON(http.StatusOK, []string{})
-}
-
-func swagger(c *gin.Context) {
-	c.Header("Content-Type", "application/json")
-	jsonFile, err := os.Open("swagger.json")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	}
-
-	c.JSON(http.StatusOK, jsonFile)
-}
-
-func (a *app) initialize(dgraphURL string) {
-	conn, err := grpc.Dial(dgraphURL, grpc.WithInsecure())
-	if err != nil {
-		log.Fatal(err)
-	}
+	conn, _ := grpc.Dial("ec2-34-238-150-16.compute-1.amazonaws.com:9080", grpc.WithInsecure())
 
 	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
 
@@ -70,7 +47,7 @@ func (a *app) initialize(dgraphURL string) {
 	userRepo := dgraph.NewDgraphUserRepository(client)
 	utilRepo := dgraph.NewDgraphRepositoryUtility(client)
 
-	service := v1Svc.NewV1Service(
+	service := v1.NewV1Service(
 		&categoryRepo,
 		&ingredientRepo,
 		&recipeRepo,
@@ -78,72 +55,20 @@ func (a *app) initialize(dgraphURL string) {
 		&utilRepo,
 	)
 
-	controller := v1Ctlr.NewV1Controller(&service)
+	log.Logger = log.Output(
+		zerolog.ConsoleWriter{
+			Out:     os.Stderr,
+			NoColor: false,
+		},
+	)
 
-	router := gin.Default()
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
-
-	authMiddleware, err := controller.ConfigureMiddleware()
-	if err != nil {
-		log.Fatal("JWT Error:" + err.Error())
+	subLog := zerolog.New(os.Stdout).With().Logger()
+	config := rest.Config{
+		Port:   ":8000",
+		Logger: &subLog,
+		UTC:    true,
 	}
 
-	router.GET("/ping", healthCheck)
-	router.GET("/swagger.json", swagger)
-
-	authRouter := router.Group("/auth")
-	{
-		authRouter.POST("/login", authMiddleware.LoginHandler)
-		authRouter.GET("/refresh-token", authMiddleware.RefreshHandler)
-	}
-
-	ingredientRouter := router.Group("/ingredients")
-	ingredientRouter.Use(authMiddleware.MiddlewareFunc())
-	{
-		ingredientRouter.GET("/", controller.GetAllIngredients)
-		ingredientRouter.POST("/", controller.CreateIngredient)
-		ingredientRouter.GET("/:id", controller.GetIngredient)
-		ingredientRouter.PUT("/:id", controller.UpdateIngredient)
-		ingredientRouter.DELETE("/:id", controller.DeleteIngredient)
-	}
-
-	recipeRouter := router.Group("/recipes")
-	recipeRouter.Use(authMiddleware.MiddlewareFunc())
-	{
-		recipeRouter.GET("/", controller.GetAllRecipes)
-		recipeRouter.POST("/", controller.CreateRecipe)
-		recipeRouter.GET("/:id", controller.GetRecipe)
-		recipeRouter.PUT("/:id", controller.UpdateRecipe)
-		recipeRouter.DELETE("/:id", controller.DeleteIngredient)
-	}
-
-	userRouter := router.Group("/users")
-	userRouter.Use(authMiddleware.MiddlewareFunc())
-	{
-		userRouter.GET("/", controller.GetAllUsers)
-		userRouter.POST("/", controller.CreateUser)
-		userRouter.GET("/:id", controller.GetUser)
-		userRouter.PUT("/:id", controller.UpdateUser)
-		userRouter.DELETE("/:id", controller.DeleteUser)
-	}
-
-	tagRouter := router.Group("/tags")
-	tagRouter.Use(authMiddleware.MiddlewareFunc())
-	{
-		tagRouter.GET("/", controller.GetAllCategories)
-		tagRouter.POST("/", controller.CreateCategory)
-		tagRouter.GET("/:id", controller.GetCategory)
-		tagRouter.PUT("/:id", controller.UpdateCategory)
-		tagRouter.DELETE("/:id", controller.DeleteCategory)
-	}
-
-	a.Router = router
-}
-
-func (a *app) run(addr string) {
-	//defer a.DgraphClient.Close()
-	//handler := cors.Default().Handler(a.Router)
-	a.Router.Run(addr)
-	//log.Fatal(http.ListenAndServe(addr, handler))
+	controller := rest.NewRestController(&service, &config)
+	controller.Start()
 }

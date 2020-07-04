@@ -1,4 +1,4 @@
-package v1
+package rest
 
 import (
 	"encoding/json"
@@ -24,8 +24,7 @@ type authn struct {
 	Body models.AuthnResponse
 }
 
-// ConfigureMiddleware generates
-func (ctlr *v1Controller) ConfigureMiddleware() (*jwt.GinJWTMiddleware, error) {
+func (restCtrl *restController) configureMiddleware() (*jwt.GinJWTMiddleware, error) {
 	secretKey, err := generateRandomBytes(100)
 	if err != nil {
 		return &jwt.GinJWTMiddleware{}, err
@@ -43,7 +42,7 @@ func (ctlr *v1Controller) ConfigureMiddleware() (*jwt.GinJWTMiddleware, error) {
 		TokenLookup:   "header: Authorization",
 		TokenHeadName: "Token",
 		TimeFunc:      time.Now,
-		Authenticator: ctlr.Login,
+		Authenticator: restCtrl.login,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(models.JwtUser); ok {
 				// this logic is for converting the JwtUser struct to a map[string]interface{}
@@ -96,8 +95,7 @@ func (ctlr *v1Controller) ConfigureMiddleware() (*jwt.GinJWTMiddleware, error) {
 	return authMiddleware, err
 }
 
-// Login handles the POST request for authentication attempts
-func (ctlr *v1Controller) Login(c *gin.Context) (interface{}, error) {
+func (restCtrl *restController) login(c *gin.Context) (interface{}, error) {
 	// swagger:route POST /login authn login
 	// Authenticate against the app
 	// responses:
@@ -108,7 +106,7 @@ func (ctlr *v1Controller) Login(c *gin.Context) (interface{}, error) {
 		return nil, jwt.ErrMissingLoginValues
 	}
 
-	user, sErr := ctlr.Service.Login(authnReq)
+	user, sErr := restCtrl.Service.Login(authnReq)
 	if sErr.Error != nil {
 		if sErr.ErrorCode == services.NotAuthorized {
 			return nil, jwt.ErrFailedAuthentication

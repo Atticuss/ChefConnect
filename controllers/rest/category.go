@@ -1,4 +1,4 @@
-package v1
+package rest
 
 import (
 	"net/http"
@@ -29,22 +29,20 @@ type manyCategories struct {
 	Body models.ManyAPICategories `json:"categories"`
 }
 
-// GetAllCategories handles the GET /categories req for fetching all categories
-func (ctlr *v1Controller) GetAllCategories(c *gin.Context) {
+func (restCtrl *restController) getAllCategories(c *gin.Context) {
 	// swagger:route GET /categories categories getAllCategories
 	// Fetch all categories
 	// responses:
 	//   200: ManyCategories
 
-	if resp, sErr := ctlr.Service.GetAllCategories(); sErr.Error != nil {
+	if resp, sErr := restCtrl.Service.GetAllCategories(); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
 }
 
-// GetCategory handles the GET /categories/{id} req for fetching a specific user
-func (ctlr *v1Controller) GetCategory(c *gin.Context) {
+func (restCtrl *restController) getCategory(c *gin.Context) {
 	// swagger:route GET /categories/{id} categories getCategory
 	// Fetch a single category by ID
 	// responses:
@@ -52,16 +50,15 @@ func (ctlr *v1Controller) GetCategory(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if resp, sErr := ctlr.Service.GetCategory(id); sErr.Error != nil {
+	if resp, sErr := restCtrl.Service.GetCategory(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
 }
 
-// CreateCategory handles the POST /categories req for creating a category
 // TODO: prevent dupes - https://dgraph.io/docs/mutations/#example-of-conditional-upsert
-func (ctlr *v1Controller) CreateCategory(c *gin.Context) {
+func (restCtrl *restController) createCategory(c *gin.Context) {
 	// swagger:route POST /categories categories createCategory
 	// Create a new category
 	// responses:
@@ -73,15 +70,14 @@ func (ctlr *v1Controller) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	if resp, sErr := ctlr.Service.CreateCategory(category); sErr.Error != nil {
+	if resp, sErr := restCtrl.Service.CreateCategory(category); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
 }
 
-// UpdateCategory handles the PUT /categories/{id} req for updating a category
-func (ctlr *v1Controller) UpdateCategory(c *gin.Context) {
+func (restCtrl *restController) updateCategory(c *gin.Context) {
 	// swagger:route PUT /categories/{id} categories updateCategory
 	// Update a category
 	// responses:
@@ -95,15 +91,14 @@ func (ctlr *v1Controller) UpdateCategory(c *gin.Context) {
 
 	category.ID = c.Param("id")
 
-	if resp, sErr := ctlr.Service.UpdateCategory(category); sErr.Error != nil {
+	if resp, sErr := restCtrl.Service.UpdateCategory(category); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, resp)
 	}
 }
 
-// DeleteCategory handles the DELETE /categories/{id} req for deleting a category
-func (ctlr *v1Controller) DeleteCategory(c *gin.Context) {
+func (restCtrl *restController) deleteCategory(c *gin.Context) {
 	// swagger:route DELETE /categories/{id} categories deleteCategory
 	// Delete a category
 	// responses:
@@ -111,7 +106,7 @@ func (ctlr *v1Controller) DeleteCategory(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if sErr := ctlr.Service.DeleteCategory(id); sErr.Error != nil {
+	if sErr := restCtrl.Service.DeleteCategory(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.Status(http.StatusNoContent)
