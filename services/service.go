@@ -4,6 +4,7 @@ import (
 	"github.com/atticuss/chefconnect/models"
 )
 
+// Service is an interface that all service implementations must follow
 type Service interface {
 	Login(authnRequest models.AuthnRequest) (models.JwtUser, ServiceError)
 
