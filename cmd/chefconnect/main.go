@@ -20,12 +20,9 @@ package main
 import (
 	"os"
 
-	"github.com/dgraph-io/dgo/v2"
-	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/controllers/rest"
 	"github.com/atticuss/chefconnect/repositories/dgraph"
@@ -37,15 +34,29 @@ type app struct {
 }
 
 func main() {
-	conn, _ := grpc.Dial("ec2-34-238-150-16.compute-1.amazonaws.com:9080", grpc.WithInsecure())
+	log.Logger = log.Output(
+		zerolog.ConsoleWriter{
+			Out:     os.Stderr,
+			NoColor: false,
+		},
+	)
 
-	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
+	subLog := zerolog.New(os.Stdout).With().Logger()
+	restConfig := rest.Config{
+		Port:   ":8000",
+		Logger: &subLog,
+		UTC:    true,
+	}
 
-	categoryRepo := dgraph.NewDgraphCategoryRepository(client)
-	ingredientRepo := dgraph.NewDgraphIngredientRepository(client)
-	recipeRepo := dgraph.NewDgraphRecipeRepository(client)
-	userRepo := dgraph.NewDgraphUserRepository(client)
-	utilRepo := dgraph.NewDgraphRepositoryUtility(client)
+	dgraphConfig := dgraph.Config{
+		Host: "ec2-34-238-150-16.compute-1.amazonaws.com:9080",
+	}
+
+	categoryRepo := dgraph.NewDgraphCategoryRepository(&dgraphConfig)
+	ingredientRepo := dgraph.NewDgraphIngredientRepository(&dgraphConfig)
+	recipeRepo := dgraph.NewDgraphRecipeRepository(&dgraphConfig)
+	userRepo := dgraph.NewDgraphUserRepository(&dgraphConfig)
+	utilRepo := dgraph.NewDgraphRepositoryUtility(&dgraphConfig)
 
 	service := v1.NewV1Service(
 		&categoryRepo,
@@ -55,20 +66,6 @@ func main() {
 		&utilRepo,
 	)
 
-	log.Logger = log.Output(
-		zerolog.ConsoleWriter{
-			Out:     os.Stderr,
-			NoColor: false,
-		},
-	)
-
-	subLog := zerolog.New(os.Stdout).With().Logger()
-	config := rest.Config{
-		Port:   ":8000",
-		Logger: &subLog,
-		UTC:    true,
-	}
-
-	controller := rest.NewRestController(&service, &config)
+	controller := rest.NewRestController(&service, &restConfig)
 	controller.Start()
 }

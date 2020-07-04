@@ -8,6 +8,7 @@ import (
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/jinzhu/copier"
+	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/repositories"
@@ -19,9 +20,12 @@ type dgraphUserRepo struct {
 
 // NewDgraphUserRepository configures a dgraph repository for accessing
 // user data
-func NewDgraphUserRepository(db *dgo.Dgraph) repositories.UserRepository {
+func NewDgraphUserRepository(config *Config) repositories.UserRepository {
+	conn, _ := grpc.Dial(config.Host, grpc.WithInsecure())
+	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
+
 	return &dgraphUserRepo{
-		Client: db,
+		Client: client,
 	}
 }
 

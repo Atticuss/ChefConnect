@@ -8,6 +8,7 @@ import (
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/jinzhu/copier"
+	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/repositories"
@@ -19,9 +20,12 @@ type dgraphIngredientRepo struct {
 
 // NewDgraphIngredientRepository configures a dgraph repository for accessing
 // ingredient data
-func NewDgraphIngredientRepository(db *dgo.Dgraph) repositories.IngredientRepository {
+func NewDgraphIngredientRepository(config *Config) repositories.IngredientRepository {
+	conn, _ := grpc.Dial(config.Host, grpc.WithInsecure())
+	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
+
 	return &dgraphIngredientRepo{
-		Client: db,
+		Client: client,
 	}
 }
 

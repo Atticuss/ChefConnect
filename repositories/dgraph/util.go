@@ -6,6 +6,7 @@ import (
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
+	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/repositories"
 )
@@ -14,12 +15,20 @@ type dgraphUtilRepo struct {
 	Client *dgo.Dgraph
 }
 
+// Config for a dgraph repo
+type Config struct {
+	Host string
+}
+
 // NewDgraphRepositoryUtility configures a dgraph repository for accessing
 // various utility functions, typically leveraged during testing and
 // application initialization
-func NewDgraphRepositoryUtility(db *dgo.Dgraph) repositories.RepositoryUtility {
+func NewDgraphRepositoryUtility(config *Config) repositories.RepositoryUtility {
+	conn, _ := grpc.Dial(config.Host, grpc.WithInsecure())
+	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
+
 	return &dgraphUtilRepo{
-		Client: db,
+		Client: client,
 	}
 }
 

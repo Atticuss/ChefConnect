@@ -7,6 +7,7 @@ import (
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/jinzhu/copier"
+	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/repositories"
@@ -18,9 +19,12 @@ type dgraphCategoryRepo struct {
 
 // NewDgraphCategoryRepository configures a dgraph repository for accessing
 // category data
-func NewDgraphCategoryRepository(db *dgo.Dgraph) repositories.CategoryRepository {
+func NewDgraphCategoryRepository(config *Config) repositories.CategoryRepository {
+	conn, _ := grpc.Dial(config.Host, grpc.WithInsecure())
+	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
+
 	return &dgraphCategoryRepo{
-		Client: db,
+		Client: client,
 	}
 }
 
