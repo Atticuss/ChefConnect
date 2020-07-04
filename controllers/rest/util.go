@@ -62,10 +62,12 @@ func respondWithValidationError(c *gin.Context, err error, model interface{}) {
 	}
 
 	errorMsg := "Required fields are missing: " + strings.Join(missingFields, ", ")
+	c.Error(err)
 	respondWithError(c, http.StatusBadRequest, errorMsg)
 }
 
 func respondWithServiceError(c *gin.Context, sErr services.ServiceError) {
+	c.Error(sErr.Error)
 	respondWithError(c, statusCodeMap[sErr.ErrorCode], sErr.Error.Error())
 }
 
