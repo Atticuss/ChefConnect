@@ -11,28 +11,28 @@ type Service interface {
 	ClearDatastore()
 	InitializeSchema()
 
-	GetAllCategories() (models.ManyAPICategories, ServiceError)
-	GetCategory(id string) (models.APICategory, ServiceError)
-	CreateCategory(category models.APICategory) (models.APICategory, ServiceError)
-	UpdateCategory(category models.APICategory) (models.APICategory, ServiceError)
-	DeleteCategory(id string) ServiceError
+	GetAllTags() (models.ManyAPITags, ServiceError)
+	GetTag(id string) (models.APITag, ServiceError)
+	CreateTag(models.APITag) (models.APITag, ServiceError)
+	UpdateTag(models.APITag) (models.APITag, ServiceError)
+	DeleteTag(id string) ServiceError
 
 	GetAllIngredients() (models.ManyAPIIngredients, ServiceError)
 	GetIngredient(id string) (models.APIIngredient, ServiceError)
-	CreateIngredient(ingredient models.APIIngredient) (models.APIIngredient, ServiceError)
-	UpdateIngredient(ingredient models.APIIngredient) (models.APIIngredient, ServiceError)
+	CreateIngredient(models.APIIngredient) (models.APIIngredient, ServiceError)
+	UpdateIngredient(models.APIIngredient) (models.APIIngredient, ServiceError)
 	DeleteIngredient(id string) ServiceError
 
 	GetAllRecipes() (models.ManyAPIRecipes, ServiceError)
 	GetRecipe(id string) (models.APIRecipe, ServiceError)
-	CreateRecipe(recipe models.APIRecipe) (models.APIRecipe, ServiceError)
-	UpdateRecipe(recipe models.APIRecipe) (models.APIRecipe, ServiceError)
+	CreateRecipe(models.APIRecipe) (models.APIRecipe, ServiceError)
+	UpdateRecipe(models.APIRecipe) (models.APIRecipe, ServiceError)
 	DeleteRecipe(id string) ServiceError
 
 	GetAllUsers() (models.ManyAPIUsers, ServiceError)
 	GetUser(id string) (models.APIUser, ServiceError)
-	CreateUser(user models.APIUser) (models.APIUser, ServiceError)
-	UpdateUser(user models.APIUser) (models.APIUser, ServiceError)
+	CreateUser(models.APIUser) (models.APIUser, ServiceError)
+	UpdateUser(models.APIUser) (models.APIUser, ServiceError)
 	DeleteUser(id string) ServiceError
 }
 

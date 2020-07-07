@@ -7,7 +7,7 @@ type APIIngredient struct {
 	Name   string `json:"name,omitempty" validate:"required"`
 	Amount string `json:"amount,omitempty"`
 
-	Categories []NestedCategory `json:"categories,omitempty"`
+	Categories []NestedTag `json:"categories,omitempty"`
 }
 
 // NestedIngredient is a stripped down struct used when an Ingredient is nested
@@ -30,7 +30,7 @@ type Ingredient struct {
 	Name   string
 	Amount string
 
-	Categories []Category
+	Tags []Tag
 }
 
 // ManyIngredients is a struct that represents multiple ingredients

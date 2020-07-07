@@ -52,14 +52,14 @@ func main() {
 		Host: "ec2-34-238-150-16.compute-1.amazonaws.com:9080",
 	}
 
-	categoryRepo := dgraph.NewDgraphCategoryRepository(&dgraphConfig)
+	tagRepo := dgraph.NewDgraphTagRepository(&dgraphConfig)
 	ingredientRepo := dgraph.NewDgraphIngredientRepository(&dgraphConfig)
 	recipeRepo := dgraph.NewDgraphRecipeRepository(&dgraphConfig)
 	userRepo := dgraph.NewDgraphUserRepository(&dgraphConfig)
 	utilRepo := dgraph.NewDgraphRepositoryUtility(&dgraphConfig)
 
 	service := v1.NewV1Service(
-		&categoryRepo,
+		&tagRepo,
 		&ingredientRepo,
 		&recipeRepo,
 		&userRepo,

@@ -41,8 +41,8 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 		domain: string .
 		directions: string .
 		ingredients: [uid] @reverse .
-		ingredient_categories: [uid] @reverse .
-		recipe_categories: [uid] @reverse .
+		ingredient_tags: [uid] @reverse .
+		recipe_tags: [uid] @reverse .
 		prep_time: int @index(int) .
 		cook_time: int @index(int) .
 		total_servings: int .
@@ -66,15 +66,15 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 		type Ingredient {
 			name
 			<~ingredients>
-			ingredient_categories
+			ingredient_tags
 
 			amount
 		}
 
-		type Category {
+		type Tag {
 			name
-			<~ingredient_categories>
-			<~recipe_categories>
+			<~ingredient_tags>
+			<~recipe_tags>
 		}
 
 		type Recipe {
@@ -87,7 +87,7 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 			cook_time
 			total_servings
 			related_recipes
-			recipe_categories
+			recipe_tags
 			has_been_tried
 			owner
 			
@@ -152,17 +152,17 @@ func (d *dgraphUtilRepo) InitializeBaseData() error {
 		_:user_el <dgraph.type> "User" .
 
 		_:cat_fake_meat <name> "Fake Meat" .
-		_:cat_fake_meat <dgraph.type> "Category" .
+		_:cat_fake_meat <dgraph.type> "Tag" .
 		
 		_:cat_condiment <name> "Condiment" .
-		_:cat_condiment <dgraph.type> "Category" .
+		_:cat_condiment <dgraph.type> "Tag" .
 
 		_:ing_soy_curls <name> "Soy Curls" .
-		_:ing_soy_curls <ingredient_categories> _:cat_fake_meat .
+		_:ing_soy_curls <ingredient_tags> _:cat_fake_meat .
 		_:ing_soy_curls <dgraph.type> "Ingredient" .
 
 		_:ing_buffalo <name> "Buffalo Sauce" .
-		_:ing_buffalo <ingredient_categories> _:cat_condiment .
+		_:ing_buffalo <ingredient_tags> _:cat_condiment .
 		_:ing_buffalo <dgraph.type> "Ingredient" .
 
 		_:ing_black_beans <name> "Black Beans" .

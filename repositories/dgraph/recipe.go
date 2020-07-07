@@ -46,7 +46,7 @@ type dgraphRecipe struct {
 
 	Ingredients       []dgraphIngredient `json:"ingredients,omitempty"`
 	IngredientAmounts map[int]string     `json:"ingredients|amount,omitempty"`
-	Categories        []dgraphCategory   `json:"categories,omitempty"`
+	Tags              []dgraphTag        `json:"tags,omitempty"`
 	RatedBy           []dgraphUser       `json:"~ratings,omitempty"`
 	RatingScore       map[int]int        `json:"~ratings|score,omitempty"`
 	FavoritedBy       []dgraphUser       `json:"~favorites,omitempty"`
@@ -126,7 +126,7 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 					uid
 					name
 				}
-				categories {
+				tags {
 					uid
 					name
 				}

@@ -10,11 +10,11 @@ type RepositoryUtility interface {
 	InitializeBaseData() error
 }
 
-type CategoryRepository interface {
-	Get(id string) (*models.Category, error)
-	GetAll() (*models.ManyCategories, error)
-	Create(*models.Category) (*models.Category, error)
-	Update(*models.Category) (*models.Category, error)
+type TagRepository interface {
+	Get(id string) (*models.Tag, error)
+	GetAll() (*models.ManyTags, error)
+	Create(*models.Tag) (*models.Tag, error)
+	Update(*models.Tag) (*models.Tag, error)
 	Delete(id string) error
 }
 

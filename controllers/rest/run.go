@@ -75,11 +75,11 @@ func (restCtlr *restController) Start() error {
 	tagRouter := router.Group("/tags")
 	tagRouter.Use(authMiddleware.MiddlewareFunc())
 	{
-		tagRouter.GET("/", restCtlr.getAllCategories)
-		tagRouter.POST("/", restCtlr.createCategory)
-		tagRouter.GET("/:id", restCtlr.getCategory)
-		tagRouter.PUT("/:id", restCtlr.updateCategory)
-		tagRouter.DELETE("/:id", restCtlr.deleteCategory)
+		tagRouter.GET("/", restCtlr.getAllTags)
+		tagRouter.POST("/", restCtlr.createTag)
+		tagRouter.GET("/:id", restCtlr.getTag)
+		tagRouter.PUT("/:id", restCtlr.updateTag)
+		tagRouter.DELETE("/:id", restCtlr.deleteTag)
 	}
 
 	fmt.Printf("binding to port: %s\n", restCtlr.Config.Port)

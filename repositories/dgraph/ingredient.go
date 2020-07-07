@@ -37,9 +37,9 @@ type dgraphIngredient struct {
 	ID   string `json:"uid,omitempty"`
 	Name string `json:"name,omitempty" validate:"required"`
 
-	Recipes []models.Recipe `json:"~recipe_categories,omitempty"`
+	Recipes []models.Recipe `json:"~recipe_tags,omitempty"`
 	//Ingredients []models.Ingredient `json:"~ingredient_categories,omitempty"`
-	Categories []dgraphCategory `json:"ingredient_categories,omitempty"`
+	Tags []dgraphTag `json:"ingredient_tags,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }
@@ -91,7 +91,7 @@ func (d *dgraphIngredientRepo) Get(id string) (*models.Ingredient, error) {
 				name
 				dgraph.type
 
-				ingredient_categories {
+				ingredient_tags {
 					uid
 					name
 				}

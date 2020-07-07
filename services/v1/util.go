@@ -11,7 +11,7 @@ import (
 
 type v1Service struct {
 	Validator            *validator.Validate
-	CategoryRepository   repositories.CategoryRepository
+	TagRepository        repositories.TagRepository
 	IngredientRepository repositories.IngredientRepository
 	RecipeRepository     repositories.RecipeRepository
 	UserRepository       repositories.UserRepository
@@ -20,7 +20,7 @@ type v1Service struct {
 
 // NewV1Service configures a service for handling business logic
 func NewV1Service(
-	cat *repositories.CategoryRepository,
+	tag *repositories.TagRepository,
 	ing *repositories.IngredientRepository,
 	rec *repositories.RecipeRepository,
 	user *repositories.UserRepository,
@@ -43,7 +43,7 @@ func NewV1Service(
 
 	svc := v1Service{
 		Validator:            v,
-		CategoryRepository:   *cat,
+		TagRepository:        *tag,
 		IngredientRepository: *ing,
 		RecipeRepository:     *rec,
 		UserRepository:       *user,
