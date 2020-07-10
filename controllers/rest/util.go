@@ -11,34 +11,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/rs/zerolog"
 
-	"github.com/atticuss/chefconnect/controllers"
 	"github.com/atticuss/chefconnect/services"
 )
-
-type restController struct {
-	Service services.Service
-	Config  Config
-}
-
-// Config defines the... configuration? I guess for the REST controller itself.
-type Config struct {
-	Port   string
-	Logger *zerolog.Logger
-	// UTC a boolean stating whether to use UTC time zone or local.
-	UTC bool
-}
-
-// NewRestController configures a controller for handling request/response logic as a REST API
-func NewRestController(svc *services.Service, config *Config) controllers.Controller {
-	rest := restController{
-		Service: *svc,
-		Config:  *config,
-	}
-
-	return &rest
-}
 
 var statusCodeMap = [...]int{
 	services.Unhandled:      http.StatusBadRequest,

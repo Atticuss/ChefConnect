@@ -20,7 +20,6 @@ package main
 import (
 	"os"
 
-	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -28,10 +27,6 @@ import (
 	"github.com/atticuss/chefconnect/repositories/dgraph"
 	v1 "github.com/atticuss/chefconnect/services/v1"
 )
-
-type app struct {
-	Router *gin.Engine
-}
 
 func main() {
 	log.Logger = log.Output(
@@ -67,5 +62,6 @@ func main() {
 	)
 
 	controller := rest.NewRestController(&service, &restConfig)
-	controller.Start()
+	controller.SetupController()
+	controller.Run()
 }

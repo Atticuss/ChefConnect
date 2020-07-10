@@ -2,16 +2,41 @@ package rest
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 
+	"github.com/atticuss/chefconnect/controllers"
+	"github.com/atticuss/chefconnect/services"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
-func (restCtlr *restController) Start() error {
+type restController struct {
+	Service services.Service
+	Config  Config
+	Router  *gin.Engine
+}
+
+// Config defines the... configuration? I guess for the REST controller itself.
+type Config struct {
+	Port   string
+	Logger *zerolog.Logger
+	// UTC a boolean stating whether to use UTC time zone or local.
+	UTC bool
+}
+
+// NewRestController configures a controller for handling request/response logic as a REST API
+func NewRestController(svc *services.Service, config *Config) controllers.Controller {
+	rest := restController{
+		Service: *svc,
+		Config:  *config,
+	}
+
+	return &rest
+}
+
+func (restCtlr *restController) SetupController() (interface{}, error) {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	if gin.IsDebugging() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -30,7 +55,7 @@ func (restCtlr *restController) Start() error {
 
 	authMiddleware, err := restCtlr.configureMiddleware()
 	if err != nil {
-		return errors.New("error configuring gin-jwt:" + err.Error())
+		return router, errors.New("error configuring gin-jwt:" + err.Error())
 	}
 
 	router.GET("/ping", healthCheck)
@@ -82,13 +107,17 @@ func (restCtlr *restController) Start() error {
 		tagRouter.DELETE("/:id", restCtlr.deleteTag)
 	}
 
-	fmt.Printf("binding to port: %s\n", restCtlr.Config.Port)
-	router.Run(restCtlr.Config.Port)
+	restCtlr.Router = router
 
-	return nil
+	return router, nil
 }
 
-func (restCtrl *restController) Stop() error {
+func (restCtlr *restController) Run() error {
+	err := restCtlr.Router.Run(restCtlr.Config.Port)
+	return err
+}
+
+func (restCtlr *restController) Stop() error {
 	return errors.New("Not implemented")
 }
 
