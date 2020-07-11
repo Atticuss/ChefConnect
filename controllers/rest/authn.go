@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -108,7 +107,6 @@ func (restCtrl *restController) login(c *gin.Context) (interface{}, error) {
 	}
 
 	user, sErr := restCtrl.Service.Login(authnReq)
-	fmt.Printf("login resp: %+v\n", user)
 	if sErr.Error != nil {
 		if sErr.ErrorCode == services.NotAuthorized {
 			return nil, jwt.ErrFailedAuthentication
