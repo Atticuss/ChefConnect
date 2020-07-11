@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/atticuss/chefconnect/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,14 @@ func TestSuccesfulLogin(t *testing.T) {
 	})
 
 	w := performRequest("POST", "/auth/login", nil, loginBody)
-	assert.Equal(http.StatusOK, w.Code, "Login test failed")
+	assert.Equal(http.StatusOK, w.Code, "Valid login test failed -- unexpected HTTP response code")
+
+	var resp models.AuthnResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		panic(err)
+	}
+
+	assert.NotEmptyf(resp, "Valid login test failed -- empty response body")
 }
 
 func TestFailedLogin(t *testing.T) {
@@ -29,5 +37,26 @@ func TestFailedLogin(t *testing.T) {
 	})
 
 	w := performRequest("POST", "/auth/login", nil, loginBody)
-	assert.Equal(http.StatusUnauthorized, w.Code, "Login test failed")
+	assert.Equal(http.StatusUnauthorized, w.Code, "Invalid login test failed -- unexpected HTTP response code")
+
+	var resp models.AuthnResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		panic(err)
+	}
+
+	assert.Emptyf(resp, "Valid login test failed -- non-empty response body")
+}
+
+func TestRefreshToken(t *testing.T) {
+	assert := assert.New(t)
+
+	w := performRequest("GET", "/auth/refresh-token", nil, nil)
+	assert.Equal(http.StatusOK, w.Code, "Refresh token test failed -- unexpected HTTP response code")
+
+	var resp models.AuthnResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &resp); err != nil {
+		panic(err)
+	}
+
+	assert.NotEmptyf(resp, "Refresh token test failed -- empty response body")
 }
