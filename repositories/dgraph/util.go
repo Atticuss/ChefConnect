@@ -151,18 +151,18 @@ func (d *dgraphUtilRepo) InitializeBaseData() error {
 		_:user_el <roles> _:role_admin .
 		_:user_el <dgraph.type> "User" .
 
-		_:cat_fake_meat <name> "Fake Meat" .
-		_:cat_fake_meat <dgraph.type> "Tag" .
+		_:tag_fake_meat <name> "Fake Meat" .
+		_:tag_fake_meat <dgraph.type> "Tag" .
 		
-		_:cat_condiment <name> "Condiment" .
-		_:cat_condiment <dgraph.type> "Tag" .
+		_:tag_condiment <name> "Condiment" .
+		_:tag_condiment <dgraph.type> "Tag" .
 
 		_:ing_soy_curls <name> "Soy Curls" .
-		_:ing_soy_curls <ingredient_tags> _:cat_fake_meat .
+		_:ing_soy_curls <ingredient_tags> _:tag_fake_meat .
 		_:ing_soy_curls <dgraph.type> "Ingredient" .
 
 		_:ing_buffalo <name> "Buffalo Sauce" .
-		_:ing_buffalo <ingredient_tags> _:cat_condiment .
+		_:ing_buffalo <ingredient_tags> _:tag_condiment .
 		_:ing_buffalo <dgraph.type> "Ingredient" .
 
 		_:ing_black_beans <name> "Black Beans" .
