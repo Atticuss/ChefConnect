@@ -9,5 +9,7 @@ type AuthnRequest struct {
 
 // AuthnResponse is a struct that represents a single auth response.
 type AuthnResponse struct {
-	JWT string `json:"jwt,omitempty"`
+	Token  string `json:"token,omitempty"`
+	Code   int    `json:"code,omitempty"`
+	Expire string `json:"expire,omitempty"`
 }
