@@ -64,12 +64,12 @@ func setup() {
 	router, _ = r.(*gin.Engine)
 }
 
-func performRequest(method, path string, session *http.Cookie, body []byte) *httptest.ResponseRecorder {
+func performRequest(method, path string, token string, body []byte) *httptest.ResponseRecorder {
 	req, _ := http.NewRequest(method, path, bytes.NewBuffer(body))
 	req.Header.Add("Content-Type", "application/json")
 
-	if session != nil {
-		req.AddCookie(session)
+	if token != "" {
+		req.Header.Set("Authorization", "Token "+token)
 	}
 
 	w := httptest.NewRecorder()
