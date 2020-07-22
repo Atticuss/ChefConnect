@@ -133,22 +133,51 @@ func (d *dgraphUtilRepo) InitializeBaseData() error {
 
 	//$2a$14$zR/r6hmGbPk1mh1G8fsvJOE/iKfhosK5YjVoiA51zgKmDnp6lETja -> Password1!
 	nquads := `
-		_:role_admin <name> "SiteAdmin" .
+		_:role_admin <name> "Site Admin" .
 		_:role_admin <dgraph.type> "Role" .
 
 		_:role_user <name> "User" .
 		_:role_user <dgraph.type> "Role" .
+	`
 
+	mu := &api.Mutation{
+		CommitNow: true,
+		SetNquads: []byte(nquads),
+	}
+
+	res, err := txn.Mutate(context.Background(), mu)
+	fmt.Printf("result: %+v\n", res)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// https://github.com/dgraph-io/dgo#running-an-upsert-query--mutation
+func (d *dgraphUtilRepo) InitializeTestData() error {
+	const query = `
+		query {
+			var(func: eq(name, "Site Admin")) @filter(type(Role)) {
+				SiteAdminRole as uid
+			}
+			var(func: eq(name, "User")) @filter(type(Role)) {
+				UserRole as uid
+			}
+		}
+	`
+
+	const nquads = `
 		_:user_jay <name> "Jay Sea" .
 		_:user_jay <username> "jay.sea" .
 		_:user_jay <password> "$2a$14$zR/r6hmGbPk1mh1G8fsvJOE/iKfhosK5YjVoiA51zgKmDnp6lETja" .
-		_:user_jay <roles> _:role_user .
+		_:user_jay <roles> uid(UserRole) .
 		_:user_jay <dgraph.type> "User" .
 
 		_:user_el <name> "El Dubs" .
 		_:user_el <username> "el.dubs" .
 		_:user_el <password> "$2a$14$zR/r6hmGbPk1mh1G8fsvJOE/iKfhosK5YjVoiA51zgKmDnp6lETja" .
-		_:user_el <roles> _:role_admin .
+		_:user_el <roles> uid(SiteAdminRole) .
 		_:user_el <dgraph.type> "User" .
 
 		_:tag_fake_meat <name> "Fake Meat" .
@@ -196,13 +225,15 @@ func (d *dgraphUtilRepo) InitializeBaseData() error {
 	`
 
 	mu := &api.Mutation{
-		CommitNow: true,
 		SetNquads: []byte(nquads),
 	}
+	req := &api.Request{
+		Query:     query,
+		Mutations: []*api.Mutation{mu},
+		CommitNow: true,
+	}
 
-	res, err := txn.Mutate(context.Background(), mu)
-	fmt.Printf("result: %+v\n", res)
-	if err != nil {
+	if _, err := d.Client.NewTxn().Do(context.Background(), req); err != nil {
 		return err
 	}
 

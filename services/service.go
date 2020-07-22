@@ -34,6 +34,9 @@ type Service interface {
 	CreateUser(models.APIUser) (models.APIUser, ServiceError)
 	UpdateUser(models.APIUser) (models.APIUser, ServiceError)
 	DeleteUser(id string) ServiceError
+
+	GetAllRoles() (models.ManyAPIRoles, ServiceError)
+	GetRole(id string) (models.APIRole, ServiceError)
 }
 
 type errorCode int

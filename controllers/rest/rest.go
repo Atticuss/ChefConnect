@@ -107,6 +107,13 @@ func (restCtlr *restController) SetupController() (interface{}, error) {
 		tagRouter.DELETE("/:id", restCtlr.deleteTag)
 	}
 
+	roleRouter := router.Group("/roles")
+	roleRouter.Use(authMiddleware.MiddlewareFunc())
+	{
+		roleRouter.GET("/", restCtlr.getAllRoles)
+		roleRouter.GET("/:id", restCtlr.getRole)
+	}
+
 	restCtlr.Router = router
 
 	return router, nil
@@ -118,7 +125,7 @@ func (restCtlr *restController) Run() error {
 }
 
 func (restCtlr *restController) Stop() error {
-	return errors.New("Not implemented")
+	return errors.New("not implemented")
 }
 
 func healthCheck(c *gin.Context) {

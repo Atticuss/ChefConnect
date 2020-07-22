@@ -15,6 +15,7 @@ type v1Service struct {
 	IngredientRepository repositories.IngredientRepository
 	RecipeRepository     repositories.RecipeRepository
 	UserRepository       repositories.UserRepository
+	RoleRepository       repositories.RoleRepository
 	RepositoryUtility    repositories.RepositoryUtility
 }
 
@@ -24,6 +25,7 @@ func NewV1Service(
 	ing *repositories.IngredientRepository,
 	rec *repositories.RecipeRepository,
 	user *repositories.UserRepository,
+	role *repositories.RoleRepository,
 	util *repositories.RepositoryUtility,
 ) services.Service {
 
@@ -47,6 +49,7 @@ func NewV1Service(
 		IngredientRepository: *ing,
 		RecipeRepository:     *rec,
 		UserRepository:       *user,
+		RoleRepository:       *role,
 		RepositoryUtility:    *util,
 	}
 

@@ -47,11 +47,6 @@ type dgraphUser struct {
 	DType []string `json:"dgraph.type,omitempty"`
 }
 
-type dgraphRole struct {
-	ID   string `json:"uid,omitempty"`
-	Name string `json:"name,omitempty"`
-}
-
 // GetAll users out of dgraph
 func (d *dgraphUserRepo) GetAll() (*models.ManyUsers, error) {
 	users := models.ManyUsers{}
