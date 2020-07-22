@@ -8,6 +8,7 @@ type RepositoryUtility interface {
 	InitializeSchema() error
 	ClearDatastore() error
 	InitializeBaseData() error
+	InitializeTestData() error
 }
 
 type TagRepository interface {
@@ -41,4 +42,9 @@ type UserRepository interface {
 	Create(*models.User) (*models.User, error)
 	Update(*models.User) (*models.User, error)
 	Delete(id string) error
+}
+
+type RoleRepository interface {
+	Get(id string) (*models.Role, error)
+	GetAll() (*models.ManyRoles, error)
 }
