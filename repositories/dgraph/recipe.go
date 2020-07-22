@@ -227,5 +227,5 @@ func (d *dgraphRecipeRepo) Update(recipe *models.Recipe) (*models.Recipe, error)
 
 // Delete a recipe from dgraph
 func (d *dgraphRecipeRepo) Delete(id string) error {
-	return errors.New("Not implemented")
+	return errors.New("not implemented")
 }

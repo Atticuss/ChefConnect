@@ -176,5 +176,5 @@ func (d *dgraphIngredientRepo) Update(ingredient *models.Ingredient) (*models.In
 
 // Delete an ingredient from dgraph
 func (d *dgraphIngredientRepo) Delete(id string) error {
-	return errors.New("Not implemented")
+	return errors.New("not implemented")
 }

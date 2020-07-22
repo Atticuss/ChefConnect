@@ -245,5 +245,5 @@ func (d *dgraphUserRepo) Update(user *models.User) (*models.User, error) {
 
 // Delete a user from dgraph
 func (d *dgraphUserRepo) Delete(id string) error {
-	return errors.New("Not implemented")
+	return errors.New("not implemented")
 }
