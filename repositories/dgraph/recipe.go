@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strconv"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -45,10 +46,10 @@ type dgraphRecipe struct {
 	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
 
 	Ingredients       []dgraphIngredient `json:"ingredients,omitempty"`
-	IngredientAmounts map[int]string     `json:"ingredients|amount,omitempty"`
+	IngredientAmounts map[string]string  `json:"ingredients|amount,omitempty"`
 	Tags              []dgraphTag        `json:"tags,omitempty"`
 	RatedBy           []dgraphUser       `json:"~ratings,omitempty"`
-	RatingScore       map[int]int        `json:"~ratings|score,omitempty"`
+	RatingScore       map[string]string  `json:"~ratings|score,omitempty"`
 	FavoritedBy       []dgraphUser       `json:"~favorites,omitempty"`
 	RelatedRecipes    []dgraphRecipe     `json:"related_recipes,omitempty"`
 	Notes             []models.Note      `json:"~recipe,omitempty"`
@@ -56,15 +57,34 @@ type dgraphRecipe struct {
 	DType []string `json:"dgraph.type,omitempty"`
 }
 
+// due to how dgraph returns facet data, we have to do more than just copy
+// between two structs. a facet is data associated with a particular edge. for
+// example, that's where ingredient amounts are stored. the dgraph query for a
+// recipe will return this information in the form of:
+// {
+//	  "name": "My Recipe",
+//    "ingredients": [
+//        {"uid": "0xf00", "name": "Black Beans"}
+//    ],
+//    "ingredients|amount" : {
+//	    {"0": "1 cup, presoaked"}
+//    }
+// }
+// In order to put restructure this in a sane manner, we move the "ingredients|amount"
+// field values over into each element of "ingredient". Also need to convert str
+// values into ints when appropriate, as `json.Unmarshal()` refuses to cast for you
 func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) {
 	copier.Copy(&recipe, &dRecipe)
 
-	for idx, value := range dRecipe.IngredientAmounts {
-		recipe.Ingredients[idx].Amount = value
+	for s_idx, value := range dRecipe.IngredientAmounts {
+		i_idx, _ := strconv.Atoi(s_idx)
+		recipe.Ingredients[i_idx].Amount = value
 	}
 
-	for idx, value := range dRecipe.RatingScore {
-		recipe.RatedBy[idx].RatingScore = value
+	for s_idx, s_value := range dRecipe.RatingScore {
+		i_idx, _ := strconv.Atoi(s_idx)
+		i_value, _ := strconv.Atoi(s_value)
+		recipe.RatedBy[i_idx].RatingScore = i_value
 	}
 }
 
