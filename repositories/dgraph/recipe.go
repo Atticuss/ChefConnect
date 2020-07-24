@@ -57,9 +57,9 @@ type dgraphRecipe struct {
 	DType []string `json:"dgraph.type,omitempty"`
 }
 
-// due to how dgraph returns facet data, we have to do more than just copy
-// between two structs. a facet is data associated with a particular edge. for
-// example, that's where ingredient amounts are stored. the dgraph query for a
+// Due to how dgraph returns facet data, we have to do more than just copy
+// between two structs. a facet is data associated with a particular edge. For
+// example, that's where ingredient amounts are stored. The dgraph query for a
 // recipe will return this information in the form of:
 // {
 //	  "name": "My Recipe",
@@ -70,22 +70,37 @@ type dgraphRecipe struct {
 //	    {"0": "1 cup, presoaked"}
 //    }
 // }
-// In order to put restructure this in a sane manner, we move the "ingredients|amount"
+// In order to restructure this in a sane manner, we move the "ingredients|amount"
 // field values over into each element of "ingredient". Also need to convert str
 // values into ints when appropriate, as `json.Unmarshal()` refuses to cast for you
-func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) {
+func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) error {
 	copier.Copy(&recipe, &dRecipe)
 
 	for s_idx, value := range dRecipe.IngredientAmounts {
-		i_idx, _ := strconv.Atoi(s_idx)
+		i_idx, err := strconv.Atoi(s_idx)
+
+		if err != nil {
+			return err
+		}
+
 		recipe.Ingredients[i_idx].Amount = value
 	}
 
 	for s_idx, s_value := range dRecipe.RatingScore {
-		i_idx, _ := strconv.Atoi(s_idx)
-		i_value, _ := strconv.Atoi(s_value)
+		i_idx, err := strconv.Atoi(s_idx)
+		if err != nil {
+			return err
+		}
+
+		i_value, err := strconv.Atoi(s_value)
+		if err != nil {
+			return err
+		}
+
 		recipe.RatedBy[i_idx].RatingScore = i_value
 	}
+
+	return nil
 }
 
 // GetAll recipes out of dgraph
@@ -181,8 +196,10 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 	}
 
 	if len(dRecipes.Recipes) > 0 {
-		dRecipes.Recipes[0].dgraphToModel(&recipe)
-		return &recipe, nil
+		err := dRecipes.Recipes[0].dgraphToModel(&recipe)
+		if err != nil {
+			return &recipe, err
+		}
 	}
 
 	return &recipe, nil
