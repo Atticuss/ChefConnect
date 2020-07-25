@@ -29,7 +29,7 @@ func compareHash(password, hash string) bool {
 	return err == nil
 }
 
-// GetAllCategories handles the business logic when a client requests all categories
+// Login handles the business logic when a client performs an authn request
 func (s *v1Service) Login(authReq models.AuthnRequest) (models.JwtUser, services.ServiceError) {
 	jwtUser := models.JwtUser{}
 
