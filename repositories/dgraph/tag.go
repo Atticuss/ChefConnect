@@ -183,6 +183,7 @@ func (d *dgraphTagRepo) Update(tag *models.Tag) (*models.Tag, error) {
 // Delete a tag from dgraph by ID
 func (d *dgraphTagRepo) Delete(id string) error {
 	txn := d.Client.NewTxn()
+	defer txn.Discard(context.Background())
 
 	variables := map[string]string{"uid": id}
 	pb, err := json.Marshal(variables)
