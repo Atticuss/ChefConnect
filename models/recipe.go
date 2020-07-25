@@ -15,7 +15,7 @@ type APIRecipe struct {
 
 	Ingredients       []NestedIngredient `json:"ingredients,omitempty"`
 	IngredientAmounts []string           `json:"ingredientAmounts,omitempty"`
-	Tags              []NestedTag        `json:"categories,omitempty"`
+	Tags              []NestedTag        `json:"tags,omitempty"`
 	RatedBy           []NestedUser       `json:"rated_by,omitempty"`
 	RatingScore       []int              `json:"rating_score,omitempty"`
 	FavoritedBy       []NestedUser       `json:"favorited_by,omitempty"`
