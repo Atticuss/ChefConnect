@@ -27,6 +27,7 @@ type Service interface {
 	GetRecipe(id string) (models.APIRecipe, ServiceError)
 	CreateRecipe(models.APIRecipe) (models.APIRecipe, ServiceError)
 	UpdateRecipe(models.APIRecipe) (models.APIRecipe, ServiceError)
+	SetRecipeTags(models.APIRecipe) (models.APIRecipe, ServiceError)
 	DeleteRecipe(id string) ServiceError
 
 	GetAllUsers() (models.ManyAPIUsers, ServiceError)

@@ -262,6 +262,42 @@ func (d *dgraphRecipeRepo) Update(recipe *models.Recipe) (*models.Recipe, error)
 	return recipe, nil
 }
 
+// SetTags for a recipe in drgraph
+func (d *dgraphRecipeRepo) SetTags(recipe *models.Recipe) (*models.Recipe, error) {
+	dRecipe := dgraphRecipe{}
+	txn := d.Client.NewTxn()
+	defer txn.Discard(context.Background())
+
+	copier.Copy(&dRecipe, recipe)
+	dRecipe.DType = []string{"Recipe"}
+
+	mu := &api.Mutation{}
+	dgo.DeleteEdges(mu, dRecipe.ID, "tags")
+	mu.CommitNow = true
+
+	_, err := d.Client.NewTxn().Mutate(context.Background(), mu)
+	if err != nil {
+		return recipe, err
+	}
+
+	pb, err := json.Marshal(dRecipe)
+	if err != nil {
+		return recipe, err
+	}
+
+	mu = &api.Mutation{
+		CommitNow: true,
+		SetJson:   pb,
+	}
+
+	_, err = txn.Mutate(context.Background(), mu)
+	if err != nil {
+		return recipe, err
+	}
+
+	return recipe, nil
+}
+
 // Delete a recipe from dgraph
 func (d *dgraphRecipeRepo) Delete(id string) error {
 	return errors.New("not implemented")

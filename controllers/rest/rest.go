@@ -84,6 +84,7 @@ func (restCtlr *restController) SetupController() (interface{}, error) {
 		recipeRouter.POST("/", restCtlr.createRecipe)
 		recipeRouter.GET("/:id", restCtlr.getRecipe)
 		recipeRouter.PUT("/:id", restCtlr.updateRecipe)
+		recipeRouter.PUT("/:id/tags", restCtlr.setRecipeTags)
 		recipeRouter.DELETE("/:id", restCtlr.deleteRecipe)
 	}
 

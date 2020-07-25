@@ -95,6 +95,27 @@ func (restCtrl *restController) updateRecipe(c *gin.Context) {
 	}
 }
 
+func (restCtrl *restController) setRecipeTags(c *gin.Context) {
+	// swagger:route PUT /recipes/{id}/tags recipes setRecipeTags
+	// Create a new recipe
+	// responses:
+	//   200: Recipe
+
+	var recipe models.APIRecipe
+	if err := c.ShouldBindJSON(&recipe); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	recipe.ID = c.Param("id")
+
+	if resp, sErr := restCtrl.Service.SetRecipeTags(recipe); sErr.Error != nil {
+		respondWithServiceError(c, sErr)
+	} else {
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
 func (restCtrl *restController) deleteRecipe(c *gin.Context) {
 	// swagger:route DELETE /recipes/{id} recipes deleteRecipe
 	// Delete a recipe

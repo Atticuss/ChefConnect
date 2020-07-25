@@ -45,6 +45,9 @@ func (s *v1Service) CreateRecipe(apiRecipe models.APIRecipe) (models.APIRecipe, 
 		return apiRecipe, services.ServiceError{Error: err}
 	}
 
+	apiRecipe = models.APIRecipe{}
+	copier.Copy(&apiRecipe, &repoRecipe)
+
 	return apiRecipe, nilErr
 }
 
@@ -54,11 +57,27 @@ func (s *v1Service) UpdateRecipe(apiRecipe models.APIRecipe) (models.APIRecipe, 
 	copier.Copy(&recipe, &apiRecipe)
 
 	repoRecipe, err := s.RecipeRepository.Update(&recipe)
-	copier.Copy(&apiRecipe, &repoRecipe)
-
 	if err != nil {
 		return apiRecipe, services.ServiceError{Error: err}
 	}
+
+	apiRecipe = models.APIRecipe{}
+	copier.Copy(&apiRecipe, &repoRecipe)
+	return apiRecipe, nilErr
+}
+
+// SetRecipeTags handles the business logic when a client tags a recipe
+func (s *v1Service) SetRecipeTags(apiRecipe models.APIRecipe) (models.APIRecipe, services.ServiceError) {
+	recipe := models.Recipe{}
+	copier.Copy(&recipe, &apiRecipe)
+
+	repoRecipe, err := s.RecipeRepository.SetTags(&recipe)
+	if err != nil {
+		return apiRecipe, services.ServiceError{Error: err}
+	}
+
+	apiRecipe = models.APIRecipe{}
+	copier.Copy(&apiRecipe, &repoRecipe)
 
 	return apiRecipe, nilErr
 }
