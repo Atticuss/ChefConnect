@@ -38,8 +38,7 @@ type dgraphIngredient struct {
 	Name string `json:"name,omitempty" validate:"required"`
 
 	Recipes []models.Recipe `json:"~recipe_tags,omitempty"`
-	//Ingredients []models.Ingredient `json:"~ingredient_categories,omitempty"`
-	Tags []dgraphTag `json:"ingredient_tags,omitempty"`
+	Tags    []dgraphTag     `json:"ingredient_tags,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }
