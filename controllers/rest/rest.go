@@ -84,7 +84,7 @@ func (restCtlr *restController) SetupController() (interface{}, error) {
 		recipeRouter.POST("/", restCtlr.createRecipe)
 		recipeRouter.GET("/:id", restCtlr.getRecipe)
 		recipeRouter.PUT("/:id", restCtlr.updateRecipe)
-		recipeRouter.DELETE("/:id", restCtlr.deleteIngredient)
+		recipeRouter.DELETE("/:id", restCtlr.deleteRecipe)
 	}
 
 	userRouter := router.Group("/users")
