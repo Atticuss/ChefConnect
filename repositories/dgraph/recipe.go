@@ -271,9 +271,10 @@ func (d *dgraphRecipeRepo) SetTags(recipe *models.Recipe) (*models.Recipe, error
 	copier.Copy(&dRecipe, recipe)
 	dRecipe.DType = []string{"Recipe"}
 
-	mu := &api.Mutation{}
+	mu := &api.Mutation{
+		CommitNow: true,
+	}
 	dgo.DeleteEdges(mu, dRecipe.ID, "tags")
-	mu.CommitNow = true
 
 	_, err := d.Client.NewTxn().Mutate(context.Background(), mu)
 	if err != nil {

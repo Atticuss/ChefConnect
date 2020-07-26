@@ -63,6 +63,22 @@ func (s *v1Service) UpdateIngredient(apiIngredient models.APIIngredient) (models
 	return apiIngredient, nilErr
 }
 
+// SetIngredientTags handles the business logic when a client tags a recipe
+func (s *v1Service) SetIngredientTags(apiIngredient models.APIIngredient) (models.APIIngredient, services.ServiceError) {
+	ingredient := models.Ingredient{}
+	copier.Copy(&ingredient, &apiIngredient)
+
+	repoIngredient, err := s.IngredientRepository.SetTags(&ingredient)
+	if err != nil {
+		return apiIngredient, services.ServiceError{Error: err}
+	}
+
+	apiIngredient = models.APIIngredient{}
+	copier.Copy(&apiIngredient, &repoIngredient)
+
+	return apiIngredient, nilErr
+}
+
 // DeleteIngredient handles the business logic when a client deletes an ingredient
 func (s *v1Service) DeleteIngredient(id string) services.ServiceError {
 	err := s.IngredientRepository.Delete(id)

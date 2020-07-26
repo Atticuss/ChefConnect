@@ -173,6 +173,43 @@ func (d *dgraphIngredientRepo) Update(ingredient *models.Ingredient) (*models.In
 	return ingredient, nil
 }
 
+// SetTags for a ingredient in drgraph
+func (d *dgraphIngredientRepo) SetTags(ingredient *models.Ingredient) (*models.Ingredient, error) {
+	dIngredient := dgraphIngredient{}
+	txn := d.Client.NewTxn()
+	defer txn.Discard(context.Background())
+
+	copier.Copy(&dIngredient, ingredient)
+	dIngredient.DType = []string{"Ingredient"}
+
+	mu := &api.Mutation{
+		CommitNow: true,
+	}
+	dgo.DeleteEdges(mu, dIngredient.ID, "tags")
+
+	_, err := d.Client.NewTxn().Mutate(context.Background(), mu)
+	if err != nil {
+		return ingredient, err
+	}
+
+	pb, err := json.Marshal(dIngredient)
+	if err != nil {
+		return ingredient, err
+	}
+
+	mu = &api.Mutation{
+		CommitNow: true,
+		SetJson:   pb,
+	}
+
+	_, err = txn.Mutate(context.Background(), mu)
+	if err != nil {
+		return ingredient, err
+	}
+
+	return ingredient, nil
+}
+
 // Delete an ingredient from dgraph
 func (d *dgraphIngredientRepo) Delete(id string) error {
 	return errors.New("not implemented")

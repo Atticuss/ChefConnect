@@ -96,6 +96,27 @@ func (restCtrl *restController) updateIngredient(c *gin.Context) {
 	}
 }
 
+func (restCtrl *restController) setIngredientTags(c *gin.Context) {
+	// swagger:route PUT /ingredients/{id}/tags ingredients setIngredientTags
+	// Set the tags associated with an ingredient
+	// responses:
+	//   200: Ingredient
+
+	var ingredient models.APIIngredient
+	if err := c.ShouldBindJSON(&ingredient); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ingredient.ID = c.Param("id")
+
+	if resp, sErr := restCtrl.Service.SetIngredientTags(ingredient); sErr.Error != nil {
+		respondWithServiceError(c, sErr)
+	} else {
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
 func (restCtrl *restController) deleteIngredient(c *gin.Context) {
 	// swagger:route DELETE /ingredients/{id} ingredients deleteIngredient
 	// Delete an ingredient

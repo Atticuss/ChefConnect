@@ -21,6 +21,7 @@ type Service interface {
 	GetIngredient(id string) (models.APIIngredient, ServiceError)
 	CreateIngredient(models.APIIngredient) (models.APIIngredient, ServiceError)
 	UpdateIngredient(models.APIIngredient) (models.APIIngredient, ServiceError)
+	SetIngredientTags(models.APIIngredient) (models.APIIngredient, ServiceError)
 	DeleteIngredient(id string) ServiceError
 
 	GetAllRecipes() (models.ManyAPIRecipes, ServiceError)
