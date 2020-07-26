@@ -43,7 +43,7 @@ func (restCtrl *restController) getAllTags(c *gin.Context) {
 }
 
 func (restCtrl *restController) getTag(c *gin.Context) {
-	// swagger:route GET /tags/{id} categories getTag
+	// swagger:route GET /tags/{id} tags getTag
 	// Fetch a single tag by ID
 	// responses:
 	//   200: Tag
