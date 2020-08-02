@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 
 	"github.com/atticuss/chefconnect/models"
 )
@@ -12,19 +13,42 @@ import (
 // swagger:parameters createUser updateUser
 type userRequest struct {
 	// in:body
-	models.APIUser
+	Body restUser
 }
 
 // swagger:response User
 type user struct {
 	// in:body
-	Body models.APIUser
+	Body restUser
 }
 
 // swagger:response ManyUsers
 type manyUsers struct {
 	// in:body
-	Body models.ManyAPIUsers `json:"users"`
+	Body manyRestUsers `json:"users"`
+}
+
+type restUser struct {
+	ID       string `json:"uid,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
+
+	Favorites []nestedRecipe `json:"favorites,omitempty"`
+	Notes     []nestedNote   `json:"notes,omitempty"`
+	Ratings   []nestedRecipe `json:"ratings,omitempty"`
+	Roles     []nestedRole   `json:"roles,omitempty"`
+}
+
+type nestedUser struct {
+	ID          string `json:"uid,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Username    string `json:"username,omitempty"`
+	RatingScore int    `json:"ratingScore,omitempty"`
+}
+
+type manyRestUsers struct {
+	Users []nestedUser `json:"users"`
 }
 
 func (restCtrl *restController) getAllUsers(c *gin.Context) {
@@ -33,10 +57,12 @@ func (restCtrl *restController) getAllUsers(c *gin.Context) {
 	// responses:
 	//   200: ManyUsers
 
-	if resp, sErr := restCtrl.Service.GetAllUsers(); sErr.Error != nil {
+	if users, sErr := restCtrl.Service.GetAllUsers(); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		usersResp := manyRestUsers{}
+		copier.Copy(&usersResp, &users)
+		c.JSON(http.StatusOK, usersResp)
 	}
 }
 
@@ -49,10 +75,13 @@ func (restCtrl *restController) getUser(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if resp, sErr := restCtrl.Service.GetUser(id); sErr.Error != nil {
+	if user, sErr := restCtrl.Service.GetUser(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		userResp := restUser{}
+		copier.Copy(&userResp, &user)
+		userResp.Password = ""
+		c.JSON(http.StatusOK, userResp)
 	}
 }
 
@@ -63,16 +92,21 @@ func (restCtrl *restController) createUser(c *gin.Context) {
 	// responses:
 	//   200: User
 
-	var user models.APIUser
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var userReq restUser
+	if err := c.ShouldBindJSON(&userReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if resp, sErr := restCtrl.Service.CreateUser(user); sErr.Error != nil {
+	user := models.User{}
+	copier.Copy(&user, &userReq)
+
+	if user, sErr := restCtrl.Service.CreateUser(&user); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		userResp := restUser{}
+		copier.Copy(&userResp, &user)
+		c.JSON(http.StatusOK, userResp)
 	}
 }
 
@@ -82,18 +116,22 @@ func (restCtrl *restController) updateUser(c *gin.Context) {
 	// responses:
 	//   200: User
 
-	var user models.APIUser
-	if err := c.ShouldBindJSON(&user); err != nil {
+	var userReq restUser
+	if err := c.ShouldBindJSON(&userReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	user := models.User{}
 	user.ID = c.Param("id")
+	copier.Copy(&user, &userReq)
 
-	if resp, sErr := restCtrl.Service.UpdateUser(user); sErr.Error != nil {
+	if user, sErr := restCtrl.Service.UpdateUser(&user); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		userResp := restUser{}
+		copier.Copy(&userResp, &user)
+		c.JSON(http.StatusOK, userResp)
 	}
 }
 

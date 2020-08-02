@@ -5,25 +5,73 @@ import (
 
 	"github.com/atticuss/chefconnect/models"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 )
 
 // body comment
 // swagger:parameters createRecipe udpateRecipe
-type recipeRequest struct {
+type swaggerRecipeRequest struct {
 	// in:body
-	models.APIRecipe
+	Body restRequestRecipe
 }
 
 // swagger:response Recipe
-type recipe struct {
+type swaggerRecipeResponse struct {
 	// in:body
-	Body models.APIRecipe
+	Body restResponseRecipe
 }
 
 // swagger:response ManyRecipes
-type manyRecipes struct {
+type swaggerManyRecipes struct {
 	// in:body
-	Body models.ManyAPIRecipes `json:"recipes"`
+	Body restResponseRecipe `json:"recipes"`
+}
+
+type restRequestRecipe struct {
+	ID            string `json:"uid,omitempty"`
+	Name          string `json:"name,omitempty"`
+	URL           string `json:"url,omitempty"`
+	Domain        string `json:"domain,omitempty"`
+	Directions    string `json:"directions,omitempty"`
+	PrepTime      int    `json:"prep_time,omitempty"`
+	CookTime      int    `json:"cook_time,omitempty"`
+	TotalServings int    `json:"total_servings,omitempty"`
+	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
+
+	Ingredients       []nestedIngredient `json:"ingredients,omitempty"`
+	IngredientAmounts []string           `json:"ingredientAmounts,omitempty"`
+	Tags              []nestedTag        `json:"tags,omitempty"`
+	RelatedRecipes    []nestedRecipe     `json:"related_recipes,omitempty"`
+}
+
+type restResponseRecipe struct {
+	ID            string `json:"uid,omitempty"`
+	Name          string `json:"name,omitempty"`
+	URL           string `json:"url,omitempty"`
+	Domain        string `json:"domain,omitempty"`
+	Directions    string `json:"directions,omitempty"`
+	PrepTime      int    `json:"prep_time,omitempty"`
+	CookTime      int    `json:"cook_time,omitempty"`
+	TotalServings int    `json:"total_servings,omitempty"`
+	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
+
+	Ingredients       []nestedIngredient `json:"ingredients,omitempty"`
+	IngredientAmounts []string           `json:"ingredientAmounts,omitempty"`
+	Tags              []nestedTag        `json:"tags,omitempty"`
+	RatedBy           []nestedUser       `json:"rated_by,omitempty"`
+	RatingScore       []int              `json:"rating_score,omitempty"`
+	FavoritedBy       []nestedUser       `json:"favorited_by,omitempty"`
+	RelatedRecipes    []nestedRecipe     `json:"related_recipes,omitempty"`
+	Notes             []nestedNote       `json:"notes,omitempty"`
+}
+
+type nestedRecipe struct {
+	ID   string `json:"uid,omitempty"`
+	Name string `json:"name,omitempty" validate:"required"`
+}
+
+type manyRecipes struct {
+	Recipes []nestedRecipe `json:"recipes"`
 }
 
 func (restCtrl *restController) getAllRecipes(c *gin.Context) {
@@ -32,10 +80,12 @@ func (restCtrl *restController) getAllRecipes(c *gin.Context) {
 	// responses:
 	//   200: ManyRecipes
 
-	if resp, sErr := restCtrl.Service.GetAllRecipes(); sErr.Error != nil {
+	recipesResp := manyRecipes{}
+	if recipes, sErr := restCtrl.Service.GetAllRecipes(); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		copier.Copy(&recipesResp, recipes)
+		c.JSON(http.StatusOK, recipesResp)
 	}
 }
 
@@ -47,10 +97,12 @@ func (restCtrl *restController) getRecipe(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if resp, sErr := restCtrl.Service.GetRecipe(id); sErr.Error != nil {
+	recipeResp := restResponseRecipe{}
+	if recipe, sErr := restCtrl.Service.GetRecipe(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		copier.Copy(&recipeResp, &recipe)
+		c.JSON(http.StatusOK, recipeResp)
 	}
 }
 
@@ -61,16 +113,21 @@ func (restCtrl *restController) createRecipe(c *gin.Context) {
 	// responses:
 	//   200: Recipe
 
-	var recipe models.APIRecipe
-	if err := c.ShouldBindJSON(&recipe); err != nil {
+	var recipeReq restRequestRecipe
+	if err := c.ShouldBindJSON(&recipeReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if resp, sErr := restCtrl.Service.CreateRecipe(recipe); sErr.Error != nil {
+	recipe := models.Recipe{}
+	copier.Copy(&recipe, &recipeReq)
+
+	if recipe, sErr := restCtrl.Service.CreateRecipe(&recipe); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		recipeResp := restResponseRecipe{}
+		copier.Copy(&recipeResp, &recipe)
+		c.JSON(http.StatusOK, recipeResp)
 	}
 }
 
@@ -80,39 +137,22 @@ func (restCtrl *restController) updateRecipe(c *gin.Context) {
 	// responses:
 	//   200: Recipe
 
-	var recipe models.APIRecipe
-	if err := c.ShouldBindJSON(&recipe); err != nil {
+	var recipeReq restRequestRecipe
+	if err := c.ShouldBindJSON(&recipeReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	recipe.ID = c.Param("id")
+	recipe := models.Recipe{}
+	recipeReq.ID = c.Param("id")
+	copier.Copy(&recipe, &recipeReq)
 
-	if resp, sErr := restCtrl.Service.UpdateRecipe(recipe); sErr.Error != nil {
+	if recipe, sErr := restCtrl.Service.UpdateRecipe(&recipe); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
-	}
-}
-
-func (restCtrl *restController) setRecipeTags(c *gin.Context) {
-	// swagger:route PUT /recipes/{id}/tags recipes setRecipeTags
-	// Create a new recipe
-	// responses:
-	//   200: Recipe
-
-	var recipe models.APIRecipe
-	if err := c.ShouldBindJSON(&recipe); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	recipe.ID = c.Param("id")
-
-	if resp, sErr := restCtrl.Service.SetRecipeTags(recipe); sErr.Error != nil {
-		respondWithServiceError(c, sErr)
-	} else {
-		c.JSON(http.StatusOK, resp)
+		recipeResp := restResponseRecipe{}
+		copier.Copy(&recipeResp, &recipe)
+		c.JSON(http.StatusOK, recipeResp)
 	}
 }
 

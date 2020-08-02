@@ -1,34 +1,26 @@
 package v1
 
 import (
-	"github.com/jinzhu/copier"
-
 	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/services"
 )
 
 // GetAllRoles handles the business logic when a client requests all roles
-func (s *v1Service) GetAllRoles() (models.ManyAPIRoles, services.ServiceError) {
-	rolesResp := models.ManyAPIRoles{}
+func (s *v1Service) GetAllRoles() (*models.ManyRoles, *services.ServiceError) {
 	roles, err := s.RoleRepository.GetAll()
 	if err != nil {
-		return rolesResp, services.ServiceError{Error: err}
+		return roles, &services.ServiceError{Error: err}
 	}
 
-	copier.Copy(&rolesResp, &roles)
-
-	return rolesResp, nilErr
+	return roles, &nilErr
 }
 
 // GetRole handles the business logic when a client requests a specific role
-func (s *v1Service) GetRole(id string) (models.APIRole, services.ServiceError) {
-	roleResp := models.APIRole{}
+func (s *v1Service) GetRole(id string) (*models.Role, *services.ServiceError) {
 	role, err := s.RoleRepository.Get(id)
 	if err != nil {
-		return roleResp, services.ServiceError{Error: err}
+		return role, &services.ServiceError{Error: err}
 	}
 
-	copier.Copy(&roleResp, &role)
-
-	return roleResp, nilErr
+	return role, &nilErr
 }

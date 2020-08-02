@@ -57,11 +57,3 @@ func NewV1Service(
 }
 
 var nilErr = services.ServiceError{Error: nil}
-
-func (s *v1Service) ClearDatastore() {
-	s.RepositoryUtility.ClearDatastore()
-}
-
-func (s *v1Service) InitializeSchema() {
-	s.RepositoryUtility.InitializeSchema()
-}

@@ -6,39 +6,34 @@ import (
 
 // Service is an interface that all service implementations must follow
 type Service interface {
-	Login(authnRequest models.AuthnRequest) (models.JwtUser, ServiceError)
+	ValidateCredentials(userReq *models.User) (*models.User, *ServiceError)
 
-	ClearDatastore()
-	InitializeSchema()
+	GetAllTags() (*models.ManyTags, *ServiceError)
+	GetTag(id string) (*models.Tag, *ServiceError)
+	CreateTag(*models.Tag) (*models.Tag, *ServiceError)
+	UpdateTag(*models.Tag) (*models.Tag, *ServiceError)
+	DeleteTag(id string) *ServiceError
 
-	GetAllTags() (models.ManyAPITags, ServiceError)
-	GetTag(id string) (models.APITag, ServiceError)
-	CreateTag(models.APITag) (models.APITag, ServiceError)
-	UpdateTag(models.APITag) (models.APITag, ServiceError)
-	DeleteTag(id string) ServiceError
+	GetAllIngredients() (*models.ManyIngredients, *ServiceError)
+	GetIngredient(id string) (*models.Ingredient, *ServiceError)
+	CreateIngredient(*models.Ingredient) (*models.Ingredient, *ServiceError)
+	UpdateIngredient(*models.Ingredient) (*models.Ingredient, *ServiceError)
+	DeleteIngredient(id string) *ServiceError
 
-	GetAllIngredients() (models.ManyAPIIngredients, ServiceError)
-	GetIngredient(id string) (models.APIIngredient, ServiceError)
-	CreateIngredient(models.APIIngredient) (models.APIIngredient, ServiceError)
-	UpdateIngredient(models.APIIngredient) (models.APIIngredient, ServiceError)
-	SetIngredientTags(models.APIIngredient) (models.APIIngredient, ServiceError)
-	DeleteIngredient(id string) ServiceError
+	GetAllRecipes() (*models.ManyRecipes, *ServiceError)
+	GetRecipe(id string) (*models.Recipe, *ServiceError)
+	CreateRecipe(*models.Recipe) (*models.Recipe, *ServiceError)
+	DeleteRecipe(id string) *ServiceError
+	UpdateRecipe(*models.Recipe) (*models.Recipe, *ServiceError)
 
-	GetAllRecipes() (models.ManyAPIRecipes, ServiceError)
-	GetRecipe(id string) (models.APIRecipe, ServiceError)
-	CreateRecipe(models.APIRecipe) (models.APIRecipe, ServiceError)
-	UpdateRecipe(models.APIRecipe) (models.APIRecipe, ServiceError)
-	SetRecipeTags(models.APIRecipe) (models.APIRecipe, ServiceError)
-	DeleteRecipe(id string) ServiceError
+	GetAllUsers() (*models.ManyUsers, *ServiceError)
+	GetUser(id string) (*models.User, *ServiceError)
+	CreateUser(*models.User) (*models.User, *ServiceError)
+	UpdateUser(*models.User) (*models.User, *ServiceError)
+	DeleteUser(id string) *ServiceError
 
-	GetAllUsers() (models.ManyAPIUsers, ServiceError)
-	GetUser(id string) (models.APIUser, ServiceError)
-	CreateUser(models.APIUser) (models.APIUser, ServiceError)
-	UpdateUser(models.APIUser) (models.APIUser, ServiceError)
-	DeleteUser(id string) ServiceError
-
-	GetAllRoles() (models.ManyAPIRoles, ServiceError)
-	GetRole(id string) (models.APIRole, ServiceError)
+	GetAllRoles() (*models.ManyRoles, *ServiceError)
+	GetRole(id string) (*models.Role, *ServiceError)
 }
 
 type errorCode int

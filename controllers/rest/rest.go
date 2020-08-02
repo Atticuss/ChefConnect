@@ -74,7 +74,6 @@ func (restCtlr *restController) SetupController() (interface{}, error) {
 		ingredientRouter.POST("/", restCtlr.createIngredient)
 		ingredientRouter.GET("/:id", restCtlr.getIngredient)
 		ingredientRouter.PUT("/:id", restCtlr.updateIngredient)
-		ingredientRouter.PUT("/:id/tags", restCtlr.setIngredientTags)
 		ingredientRouter.DELETE("/:id", restCtlr.deleteIngredient)
 	}
 
@@ -85,7 +84,6 @@ func (restCtlr *restController) SetupController() (interface{}, error) {
 		recipeRouter.POST("/", restCtlr.createRecipe)
 		recipeRouter.GET("/:id", restCtlr.getRecipe)
 		recipeRouter.PUT("/:id", restCtlr.updateRecipe)
-		recipeRouter.PUT("/:id/tags", restCtlr.setRecipeTags)
 		recipeRouter.DELETE("/:id", restCtlr.deleteRecipe)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 
 	"github.com/atticuss/chefconnect/models"
 )
@@ -12,21 +13,38 @@ import (
 // swagger:parameters createTag updateTag
 type tagRequest struct {
 	// in:body
-	models.APITag
+	Body restTag
 }
 
 // body comment
 // swagger:response Tag
 type tag struct {
 	// in:body
-	Body models.APITag
+	Body restTag
 }
 
 // body comment
 // swagger:response ManyTags
 type manytags struct {
 	// in:body
-	Body models.ManyAPITags `json:"tags"`
+	Body manyRestTags `json:"tags"`
+}
+
+type restTag struct {
+	ID   string `json:"uid,omitempty"`
+	Name string `json:"name,omitempty" validate:"required"`
+
+	Recipes     []nestedRecipe     `json:"recipes,omitempty"`
+	Ingredients []nestedIngredient `json:"ingredients,omitempty"`
+}
+
+type nestedTag struct {
+	ID   string `json:"uid,omitempty"`
+	Name string `json:"name,omitempty" validate:"required"`
+}
+
+type manyRestTags struct {
+	Tags []nestedTag `json:"tags"`
 }
 
 func (restCtrl *restController) getAllTags(c *gin.Context) {
@@ -35,10 +53,12 @@ func (restCtrl *restController) getAllTags(c *gin.Context) {
 	// responses:
 	//   200: ManyTags
 
-	if resp, sErr := restCtrl.Service.GetAllTags(); sErr.Error != nil {
+	if tags, sErr := restCtrl.Service.GetAllTags(); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		tagResp := manyRestTags{}
+		copier.Copy(&tagResp, &tags)
+		c.JSON(http.StatusOK, tagResp)
 	}
 }
 
@@ -50,10 +70,12 @@ func (restCtrl *restController) getTag(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if resp, sErr := restCtrl.Service.GetTag(id); sErr.Error != nil {
+	if tag, sErr := restCtrl.Service.GetTag(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		tagResp := restTag{}
+		copier.Copy(&tagResp, &tag)
+		c.JSON(http.StatusOK, tagResp)
 	}
 }
 
@@ -64,16 +86,21 @@ func (restCtrl *restController) createTag(c *gin.Context) {
 	// responses:
 	//   200: Tag
 
-	var tag models.APITag
-	if err := c.ShouldBindJSON(&tag); err != nil {
+	var reqTag restTag
+	if err := c.ShouldBindJSON(&reqTag); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if resp, sErr := restCtrl.Service.CreateTag(tag); sErr.Error != nil {
+	tag := models.Tag{}
+	copier.Copy(&tag, &reqTag)
+
+	if tag, sErr := restCtrl.Service.CreateTag(&tag); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		tagResp := restTag{}
+		copier.Copy(&tagResp, &tag)
+		c.JSON(http.StatusOK, tagResp)
 	}
 }
 
@@ -83,18 +110,22 @@ func (restCtrl *restController) updateTag(c *gin.Context) {
 	// responses:
 	//   200: Tag
 
-	var tag models.APITag
-	if err := c.ShouldBindJSON(&tag); err != nil {
+	var tagReq restTag
+	if err := c.ShouldBindJSON(&tagReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	tag.ID = c.Param("id")
+	tag := models.Tag{}
+	tagReq.ID = c.Param("id")
+	copier.Copy(&tag, &tagReq)
 
-	if resp, sErr := restCtrl.Service.UpdateTag(tag); sErr.Error != nil {
+	if tag, sErr := restCtrl.Service.UpdateTag(&tag); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		tagResp := restTag{}
+		copier.Copy(&tagResp, &tag)
+		c.JSON(http.StatusOK, tagResp)
 	}
 }
 

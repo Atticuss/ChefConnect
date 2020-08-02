@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 
 	"github.com/atticuss/chefconnect/models"
 )
@@ -12,19 +13,33 @@ import (
 // swagger:parameters createIngredient updateIngredient
 type ingredientRequest struct {
 	// in:body
-	models.APIIngredient
+	restIngredient
 }
 
 // swagger:response Ingredient
 type ingredient struct {
 	// in:body
-	Body models.APIIngredient
+	Body restIngredient
+}
+
+type restIngredient struct {
+	ID     string `json:"uid,omitempty"`
+	Name   string `json:"name,omitempty" validate:"required"`
+	Amount string `json:"amount,omitempty"`
+
+	Tags []nestedTag `json:"tags,omitempty"`
+}
+
+type nestedIngredient struct {
+	ID     string `json:"uid,omitempty"`
+	Name   string `json:"name,omitempty" validate:"required"`
+	Amount string `json:"amount,omitempty"`
 }
 
 // swagger:response ManyIngredients
 type manyIngredients struct {
 	// in:body
-	Body models.ManyAPIIngredients `json:"ingredients"`
+	Body []nestedIngredient `json:"ingredients"`
 }
 
 func (restCtrl *restController) getAllIngredients(c *gin.Context) {
@@ -33,10 +48,12 @@ func (restCtrl *restController) getAllIngredients(c *gin.Context) {
 	// responses:
 	//   200: ManyIngredients
 
-	if resp, sErr := restCtrl.Service.GetAllIngredients(); sErr.Error != nil {
+	ingredientsResp := manyIngredients{}
+	if ingredients, sErr := restCtrl.Service.GetAllIngredients(); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		copier.Copy(&ingredientsResp, &ingredients)
+		c.JSON(http.StatusOK, ingredientsResp)
 	}
 }
 
@@ -48,10 +65,12 @@ func (restCtrl *restController) getIngredient(c *gin.Context) {
 
 	id := c.Param("id")
 
-	if resp, sErr := restCtrl.Service.GetIngredient(id); sErr.Error != nil {
+	ingredientResp := restIngredient{}
+	if ingredient, sErr := restCtrl.Service.GetIngredient(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		copier.Copy(&ingredientResp, &ingredient)
+		c.JSON(http.StatusOK, ingredientResp)
 	}
 }
 
@@ -62,16 +81,21 @@ func (restCtrl *restController) createIngredient(c *gin.Context) {
 	// responses:
 	//   200: Ingredient
 
-	var ingredient models.APIIngredient
-	if err := c.ShouldBindJSON(&ingredient); err != nil {
+	var ingredientReq restIngredient
+	if err := c.ShouldBindJSON(&ingredientReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if resp, sErr := restCtrl.Service.CreateIngredient(ingredient); sErr.Error != nil {
+	ingredient := models.Ingredient{}
+	copier.Copy(&ingredient, &ingredientReq)
+
+	if ingredient, sErr := restCtrl.Service.CreateIngredient(&ingredient); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
+		ingredientResp := restIngredient{}
+		copier.Copy(&ingredientResp, &ingredient)
+		c.JSON(http.StatusOK, ingredientResp)
 	}
 }
 
@@ -81,39 +105,22 @@ func (restCtrl *restController) updateIngredient(c *gin.Context) {
 	// responses:
 	//   200: Ingredient
 
-	var ingredient models.APIIngredient
-	if err := c.ShouldBindJSON(&ingredient); err != nil {
+	var ingredientReq restIngredient
+	if err := c.ShouldBindJSON(&ingredientReq); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	ingredient.ID = c.Param("id")
+	ingredientReq.ID = c.Param("id")
+	ingredient := models.Ingredient{}
+	copier.Copy(&ingredient, &ingredientReq)
 
-	if resp, sErr := restCtrl.Service.UpdateIngredient(ingredient); sErr.Error != nil {
+	if ingredient, sErr := restCtrl.Service.UpdateIngredient(&ingredient); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.JSON(http.StatusOK, resp)
-	}
-}
-
-func (restCtrl *restController) setIngredientTags(c *gin.Context) {
-	// swagger:route PUT /ingredients/{id}/tags ingredients setIngredientTags
-	// Set the tags associated with an ingredient
-	// responses:
-	//   200: Ingredient
-
-	var ingredient models.APIIngredient
-	if err := c.ShouldBindJSON(&ingredient); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	ingredient.ID = c.Param("id")
-
-	if resp, sErr := restCtrl.Service.SetIngredientTags(ingredient); sErr.Error != nil {
-		respondWithServiceError(c, sErr)
-	} else {
-		c.JSON(http.StatusOK, resp)
+		ingredientResp := restIngredient{}
+		copier.Copy(&ingredientResp, &ingredient)
+		c.JSON(http.StatusOK, ingredientResp)
 	}
 }
 
@@ -128,7 +135,6 @@ func (restCtrl *restController) deleteIngredient(c *gin.Context) {
 	if sErr := restCtrl.Service.DeleteIngredient(id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		//c.JSON(http.StatusOK, []string{})
 		c.Status(http.StatusNoContent)
 	}
 }

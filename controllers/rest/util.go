@@ -41,7 +41,7 @@ func respondWithValidationError(c *gin.Context, err error, model interface{}) {
 	respondWithError(c, http.StatusBadRequest, errorMsg)
 }
 
-func respondWithServiceError(c *gin.Context, sErr services.ServiceError) {
+func respondWithServiceError(c *gin.Context, sErr *services.ServiceError) {
 	c.Error(sErr.Error)
 	respondWithError(c, statusCodeMap[sErr.ErrorCode], sErr.Error.Error())
 }

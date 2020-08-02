@@ -6,10 +6,13 @@ import (
 
 	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/copier"
 
 	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/services"
 )
+
+var hmacSecret []byte
 
 // body comment
 // swagger:parameters login
@@ -22,6 +25,14 @@ type authnRequest struct {
 type authn struct {
 	// in:body
 	Body models.AuthnResponse
+}
+
+type jwtUser struct {
+	ID       string `json:"uid"`
+	Name     string `json:"name"`
+	Username string `json:"username"`
+
+	Roles []nestedRole `json:"roles,omitempty"`
 }
 
 func (restCtrl *restController) configureMiddleware() (*jwt.GinJWTMiddleware, error) {
@@ -44,8 +55,8 @@ func (restCtrl *restController) configureMiddleware() (*jwt.GinJWTMiddleware, er
 		TimeFunc:      time.Now,
 		Authenticator: restCtrl.login,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(models.JwtUser); ok {
-				// this logic is for converting the JwtUser struct to a map[string]interface{}
+			if v, ok := data.(jwtUser); ok {
+				// this logic is for converting the jwtUser struct to a map[string]interface{}
 				// https://stackoverflow.com/a/42849112/13203635
 				var claims jwt.MapClaims
 				jsonbody, _ := json.Marshal(v)
@@ -58,17 +69,17 @@ func (restCtrl *restController) configureMiddleware() (*jwt.GinJWTMiddleware, er
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
 
-			// convert map[string]interface{} back into a JwtUser struct
-			jwtUser := models.JwtUser{}
+			// convert map[string]interface{} back into a jwtUser struct
+			user := jwtUser{}
 			jsonbody, _ := json.Marshal(claims)
-			json.Unmarshal(jsonbody, &jwtUser)
+			json.Unmarshal(jsonbody, &user)
 
-			return jwtUser
+			return user
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
 			return true //push authorization off to the services layer
 		},
-		// standardize the error message returned if a token is not found, regardless of where is searched for.
+		// standardize the error message returned if a token is not found, regardless of where it is searched for.
 		// unfortunately, can't rely on the raw error interface as the HTTPStatusMessageFunc returns a string.
 		HTTPStatusMessageFunc: func(err error, c *gin.Context) string {
 			missingJwtSlice := []error{jwt.ErrEmptyAuthHeader, jwt.ErrEmptyQueryToken, jwt.ErrEmptyCookieToken}
@@ -101,12 +112,15 @@ func (restCtrl *restController) login(c *gin.Context) (interface{}, error) {
 	// responses:
 	//   200: AuthnResponse
 
-	var authnReq models.AuthnRequest
+	var authnReq authnRequest
 	if err := c.ShouldBindJSON(&authnReq); err != nil {
 		return nil, jwt.ErrMissingLoginValues
 	}
 
-	user, sErr := restCtrl.Service.Login(authnReq)
+	user := &models.User{}
+	copier.Copy(user, &authnReq)
+
+	user, sErr := restCtrl.Service.ValidateCredentials(user)
 	if sErr.Error != nil {
 		if sErr.ErrorCode == services.NotAuthorized {
 			return nil, jwt.ErrFailedAuthentication
