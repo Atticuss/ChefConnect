@@ -27,7 +27,7 @@ type authn struct {
 	Body models.AuthnResponse
 }
 
-type jwtUser struct {
+type jwtClaims struct {
 	ID       string `json:"uid"`
 	Name     string `json:"name"`
 	Username string `json:"username"`
@@ -55,25 +55,33 @@ func (restCtrl *restController) configureMiddleware() (*jwt.GinJWTMiddleware, er
 		TimeFunc:      time.Now,
 		Authenticator: restCtrl.login,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(jwtUser); ok {
+			if v, ok := data.(jwtClaims); ok {
 				// this logic is for converting the jwtUser struct to a map[string]interface{}
 				// https://stackoverflow.com/a/42849112/13203635
-				var claims jwt.MapClaims
-				jsonbody, _ := json.Marshal(v)
-				json.Unmarshal(jsonbody, &claims)
 
+				var claims jwt.MapClaims
+				jsonbody, err := json.Marshal(v)
+				if err != nil {
+					return claims
+				}
+
+				json.Unmarshal(jsonbody, &claims)
 				return claims
 			}
+
 			return jwt.MapClaims{}
 		},
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)
 
 			// convert map[string]interface{} back into a jwtUser struct
-			user := jwtUser{}
-			jsonbody, _ := json.Marshal(claims)
-			json.Unmarshal(jsonbody, &user)
+			user := jwtClaims{}
+			jsonbody, err := json.Marshal(claims)
+			if err != nil {
+				return user
+			}
 
+			json.Unmarshal(jsonbody, &user)
 			return user
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
@@ -128,5 +136,8 @@ func (restCtrl *restController) login(c *gin.Context) (interface{}, error) {
 		return nil, sErr.Error
 	}
 
-	return user, nil
+	claimDetails := jwtClaims{}
+	copier.Copy(&claimDetails, &user)
+
+	return claimDetails, nil
 }
