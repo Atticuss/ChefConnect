@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/dgraph-io/dgo/v2"
@@ -51,6 +52,7 @@ type dgraphRecipe struct {
 	RatedBy           []dgraphUser       `json:"~ratings,omitempty"`
 	RatingScore       map[string]string  `json:"~ratings|score,omitempty"`
 	FavoritedBy       []dgraphUser       `json:"~favorites,omitempty"`
+	Owner             []dgraphUser       `json:"owner,omitempty"`
 	RelatedRecipes    []dgraphRecipe     `json:"related_recipes,omitempty"`
 	Notes             []models.Note      `json:"~recipe,omitempty"`
 
@@ -58,7 +60,7 @@ type dgraphRecipe struct {
 }
 
 // Due to how dgraph returns facet data, we have to do more than just copy
-// between two structs. a facet is data associated with a particular edge. For
+// between two structs. A facet is data associated with a particular edge. For
 // example, that's where ingredient amounts are stored. The dgraph query for a
 // recipe will return this information in the form of:
 // {
@@ -72,9 +74,16 @@ type dgraphRecipe struct {
 // }
 // In order to restructure this in a sane manner, we move the "ingredients|amount"
 // field values over into each element of "ingredient". Also need to convert str
-// values into ints when appropriate, as `json.Unmarshal()` refuses to cast for you
+// values into ints when appropriate, as `json.Unmarshal()` refuses to cast for you. Finally, as dgraph returns all edges as a list, we must take special care
+// to handle edges that are meant to only exist once, e.g. the User-type node which
+// created a given recipe. Specifically, the `copier.Copy()` function does not play
+// nicely with two fields of the same name when only one is an array.
 func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) error {
 	copier.Copy(&recipe, &dRecipe)
+
+	recipeCreator := models.User{}
+	copier.Copy(&recipeCreator, dRecipe.Owner[0])
+	recipe.CreatedBy = recipeCreator
 
 	for s_idx, value := range dRecipe.IngredientAmounts {
 		i_idx, err := strconv.Atoi(s_idx)
@@ -165,6 +174,10 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 					uid
 					name
 				}
+				owner {
+					uid
+					name
+				}
 				~ratings @facets {
 					uid
 					name
@@ -190,6 +203,8 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 		return &recipe, err
 	}
 
+	fmt.Printf("resp json: %s\n", resp.Json)
+
 	err = json.Unmarshal(resp.Json, &dRecipes)
 	if err != nil {
 		return &recipe, err
@@ -202,6 +217,7 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 		}
 	}
 
+	fmt.Printf("final repo recipe: %+v\n", recipe)
 	return &recipe, nil
 }
 
