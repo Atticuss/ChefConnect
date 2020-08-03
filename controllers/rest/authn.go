@@ -16,15 +16,26 @@ var hmacSecret []byte
 
 // body comment
 // swagger:parameters login
-type authnRequest struct {
+type swaggerAuthnRequest struct {
 	// in:body
-	models.AuthnRequest
+	Body authnRequest
 }
 
 // swagger:response AuthnResponse
-type authn struct {
+type swaggerAuthnResponse struct {
 	// in:body
-	Body models.AuthnResponse
+	Body authnResponse
+}
+
+type authnRequest struct {
+	Username string `json:"username,omitempty" validate:"required"`
+	Password string `json:"password,omitempty" validate:"required"`
+}
+
+type authnResponse struct {
+	Token  string `json:"token,omitempty"`
+	Code   int    `json:"code,omitempty"`
+	Expire string `json:"expire,omitempty"`
 }
 
 type jwtClaims struct {
@@ -70,19 +81,6 @@ func (restCtrl *restController) configureMiddleware() (*jwt.GinJWTMiddleware, er
 			}
 
 			return jwt.MapClaims{}
-		},
-		IdentityHandler: func(c *gin.Context) interface{} {
-			claims := jwt.ExtractClaims(c)
-
-			// convert map[string]interface{} back into a jwtUser struct
-			user := jwtClaims{}
-			jsonbody, err := json.Marshal(claims)
-			if err != nil {
-				return user
-			}
-
-			json.Unmarshal(jsonbody, &user)
-			return user
 		},
 		Authorizator: func(data interface{}, c *gin.Context) bool {
 			return true //push authorization off to the services layer
