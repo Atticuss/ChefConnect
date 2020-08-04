@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/dgraph-io/dgo/v2"
@@ -203,8 +202,6 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 		return &recipe, err
 	}
 
-	fmt.Printf("resp json: %s\n", resp.Json)
-
 	err = json.Unmarshal(resp.Json, &dRecipes)
 	if err != nil {
 		return &recipe, err
@@ -217,7 +214,6 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 		}
 	}
 
-	fmt.Printf("final repo recipe: %+v\n", recipe)
 	return &recipe, nil
 }
 
