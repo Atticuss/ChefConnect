@@ -12,6 +12,7 @@ type Recipe struct {
 	TotalServings int
 	HasBeenTried  bool
 
+	CreatedBy      User
 	Ingredients    []Ingredient
 	Tags           []Tag
 	RatedBy        []User
