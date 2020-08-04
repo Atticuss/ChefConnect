@@ -38,10 +38,9 @@ type restRequestRecipe struct {
 	TotalServings int    `json:"total_servings,omitempty"`
 	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
 
-	Ingredients       []nestedIngredient `json:"ingredients,omitempty"`
-	IngredientAmounts []string           `json:"ingredientAmounts,omitempty"`
-	Tags              []nestedTag        `json:"tags,omitempty"`
-	RelatedRecipes    []nestedRecipe     `json:"related_recipes,omitempty"`
+	Ingredients    []nestedIngredient `json:"ingredients,omitempty"`
+	Tags           []nestedTag        `json:"tags,omitempty"`
+	RelatedRecipes []nestedRecipe     `json:"related_recipes,omitempty"`
 }
 
 type restResponseRecipe struct {
@@ -55,14 +54,14 @@ type restResponseRecipe struct {
 	TotalServings int    `json:"total_servings,omitempty"`
 	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
 
-	Ingredients       []nestedIngredient `json:"ingredients,omitempty"`
-	IngredientAmounts []string           `json:"ingredientAmounts,omitempty"`
-	Tags              []nestedTag        `json:"tags,omitempty"`
-	RatedBy           []nestedUser       `json:"rated_by,omitempty"`
-	RatingScore       []int              `json:"rating_score,omitempty"`
-	FavoritedBy       []nestedUser       `json:"favorited_by,omitempty"`
-	RelatedRecipes    []nestedRecipe     `json:"related_recipes,omitempty"`
-	Notes             []nestedNote       `json:"notes,omitempty"`
+	CreatedBy      nestedUser         `json:"created_by,omitempty"`
+	Ingredients    []nestedIngredient `json:"ingredients,omitempty"`
+	Tags           []nestedTag        `json:"tags,omitempty"`
+	RatedBy        []nestedUser       `json:"rated_by,omitempty"`
+	RatingScore    []int              `json:"rating_score,omitempty"`
+	FavoritedBy    []nestedUser       `json:"favorited_by,omitempty"`
+	RelatedRecipes []nestedRecipe     `json:"related_recipes,omitempty"`
+	Notes          []nestedNote       `json:"notes,omitempty"`
 }
 
 type nestedRecipe struct {
@@ -81,7 +80,13 @@ func (restCtrl *restController) getAllRecipes(c *gin.Context) {
 	//   200: ManyRecipes
 
 	recipesResp := manyRecipes{}
-	if recipes, sErr := restCtrl.Service.GetAllRecipes(); sErr.Error != nil {
+	user, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if recipes, sErr := restCtrl.Service.GetAllRecipes(user); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		copier.Copy(&recipesResp, recipes)
@@ -96,9 +101,14 @@ func (restCtrl *restController) getRecipe(c *gin.Context) {
 	//   200: Recipe
 
 	id := c.Param("id")
+	user, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	recipeResp := restResponseRecipe{}
-	if recipe, sErr := restCtrl.Service.GetRecipe(id); sErr.Error != nil {
+	if recipe, sErr := restCtrl.Service.GetRecipe(user, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		copier.Copy(&recipeResp, &recipe)

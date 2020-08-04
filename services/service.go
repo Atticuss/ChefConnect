@@ -20,8 +20,8 @@ type Service interface {
 	UpdateIngredient(*models.Ingredient) (*models.Ingredient, *ServiceError)
 	DeleteIngredient(id string) *ServiceError
 
-	GetAllRecipes() (*models.ManyRecipes, *ServiceError)
-	GetRecipe(id string) (*models.Recipe, *ServiceError)
+	GetAllRecipes(*models.User) (*models.ManyRecipes, *ServiceError)
+	GetRecipe(*models.User, string) (*models.Recipe, *ServiceError)
 	CreateRecipe(*models.Recipe) (*models.Recipe, *ServiceError)
 	DeleteRecipe(id string) *ServiceError
 	UpdateRecipe(*models.Recipe) (*models.Recipe, *ServiceError)
