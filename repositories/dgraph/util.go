@@ -2,7 +2,6 @@ package dgraph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -145,8 +144,7 @@ func (d *dgraphUtilRepo) InitializeBaseData() error {
 		SetNquads: []byte(nquads),
 	}
 
-	res, err := txn.Mutate(context.Background(), mu)
-	fmt.Printf("result: %+v\n", res)
+	_, err := txn.Mutate(context.Background(), mu)
 	if err != nil {
 		return err
 	}
