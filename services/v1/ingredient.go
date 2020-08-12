@@ -6,7 +6,7 @@ import (
 )
 
 // GetAllIngredients handles the business logic when a client requests all ingredients
-func (s *v1Service) GetAllIngredients() (*models.ManyIngredients, *services.ServiceError) {
+func (s *v1Service) GetAllIngredients(callingUser *models.User) (*models.ManyIngredients, *services.ServiceError) {
 	ingredients, err := s.IngredientRepository.GetAll()
 	if err != nil {
 		return ingredients, &services.ServiceError{Error: err}
@@ -16,7 +16,7 @@ func (s *v1Service) GetAllIngredients() (*models.ManyIngredients, *services.Serv
 }
 
 // GetIngredient handles the business logic when a client requests a specific ingredient
-func (s *v1Service) GetIngredient(id string) (*models.Ingredient, *services.ServiceError) {
+func (s *v1Service) GetIngredient(callingUser *models.User, id string) (*models.Ingredient, *services.ServiceError) {
 	ingredient, err := s.IngredientRepository.Get(id)
 	if err != nil {
 		return ingredient, &services.ServiceError{Error: err}
@@ -26,7 +26,7 @@ func (s *v1Service) GetIngredient(id string) (*models.Ingredient, *services.Serv
 }
 
 // CreateIngredient handles the business logic when a client creates a new ingredient
-func (s *v1Service) CreateIngredient(ingredient *models.Ingredient) (*models.Ingredient, *services.ServiceError) {
+func (s *v1Service) CreateIngredient(callingUser *models.User, ingredient *models.Ingredient) (*models.Ingredient, *services.ServiceError) {
 	ingredient, err := s.IngredientRepository.Create(ingredient)
 	if err != nil {
 		return ingredient, &services.ServiceError{Error: err}
@@ -36,7 +36,7 @@ func (s *v1Service) CreateIngredient(ingredient *models.Ingredient) (*models.Ing
 }
 
 // UpdateIngredient handles the business logic when a client updates an ingredient
-func (s *v1Service) UpdateIngredient(ingredient *models.Ingredient) (*models.Ingredient, *services.ServiceError) {
+func (s *v1Service) UpdateIngredient(callingUser *models.User, ingredient *models.Ingredient) (*models.Ingredient, *services.ServiceError) {
 	ingredient, err := s.IngredientRepository.Update(ingredient)
 	if err != nil {
 		return ingredient, &services.ServiceError{Error: err}
@@ -46,7 +46,7 @@ func (s *v1Service) UpdateIngredient(ingredient *models.Ingredient) (*models.Ing
 }
 
 // DeleteIngredient handles the business logic when a client deletes an ingredient
-func (s *v1Service) DeleteIngredient(id string) *services.ServiceError {
+func (s *v1Service) DeleteIngredient(callingUser *models.User, id string) *services.ServiceError {
 	err := s.IngredientRepository.Delete(id)
 	if err != nil {
 		return &services.ServiceError{Error: err}

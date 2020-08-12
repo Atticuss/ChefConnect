@@ -49,7 +49,13 @@ func (restCtrl *restController) getAllIngredients(c *gin.Context) {
 	//   200: ManyIngredients
 
 	ingredientsResp := manyIngredients{}
-	if ingredients, sErr := restCtrl.Service.GetAllIngredients(); sErr.Error != nil {
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if ingredients, sErr := restCtrl.Service.GetAllIngredients(callingUser); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		copier.Copy(&ingredientsResp, &ingredients)
@@ -64,9 +70,14 @@ func (restCtrl *restController) getIngredient(c *gin.Context) {
 	//   200: Ingredient
 
 	id := c.Param("id")
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	ingredientResp := restIngredient{}
-	if ingredient, sErr := restCtrl.Service.GetIngredient(id); sErr.Error != nil {
+	if ingredient, sErr := restCtrl.Service.GetIngredient(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		copier.Copy(&ingredientResp, &ingredient)
@@ -90,7 +101,13 @@ func (restCtrl *restController) createIngredient(c *gin.Context) {
 	ingredient := models.Ingredient{}
 	copier.Copy(&ingredient, &ingredientReq)
 
-	if ingredient, sErr := restCtrl.Service.CreateIngredient(&ingredient); sErr.Error != nil {
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if ingredient, sErr := restCtrl.Service.CreateIngredient(callingUser, &ingredient); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		ingredientResp := restIngredient{}
@@ -115,7 +132,13 @@ func (restCtrl *restController) updateIngredient(c *gin.Context) {
 	ingredient := models.Ingredient{}
 	copier.Copy(&ingredient, &ingredientReq)
 
-	if ingredient, sErr := restCtrl.Service.UpdateIngredient(&ingredient); sErr.Error != nil {
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if ingredient, sErr := restCtrl.Service.UpdateIngredient(callingUser, &ingredient); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		ingredientResp := restIngredient{}
@@ -131,8 +154,13 @@ func (restCtrl *restController) deleteIngredient(c *gin.Context) {
 	//   200
 
 	id := c.Param("id")
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-	if sErr := restCtrl.Service.DeleteIngredient(id); sErr.Error != nil {
+	if sErr := restCtrl.Service.DeleteIngredient(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.Status(http.StatusNoContent)

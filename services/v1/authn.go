@@ -31,7 +31,7 @@ func (s *v1Service) ValidateCredentials(userReq *models.User) (*models.User, *se
 	}
 
 	return user, &services.ServiceError{
-		Error:     errors.New("Invalid credentials provided"),
+		Error:     errors.New("invalid credentials provided"),
 		ErrorCode: services.NotAuthorized,
 	}
 }

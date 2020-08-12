@@ -57,7 +57,13 @@ func (restCtrl *restController) getAllUsers(c *gin.Context) {
 	// responses:
 	//   200: ManyUsers
 
-	if users, sErr := restCtrl.Service.GetAllUsers(); sErr.Error != nil {
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if users, sErr := restCtrl.Service.GetAllUsers(callingUser); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		usersResp := manyRestUsers{}
@@ -74,8 +80,13 @@ func (restCtrl *restController) getUser(c *gin.Context) {
 	//   200: User
 
 	id := c.Param("id")
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-	if user, sErr := restCtrl.Service.GetUser(id); sErr.Error != nil {
+	if user, sErr := restCtrl.Service.GetUser(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		userResp := restUser{}
@@ -101,7 +112,13 @@ func (restCtrl *restController) createUser(c *gin.Context) {
 	user := models.User{}
 	copier.Copy(&user, &userReq)
 
-	if user, sErr := restCtrl.Service.CreateUser(&user); sErr.Error != nil {
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if user, sErr := restCtrl.Service.CreateUser(callingUser, &user); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		userResp := restUser{}
@@ -126,7 +143,13 @@ func (restCtrl *restController) updateUser(c *gin.Context) {
 	user.ID = c.Param("id")
 	copier.Copy(&user, &userReq)
 
-	if user, sErr := restCtrl.Service.UpdateUser(&user); sErr.Error != nil {
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if user, sErr := restCtrl.Service.UpdateUser(callingUser, &user); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		userResp := restUser{}
@@ -142,8 +165,13 @@ func (restCtrl *restController) deleteUser(c *gin.Context) {
 	//   200
 
 	id := c.Param("id")
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-	if sErr := restCtrl.Service.DeleteUser(id); sErr.Error != nil {
+	if sErr := restCtrl.Service.DeleteUser(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.Status(http.StatusNoContent)

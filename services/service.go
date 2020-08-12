@@ -8,32 +8,32 @@ import (
 type Service interface {
 	ValidateCredentials(userReq *models.User) (*models.User, *ServiceError)
 
-	GetAllTags() (*models.ManyTags, *ServiceError)
-	GetTag(id string) (*models.Tag, *ServiceError)
-	CreateTag(*models.Tag) (*models.Tag, *ServiceError)
-	UpdateTag(*models.Tag) (*models.Tag, *ServiceError)
-	DeleteTag(id string) *ServiceError
+	GetAllTags(callingUser *models.User) (*models.ManyTags, *ServiceError)
+	GetTag(callingUser *models.User, id string) (*models.Tag, *ServiceError)
+	CreateTag(callingUser *models.User, tag *models.Tag) (*models.Tag, *ServiceError)
+	UpdateTag(callingUser *models.User, tag *models.Tag) (*models.Tag, *ServiceError)
+	DeleteTag(callingUser *models.User, id string) *ServiceError
 
-	GetAllIngredients() (*models.ManyIngredients, *ServiceError)
-	GetIngredient(id string) (*models.Ingredient, *ServiceError)
-	CreateIngredient(*models.Ingredient) (*models.Ingredient, *ServiceError)
-	UpdateIngredient(*models.Ingredient) (*models.Ingredient, *ServiceError)
-	DeleteIngredient(id string) *ServiceError
+	GetAllIngredients(callingUser *models.User) (*models.ManyIngredients, *ServiceError)
+	GetIngredient(callingUser *models.User, id string) (*models.Ingredient, *ServiceError)
+	CreateIngredient(callingUser *models.User, igredient *models.Ingredient) (*models.Ingredient, *ServiceError)
+	UpdateIngredient(callingUser *models.User, ingredient *models.Ingredient) (*models.Ingredient, *ServiceError)
+	DeleteIngredient(callingUser *models.User, id string) *ServiceError
 
-	GetAllRecipes(*models.User) (*models.ManyRecipes, *ServiceError)
-	GetRecipe(*models.User, string) (*models.Recipe, *ServiceError)
-	CreateRecipe(*models.Recipe) (*models.Recipe, *ServiceError)
-	DeleteRecipe(id string) *ServiceError
-	UpdateRecipe(*models.Recipe) (*models.Recipe, *ServiceError)
+	GetAllRecipes(callingUser *models.User) (*models.ManyRecipes, *ServiceError)
+	GetRecipe(callingUser *models.User, id string) (*models.Recipe, *ServiceError)
+	CreateRecipe(callingUser *models.User, recipe *models.Recipe) (*models.Recipe, *ServiceError)
+	UpdateRecipe(callingUser *models.User, recipe *models.Recipe) (*models.Recipe, *ServiceError)
+	DeleteRecipe(callingUser *models.User, id string) *ServiceError
 
-	GetAllUsers() (*models.ManyUsers, *ServiceError)
-	GetUser(id string) (*models.User, *ServiceError)
-	CreateUser(*models.User) (*models.User, *ServiceError)
-	UpdateUser(*models.User) (*models.User, *ServiceError)
-	DeleteUser(id string) *ServiceError
+	GetAllUsers(callingUser *models.User) (*models.ManyUsers, *ServiceError)
+	GetUser(callingUser *models.User, id string) (*models.User, *ServiceError)
+	CreateUser(callingUser *models.User, user *models.User) (*models.User, *ServiceError)
+	UpdateUser(callingUser *models.User, user *models.User) (*models.User, *ServiceError)
+	DeleteUser(callingUser *models.User, id string) *ServiceError
 
-	GetAllRoles() (*models.ManyRoles, *ServiceError)
-	GetRole(id string) (*models.Role, *ServiceError)
+	GetAllRoles(callingUser *models.User) (*models.ManyRoles, *ServiceError)
+	GetRole(callingUser *models.User, id string) (*models.Role, *ServiceError)
 }
 
 type errorCode int

@@ -53,7 +53,13 @@ func (restCtrl *restController) getAllTags(c *gin.Context) {
 	// responses:
 	//   200: ManyTags
 
-	if tags, sErr := restCtrl.Service.GetAllTags(); sErr.Error != nil {
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if tags, sErr := restCtrl.Service.GetAllTags(callingUser); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		tagResp := manyRestTags{}
@@ -69,8 +75,13 @@ func (restCtrl *restController) getTag(c *gin.Context) {
 	//   200: Tag
 
 	id := c.Param("id")
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-	if tag, sErr := restCtrl.Service.GetTag(id); sErr.Error != nil {
+	if tag, sErr := restCtrl.Service.GetTag(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		tagResp := restTag{}
@@ -95,7 +106,13 @@ func (restCtrl *restController) createTag(c *gin.Context) {
 	tag := models.Tag{}
 	copier.Copy(&tag, &reqTag)
 
-	if tag, sErr := restCtrl.Service.CreateTag(&tag); sErr.Error != nil {
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if tag, sErr := restCtrl.Service.CreateTag(callingUser, &tag); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		tagResp := restTag{}
@@ -120,7 +137,13 @@ func (restCtrl *restController) updateTag(c *gin.Context) {
 	tagReq.ID = c.Param("id")
 	copier.Copy(&tag, &tagReq)
 
-	if tag, sErr := restCtrl.Service.UpdateTag(&tag); sErr.Error != nil {
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if tag, sErr := restCtrl.Service.UpdateTag(callingUser, &tag); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		tagResp := restTag{}
@@ -136,8 +159,13 @@ func (restCtrl *restController) deleteTag(c *gin.Context) {
 	//   200
 
 	id := c.Param("id")
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-	if sErr := restCtrl.Service.DeleteTag(id); sErr.Error != nil {
+	if sErr := restCtrl.Service.DeleteTag(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.Status(http.StatusNoContent)

@@ -43,7 +43,13 @@ func (restCtrl *restController) getAllRoles(c *gin.Context) {
 	// responses:
 	//   200: ManyRoles
 
-	if role, sErr := restCtrl.Service.GetAllRoles(); sErr.Error != nil {
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if role, sErr := restCtrl.Service.GetAllRoles(callingUser); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		roleResp := manyRestRoles{}
@@ -59,8 +65,13 @@ func (restCtrl *restController) getRole(c *gin.Context) {
 	//   200: Role
 
 	id := c.Param("id")
+	callingUser, err := getUserFromContext(c)
+	if err != nil {
+		respondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-	if roles, sErr := restCtrl.Service.GetRole(id); sErr.Error != nil {
+	if roles, sErr := restCtrl.Service.GetRole(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
 		roleResp := manyRestRoles{}

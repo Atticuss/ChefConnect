@@ -12,8 +12,6 @@ import (
 	"github.com/atticuss/chefconnect/services"
 )
 
-var hmacSecret []byte
-
 // body comment
 // swagger:parameters login
 type swaggerAuthnRequest struct {
