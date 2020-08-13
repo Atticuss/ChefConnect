@@ -57,6 +57,7 @@ const (
 )
 
 const (
+	Guest string = "Guest"
 	Admin string = "Admin"
 	User  string = "User"
 )
