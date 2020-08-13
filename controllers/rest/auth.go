@@ -95,7 +95,7 @@ func (restCtrl *restController) configureMiddleware() (*jwt.GinJWTMiddleware, er
 			return err.Error()
 		},
 		// using the standardized error message on missing token, allow the next middleware to execute if this
-		// func is being called due to a missing token. this is because most resources are accessible regardless
+		// func is being called due to a missing token. this is because many resources are accessible regardless
 		// if a user is authenticated, but some resources will return different data depending on authn/z status.
 		Unauthorized: func(c *gin.Context, code int, message string) {
 			if message == missingTokenMsg {
