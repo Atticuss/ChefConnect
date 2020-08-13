@@ -29,6 +29,17 @@ func (s *v1Service) GetIngredient(callingUser *models.User, id string) (*models.
 
 // CreateIngredient handles the business logic when a client creates a new ingredient
 func (s *v1Service) CreateIngredient(callingUser *models.User, ingredient *models.Ingredient) (*models.Ingredient, *services.ServiceError) {
+	authorized := false
+	for _, role := range callingUser.Roles {
+		if role.Name == services.Admin {
+			authorized = true
+		}
+	}
+
+	if !authorized {
+		return ingredient, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
+	}
+
 	ingredient, err := s.IngredientRepository.Create(ingredient)
 	if err != nil {
 		return ingredient, &services.ServiceError{Error: err}
@@ -39,6 +50,17 @@ func (s *v1Service) CreateIngredient(callingUser *models.User, ingredient *model
 
 // UpdateIngredient handles the business logic when a client updates an ingredient
 func (s *v1Service) UpdateIngredient(callingUser *models.User, ingredient *models.Ingredient) (*models.Ingredient, *services.ServiceError) {
+	authorized := false
+	for _, role := range callingUser.Roles {
+		if role.Name == services.Admin {
+			authorized = true
+		}
+	}
+
+	if !authorized {
+		return ingredient, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
+	}
+
 	ingredient, err := s.IngredientRepository.Update(ingredient)
 	if err != nil {
 		return ingredient, &services.ServiceError{Error: err}
@@ -49,6 +71,17 @@ func (s *v1Service) UpdateIngredient(callingUser *models.User, ingredient *model
 
 // DeleteIngredient handles the business logic when a client deletes an ingredient
 func (s *v1Service) DeleteIngredient(callingUser *models.User, id string) *services.ServiceError {
+	authorized := false
+	for _, role := range callingUser.Roles {
+		if role.Name == services.Admin {
+			authorized = true
+		}
+	}
+
+	if !authorized {
+		return &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
+	}
+
 	ingredient, err := s.IngredientRepository.Get(id)
 	if err != nil {
 		return &services.ServiceError{Error: err}

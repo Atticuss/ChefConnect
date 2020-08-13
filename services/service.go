@@ -36,21 +36,27 @@ type Service interface {
 	GetRole(callingUser *models.User, id string) (*models.Role, *ServiceError)
 }
 
-type errorCode int
+//type errorCode int
+//type roleCode int
 
 // ServiceError holds both an `errors` object and an int from the enum set defined
 // in the previous block.
 type ServiceError struct {
 	Error     error
-	ErrorCode errorCode
+	ErrorCode int
 }
 
 // Enum set for errors that can occur within the models package. These are
 // mapped back to HTTP status codes via a map within the controllers package.
 const (
-	Unhandled      errorCode = 0
-	NotImplemented errorCode = 1
-	NotFound       errorCode = 2
-	NotAuthorized  errorCode = 3
-	ResourceInUse  errorCode = 4
+	Unhandled      int = 0
+	NotImplemented int = 1
+	NotFound       int = 2
+	NotAuthorized  int = 3
+	ResourceInUse  int = 4
+)
+
+const (
+	Admin string = "Admin"
+	User  string = "User"
 )
