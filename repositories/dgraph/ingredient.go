@@ -3,7 +3,6 @@ package dgraph
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -112,8 +111,6 @@ func (d *dgraphIngredientRepo) Get(id string) (*models.Ingredient, error) {
 	if err != nil {
 		return &ingredient, err
 	}
-
-	fmt.Printf("dIng: %+v\n", &dIngredients)
 
 	if len(dIngredients.Ingredients) > 0 {
 		copier.Copy(&ingredient, &dIngredients.Ingredients[0])
