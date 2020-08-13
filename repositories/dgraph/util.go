@@ -65,15 +65,14 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 		type Ingredient {
 			name
 			<~ingredients>
-			ingredient_tags
+			tags
 
 			amount
 		}
 
 		type Tag {
 			name
-			<~ingredient_tags>
-			<~recipe_tags>
+			<~tags>
 		}
 
 		type Recipe {
@@ -86,7 +85,7 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 			cook_time
 			total_servings
 			related_recipes
-			recipe_tags
+			tags
 			has_been_tried
 			owner
 			

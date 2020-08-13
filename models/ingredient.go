@@ -6,7 +6,8 @@ type Ingredient struct {
 	Name   string
 	Amount string
 
-	Tags []Tag
+	Tags    []Tag
+	Recipes []Recipe
 }
 
 // ManyIngredients is a struct that represents multiple ingredients

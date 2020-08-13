@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"errors"
+
 	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/services"
 )
@@ -47,7 +49,16 @@ func (s *v1Service) UpdateIngredient(callingUser *models.User, ingredient *model
 
 // DeleteIngredient handles the business logic when a client deletes an ingredient
 func (s *v1Service) DeleteIngredient(callingUser *models.User, id string) *services.ServiceError {
-	err := s.IngredientRepository.Delete(id)
+	ingredient, err := s.IngredientRepository.Get(id)
+	if err != nil {
+		return &services.ServiceError{Error: err}
+	}
+
+	if len(ingredient.Recipes) > 0 {
+		return &services.ServiceError{Error: errors.New("resource is in use"), ErrorCode: services.ResourceInUse}
+	}
+
+	err = s.IngredientRepository.Delete(id)
 	if err != nil {
 		return &services.ServiceError{Error: err}
 	}

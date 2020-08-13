@@ -52,4 +52,5 @@ const (
 	NotImplemented errorCode = 1
 	NotFound       errorCode = 2
 	NotAuthorized  errorCode = 3
+	ResourceInUse  errorCode = 4
 )

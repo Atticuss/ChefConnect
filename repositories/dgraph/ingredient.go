@@ -3,7 +3,7 @@ package dgraph
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -37,8 +37,8 @@ type dgraphIngredient struct {
 	ID   string `json:"uid,omitempty"`
 	Name string `json:"name,omitempty" validate:"required"`
 
-	Recipes []models.Recipe `json:"~recipe_tags,omitempty"`
-	Tags    []dgraphTag     `json:"ingredient_tags,omitempty"`
+	Recipes []models.Recipe `json:"~ingredients,omitempty"`
+	Tags    []dgraphTag     `json:"tags,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }
@@ -90,7 +90,12 @@ func (d *dgraphIngredientRepo) Get(id string) (*models.Ingredient, error) {
 				name
 				dgraph.type
 
-				ingredient_tags {
+				tags {
+					uid
+					name
+				}
+
+				~ingredients {
 					uid
 					name
 				}
@@ -107,6 +112,8 @@ func (d *dgraphIngredientRepo) Get(id string) (*models.Ingredient, error) {
 	if err != nil {
 		return &ingredient, err
 	}
+
+	fmt.Printf("dIng: %+v\n", &dIngredients)
 
 	if len(dIngredients.Ingredients) > 0 {
 		copier.Copy(&ingredient, &dIngredients.Ingredients[0])
@@ -155,33 +162,6 @@ func (d *dgraphIngredientRepo) Update(ingredient *models.Ingredient) (*models.In
 	copier.Copy(&dIngredient, ingredient)
 	dIngredient.DType = []string{"Ingredient"}
 
-	pb, err := json.Marshal(dIngredient)
-	if err != nil {
-		return ingredient, err
-	}
-
-	mu := &api.Mutation{
-		CommitNow: true,
-		SetJson:   pb,
-	}
-
-	_, err = txn.Mutate(context.Background(), mu)
-	if err != nil {
-		return ingredient, err
-	}
-
-	return ingredient, nil
-}
-
-// SetTags for a ingredient in drgraph
-func (d *dgraphIngredientRepo) SetTags(ingredient *models.Ingredient) (*models.Ingredient, error) {
-	dIngredient := dgraphIngredient{}
-	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
-
-	copier.Copy(&dIngredient, ingredient)
-	dIngredient.DType = []string{"Ingredient"}
-
 	mu := &api.Mutation{
 		CommitNow: true,
 	}
@@ -212,5 +192,24 @@ func (d *dgraphIngredientRepo) SetTags(ingredient *models.Ingredient) (*models.I
 
 // Delete an ingredient from dgraph
 func (d *dgraphIngredientRepo) Delete(id string) error {
-	return errors.New("not implemented")
+	txn := d.Client.NewTxn()
+	defer txn.Discard(context.Background())
+
+	m := map[string]string{"uid": id}
+	pb, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+
+	mu := &api.Mutation{
+		CommitNow:  true,
+		DeleteJson: pb,
+	}
+
+	_, err = txn.Mutate(context.Background(), mu)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

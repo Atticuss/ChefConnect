@@ -24,7 +24,6 @@ type IngredientRepository interface {
 	GetAll() (*models.ManyIngredients, error)
 	Create(*models.Ingredient) (*models.Ingredient, error)
 	Update(*models.Ingredient) (*models.Ingredient, error)
-	SetTags(*models.Ingredient) (*models.Ingredient, error)
 	Delete(id string) error
 }
 

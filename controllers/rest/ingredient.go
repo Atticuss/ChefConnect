@@ -39,7 +39,7 @@ type nestedIngredient struct {
 // swagger:response ManyIngredients
 type manyIngredients struct {
 	// in:body
-	Body []nestedIngredient `json:"ingredients"`
+	Ingredients []nestedIngredient `json:"ingredients"`
 }
 
 func (restCtrl *restController) getAllIngredients(c *gin.Context) {
@@ -163,6 +163,6 @@ func (restCtrl *restController) deleteIngredient(c *gin.Context) {
 	if sErr := restCtrl.Service.DeleteIngredient(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.Status(http.StatusNoContent)
+		c.JSON(http.StatusOK, map[string]string{})
 	}
 }
