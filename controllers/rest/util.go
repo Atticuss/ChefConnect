@@ -23,7 +23,7 @@ var statusCodeMap = [...]int{
 	services.NotImplemented: http.StatusInternalServerError,
 	services.NotFound:       http.StatusNotFound,
 	services.NotAuthorized:  http.StatusUnauthorized,
-	services.ResourceInUse:  http.StatusUnauthorized,
+	services.ResourceInUse:  http.StatusConflict,
 }
 
 // Unfortunately, we can't directly cast from the map[string]struct object pulled
