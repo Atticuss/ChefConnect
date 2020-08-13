@@ -91,7 +91,6 @@ func (restCtrl *restController) getUser(c *gin.Context) {
 	} else {
 		userResp := restUser{}
 		copier.Copy(&userResp, &user)
-		userResp.Password = ""
 		c.JSON(http.StatusOK, userResp)
 	}
 }

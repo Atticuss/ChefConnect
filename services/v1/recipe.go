@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"errors"
+
 	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/services"
 )
@@ -50,6 +52,17 @@ func (s *v1Service) GetRecipe(callingUser *models.User, id string) (*models.Reci
 
 // CreateRecipe handles the business logic when a client creates a new recipe
 func (s *v1Service) CreateRecipe(callingUser *models.User, recipe *models.Recipe) (*models.Recipe, *services.ServiceError) {
+	authorized := false
+	for _, role := range callingUser.Roles {
+		if role.Name == services.Admin {
+			authorized = true
+		}
+	}
+
+	if !authorized {
+		return recipe, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
+	}
+
 	recipe, err := s.RecipeRepository.Create(recipe)
 
 	if err != nil {
@@ -61,6 +74,17 @@ func (s *v1Service) CreateRecipe(callingUser *models.User, recipe *models.Recipe
 
 // UpdateRecipe handles the business logic when a client updates a recipe
 func (s *v1Service) UpdateRecipe(callingUser *models.User, recipe *models.Recipe) (*models.Recipe, *services.ServiceError) {
+	authorized := false
+	for _, role := range callingUser.Roles {
+		if role.Name == services.Admin {
+			authorized = true
+		}
+	}
+
+	if !authorized {
+		return recipe, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
+	}
+
 	recipe, err := s.RecipeRepository.Update(recipe)
 	if err != nil {
 		return recipe, &services.ServiceError{Error: err}
@@ -71,6 +95,17 @@ func (s *v1Service) UpdateRecipe(callingUser *models.User, recipe *models.Recipe
 
 // DeleteRecipe handles the business logic when a client deletes a recipe
 func (s *v1Service) DeleteRecipe(callingUser *models.User, id string) *services.ServiceError {
+	authorized := false
+	for _, role := range callingUser.Roles {
+		if role.Name == services.Admin {
+			authorized = true
+		}
+	}
+
+	if !authorized {
+		return &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
+	}
+
 	err := s.RecipeRepository.Delete(id)
 	if err != nil {
 		return &services.ServiceError{Error: err}

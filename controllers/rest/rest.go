@@ -36,6 +36,7 @@ func NewRestController(svc *services.Service, config *Config) controllers.Contro
 	return &rest
 }
 
+//https://github.com/aws/aws-lambda-go
 func (restCtlr *restController) SetupController() (interface{}, error) {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	if gin.IsDebugging() {
