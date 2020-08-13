@@ -2,6 +2,7 @@ package dgraph
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -32,6 +33,7 @@ func NewDgraphRepositoryUtility(config *Config) repositories.RepositoryUtility {
 }
 
 func (d *dgraphUtilRepo) InitializeSchema() error {
+	fmt.Println("[*] Initializing schema")
 	op := &api.Operation{}
 
 	op.Schema = `
@@ -40,8 +42,7 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 		domain: string .
 		directions: string .
 		ingredients: [uid] @reverse .
-		ingredient_tags: [uid] @reverse .
-		recipe_tags: [uid] @reverse .
+		tags: [uid] @reverse .
 		prep_time: int @index(int) .
 		cook_time: int @index(int) .
 		total_servings: int .
@@ -126,12 +127,12 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 }
 
 func (d *dgraphUtilRepo) InitializeBaseData() error {
+	fmt.Println("[*] Initializing base data")
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
-	//$2a$14$zR/r6hmGbPk1mh1G8fsvJOE/iKfhosK5YjVoiA51zgKmDnp6lETja -> Password1!
 	nquads := `
-		_:role_admin <name> "Site Admin" .
+		_:role_admin <name> "Admin" .
 		_:role_admin <dgraph.type> "Role" .
 
 		_:role_user <name> "User" .
@@ -153,9 +154,10 @@ func (d *dgraphUtilRepo) InitializeBaseData() error {
 
 // https://github.com/dgraph-io/dgo#running-an-upsert-query--mutation
 func (d *dgraphUtilRepo) InitializeTestData() error {
+	fmt.Println("[*] Initializing test data")
 	const query = `
 		query {
-			var(func: eq(name, "Site Admin")) @filter(type(Role)) {
+			var(func: eq(name, "Admin")) @filter(type(Role)) {
 				SiteAdminRole as uid
 			}
 			var(func: eq(name, "User")) @filter(type(Role)) {
@@ -164,6 +166,7 @@ func (d *dgraphUtilRepo) InitializeTestData() error {
 		}
 	`
 
+	//$2a$14$zR/r6hmGbPk1mh1G8fsvJOE/iKfhosK5YjVoiA51zgKmDnp6lETja -> Password1!
 	const nquads = `
 		_:user_jay <name> "Jay Sea" .
 		_:user_jay <username> "jay.sea" .
@@ -238,6 +241,7 @@ func (d *dgraphUtilRepo) InitializeTestData() error {
 }
 
 func (d *dgraphUtilRepo) ClearDatastore() error {
+	fmt.Println("[*] Clearing data store")
 	op := &api.Operation{DropAll: true}
 
 	if err := d.Client.Alter(context.Background(), op); err != nil {
