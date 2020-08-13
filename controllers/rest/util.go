@@ -18,7 +18,7 @@ import (
 	"github.com/atticuss/chefconnect/services"
 )
 
-var statusCodeMap = [...]int{
+var statusCodeMap = map[int]int{
 	services.Unhandled:      http.StatusBadRequest,
 	services.NotImplemented: http.StatusInternalServerError,
 	services.NotFound:       http.StatusNotFound,
