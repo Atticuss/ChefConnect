@@ -3,7 +3,6 @@ package dgraph
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"strconv"
 
 	"github.com/dgraph-io/dgo/v2"
@@ -45,15 +44,16 @@ type dgraphRecipe struct {
 	TotalServings int    `json:"total_servings,omitempty"`
 	HasBeenTried  bool   `json:"has_been_tried,omitempty"`
 
-	Ingredients       []dgraphIngredient `json:"ingredients,omitempty"`
-	IngredientAmounts map[string]string  `json:"ingredients|amount,omitempty"`
-	Tags              []dgraphTag        `json:"tags,omitempty"`
-	RatedBy           []dgraphUser       `json:"~ratings,omitempty"`
-	RatingScore       map[string]string  `json:"~ratings|score,omitempty"`
-	FavoritedBy       []dgraphUser       `json:"~favorites,omitempty"`
-	Owner             []dgraphUser       `json:"owner,omitempty"`
-	RelatedRecipes    []dgraphRecipe     `json:"related_recipes,omitempty"`
-	Notes             []models.Note      `json:"~recipe,omitempty"`
+	Ingredients          []dgraphIngredient `json:"ingredients,omitempty"`
+	IngredientAmounts    map[string]string  `json:"ingredients|amount,omitempty"`
+	Tags                 []dgraphTag        `json:"tags,omitempty"`
+	RatedBy              []dgraphUser       `json:"~ratings,omitempty"`
+	RatingScore          map[string]string  `json:"~ratings|score,omitempty"`
+	FavoritedBy          []dgraphUser       `json:"~favorites,omitempty"`
+	Owner                []dgraphUser       `json:"owner,omitempty"`
+	RelatedRecipesParent []dgraphRecipe     `json:"related_recipes,omitempty"`
+	RelatedRecipesChild  []dgraphRecipe     `json:"~related_recipes,omitempty"`
+	Notes                []models.Note      `json:"~recipe,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }
@@ -73,10 +73,14 @@ type dgraphRecipe struct {
 // }
 // In order to restructure this in a sane manner, we move the "ingredients|amount"
 // field values over into each element of "ingredient". Also need to convert str
-// values into ints when appropriate, as `json.Unmarshal()` refuses to cast for you. Finally, as dgraph returns all edges as a list, we must take special care
+// values into ints when appropriate, as `json.Unmarshal()` refuses to cast for
+// you. Finally, as dgraph returns all edges as a list, we must take special care
 // to handle edges that are meant to only exist once, e.g. the User-type node which
 // created a given recipe. Specifically, the `copier.Copy()` function does not play
 // nicely with two fields of the same name when only one is an array.
+//
+// Next, we need to aggregate both direct (child) and reverse (parent) edges into
+// a single Recipe.RelatedRecipes struct field
 func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) error {
 	copier.Copy(&recipe, &dRecipe)
 
@@ -107,6 +111,11 @@ func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) error {
 
 		recipe.RatedBy[i_idx].RatingScore = i_value
 	}
+
+	relatedRecipes := []models.Recipe{}
+	dRelatedRecipes := append(dRecipe.RelatedRecipesParent, dRecipe.RelatedRecipesChild...)
+	copier.Copy(&relatedRecipes, &dRelatedRecipes)
+	recipe.RelatedRecipes = relatedRecipes
 
 	return nil
 }
@@ -193,6 +202,14 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 						name
 					}
 				}
+				~related_recipes {
+					uid
+					name
+				}
+				related_recipes {
+					uid
+					name
+				}
 			}
 		}
 	`
@@ -256,42 +273,10 @@ func (d *dgraphRecipeRepo) Update(recipe *models.Recipe) (*models.Recipe, error)
 	copier.Copy(&dRecipe, recipe)
 	dRecipe.DType = []string{"Recipe"}
 
-	pb, err := json.Marshal(dRecipe)
-	if err != nil {
-		return recipe, err
-	}
-
-	mu := &api.Mutation{
-		CommitNow: true,
-		SetJson:   pb,
-	}
-
-	_, err = txn.Mutate(context.Background(), mu)
-	if err != nil {
-		return recipe, err
-	}
-
-	return recipe, nil
-}
-
-// SetTags for a recipe in drgraph
-func (d *dgraphRecipeRepo) SetTags(recipe *models.Recipe) (*models.Recipe, error) {
-	dRecipe := dgraphRecipe{}
-	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
-
-	copier.Copy(&dRecipe, recipe)
-	dRecipe.DType = []string{"Recipe"}
-
 	mu := &api.Mutation{
 		CommitNow: true,
 	}
-	dgo.DeleteEdges(mu, dRecipe.ID, "tags")
-
-	_, err := d.Client.NewTxn().Mutate(context.Background(), mu)
-	if err != nil {
-		return recipe, err
-	}
+	dgo.DeleteEdges(mu, dRecipe.ID, "~related_recipes")
 
 	pb, err := json.Marshal(dRecipe)
 	if err != nil {
@@ -313,5 +298,29 @@ func (d *dgraphRecipeRepo) SetTags(recipe *models.Recipe) (*models.Recipe, error
 
 // Delete a recipe from dgraph
 func (d *dgraphRecipeRepo) Delete(id string) error {
-	return errors.New("not implemented")
+	txn := d.Client.NewTxn()
+	defer txn.Discard(context.Background())
+
+	mu := &api.Mutation{
+		CommitNow: true,
+	}
+	dgo.DeleteEdges(mu, id, "~favorites")
+
+	m := map[string]string{"uid": id}
+	pb, err := json.Marshal(m)
+	if err != nil {
+		return err
+	}
+
+	mu = &api.Mutation{
+		CommitNow:  true,
+		DeleteJson: pb,
+	}
+
+	_, err = txn.Mutate(context.Background(), mu)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
