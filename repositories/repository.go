@@ -32,7 +32,6 @@ type RecipeRepository interface {
 	GetAll() (*models.ManyRecipes, error)
 	Create(*models.Recipe) (*models.Recipe, error)
 	Update(*models.Recipe) (*models.Recipe, error)
-	SetTags(*models.Recipe) (*models.Recipe, error)
 	Delete(id string) error
 }
 
