@@ -168,6 +168,6 @@ func (restCtrl *restController) deleteTag(c *gin.Context) {
 	if sErr := restCtrl.Service.DeleteTag(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.Status(http.StatusNoContent)
+		c.JSON(http.StatusOK, map[string]string{})
 	}
 }

@@ -194,6 +194,6 @@ func (restCtrl *restController) deleteRecipe(c *gin.Context) {
 	if sErr := restCtrl.Service.DeleteRecipe(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
-		c.Status(http.StatusNoContent)
+		c.JSON(http.StatusOK, map[string]string{})
 	}
 }
