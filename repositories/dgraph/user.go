@@ -4,29 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/jinzhu/copier"
-	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/models"
-	"github.com/atticuss/chefconnect/repositories"
 )
-
-type dgraphUserRepo struct {
-	Client *dgo.Dgraph
-}
-
-// NewDgraphUserRepository configures a dgraph repository for accessing
-// user data
-func NewDgraphUserRepository(config *Config) repositories.UserRepository {
-	conn, _ := grpc.Dial(config.Host, grpc.WithInsecure())
-	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
-
-	return &dgraphUserRepo{
-		Client: client,
-	}
-}
 
 type manyDgraphUsers struct {
 	Users []dgraphUser `json:"users"`
@@ -47,7 +29,7 @@ type dgraphUser struct {
 }
 
 // GetAll users out of dgraph
-func (d *dgraphUserRepo) GetAll() (*models.ManyUsers, error) {
+func (d *dgraphRepo) GetAllUsers() (*models.ManyUsers, error) {
 	users := models.ManyUsers{}
 	dUsers := manyDgraphUsers{}
 	txn := d.Client.NewReadOnlyTxn()
@@ -90,7 +72,7 @@ func (d *dgraphUserRepo) GetAll() (*models.ManyUsers, error) {
 }
 
 // Get a user out of dgraph by ID
-func (d *dgraphUserRepo) Get(id string) (*models.User, error) {
+func (d *dgraphRepo) GetUser(id string) (*models.User, error) {
 	user := models.User{}
 	dUsers := manyDgraphUsers{}
 	txn := d.Client.NewReadOnlyTxn()
@@ -138,7 +120,7 @@ func (d *dgraphUserRepo) Get(id string) (*models.User, error) {
 }
 
 // Get a user out of dgraph by name
-func (d *dgraphUserRepo) GetByUsername(username string) (*models.User, error) {
+func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 	user := models.User{}
 	dUsers := manyDgraphUsers{}
 	txn := d.Client.NewReadOnlyTxn()
@@ -186,7 +168,7 @@ func (d *dgraphUserRepo) GetByUsername(username string) (*models.User, error) {
 }
 
 // Create a user within dgraph
-func (d *dgraphUserRepo) Create(user *models.User) (*models.User, error) {
+func (d *dgraphRepo) CreateUser(user *models.User) (*models.User, error) {
 	dUser := dgraphUser{}
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
@@ -216,7 +198,7 @@ func (d *dgraphUserRepo) Create(user *models.User) (*models.User, error) {
 }
 
 // Update a user within dgraph
-func (d *dgraphUserRepo) Update(user *models.User) (*models.User, error) {
+func (d *dgraphRepo) UpdateUser(user *models.User) (*models.User, error) {
 	dUser := dgraphUser{}
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
@@ -243,7 +225,7 @@ func (d *dgraphUserRepo) Update(user *models.User) (*models.User, error) {
 }
 
 // Delete a user from dgraph
-func (d *dgraphUserRepo) Delete(id string) error {
+func (d *dgraphRepo) DeleteUser(id string) error {
 	readOnlyTxn := d.Client.NewReadOnlyTxn()
 	defer readOnlyTxn.Discard(context.Background())
 

@@ -4,47 +4,37 @@ import (
 	"github.com/atticuss/chefconnect/models"
 )
 
-type RepositoryUtility interface {
+type Repository interface {
 	InitializeSchema() error
 	ClearDatastore() error
 	InitializeBaseData() error
 	InitializeTestData() error
-}
 
-type TagRepository interface {
-	Get(id string) (*models.Tag, error)
-	GetAll() (*models.ManyTags, error)
-	Create(*models.Tag) (*models.Tag, error)
-	Update(*models.Tag) (*models.Tag, error)
-	Delete(id string) error
-}
+	GetTag(id string) (*models.Tag, error)
+	GetAllTags() (*models.ManyTags, error)
+	CreateTag(*models.Tag) (*models.Tag, error)
+	UpdateTag(*models.Tag) (*models.Tag, error)
+	DeleteTag(id string) error
 
-type IngredientRepository interface {
-	Get(id string) (*models.Ingredient, error)
-	GetAll() (*models.ManyIngredients, error)
-	Create(*models.Ingredient) (*models.Ingredient, error)
-	Update(*models.Ingredient) (*models.Ingredient, error)
-	Delete(id string) error
-}
+	GetIngredient(id string) (*models.Ingredient, error)
+	GetAllIngredients() (*models.ManyIngredients, error)
+	CreateIngredient(*models.Ingredient) (*models.Ingredient, error)
+	UpdateIngredient(*models.Ingredient) (*models.Ingredient, error)
+	DeleteIngredient(id string) error
 
-type RecipeRepository interface {
-	Get(id string) (*models.Recipe, error)
-	GetAll() (*models.ManyRecipes, error)
-	Create(*models.Recipe) (*models.Recipe, error)
-	Update(*models.Recipe) (*models.Recipe, error)
-	Delete(id string) error
-}
+	GetRecipe(id string) (*models.Recipe, error)
+	GetAllRecipes() (*models.ManyRecipes, error)
+	CreateRecipe(*models.Recipe) (*models.Recipe, error)
+	UpdateRecipe(*models.Recipe) (*models.Recipe, error)
+	DeleteRecipe(id string) error
 
-type UserRepository interface {
-	Get(id string) (*models.User, error)
-	GetAll() (*models.ManyUsers, error)
-	GetByUsername(username string) (*models.User, error)
-	Create(*models.User) (*models.User, error)
-	Update(*models.User) (*models.User, error)
-	Delete(id string) error
-}
+	GetUser(id string) (*models.User, error)
+	GetAllUsers() (*models.ManyUsers, error)
+	GetUserByUsername(username string) (*models.User, error)
+	CreateUser(*models.User) (*models.User, error)
+	UpdateUser(*models.User) (*models.User, error)
+	DeleteUser(id string) error
 
-type RoleRepository interface {
-	Get(id string) (*models.Role, error)
-	GetAll() (*models.ManyRoles, error)
+	GetRole(id string) (*models.Role, error)
+	GetAllRoles() (*models.ManyRoles, error)
 }

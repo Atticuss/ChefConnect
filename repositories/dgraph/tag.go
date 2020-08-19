@@ -4,29 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/jinzhu/copier"
-	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/models"
-	"github.com/atticuss/chefconnect/repositories"
 )
-
-type dgraphTagRepo struct {
-	Client *dgo.Dgraph
-}
-
-// NewDgraphTagRepository configures a dgraph repository for accessing
-// tag data
-func NewDgraphTagRepository(config *Config) repositories.TagRepository {
-	conn, _ := grpc.Dial(config.Host, grpc.WithInsecure())
-	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
-
-	return &dgraphTagRepo{
-		Client: client,
-	}
-}
 
 type manyDgraphTags struct {
 	Tags []dgraphTag `json:"tags"`
@@ -42,8 +24,8 @@ type dgraphTag struct {
 	DType []string `json:"dgraph.type,omitempty"`
 }
 
-// GetAll tags out of dgraph
-func (d *dgraphTagRepo) GetAll() (*models.ManyTags, error) {
+// GetAllTags out of dgraph
+func (d *dgraphRepo) GetAllTags() (*models.ManyTags, error) {
 	dTags := manyDgraphTags{}
 	tags := models.ManyTags{}
 	txn := d.Client.NewReadOnlyTxn()
@@ -74,8 +56,8 @@ func (d *dgraphTagRepo) GetAll() (*models.ManyTags, error) {
 	return &tags, nil
 }
 
-// Get a tag out of dgraph by ID
-func (d *dgraphTagRepo) Get(id string) (*models.Tag, error) {
+// GetTag out of dgraph by ID
+func (d *dgraphRepo) GetTag(id string) (*models.Tag, error) {
 	dTags := manyDgraphTags{}
 	tag := models.Tag{}
 	txn := d.Client.NewReadOnlyTxn()
@@ -120,8 +102,8 @@ func (d *dgraphTagRepo) Get(id string) (*models.Tag, error) {
 	return &tag, nil
 }
 
-// Create a tag within dgraph
-func (d *dgraphTagRepo) Create(tag *models.Tag) (*models.Tag, error) {
+// CreateTag within dgraph
+func (d *dgraphRepo) CreateTag(tag *models.Tag) (*models.Tag, error) {
 	dTag := dgraphTag{}
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
@@ -152,8 +134,8 @@ func (d *dgraphTagRepo) Create(tag *models.Tag) (*models.Tag, error) {
 	return tag, nil
 }
 
-// Update a tag within dgraph by ID
-func (d *dgraphTagRepo) Update(tag *models.Tag) (*models.Tag, error) {
+// UpdateTag within dgraph by ID
+func (d *dgraphRepo) UpdateTag(tag *models.Tag) (*models.Tag, error) {
 	dTag := dgraphTag{}
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
@@ -180,8 +162,8 @@ func (d *dgraphTagRepo) Update(tag *models.Tag) (*models.Tag, error) {
 	return tag, nil
 }
 
-// Delete a tag from dgraph by ID
-func (d *dgraphTagRepo) Delete(id string) error {
+// DeleteTag from dgraph by ID
+func (d *dgraphRepo) DeleteTag(id string) error {
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 

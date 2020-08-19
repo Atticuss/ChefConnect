@@ -4,29 +4,10 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/dgraph-io/dgo/v2"
-	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/jinzhu/copier"
-	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/models"
-	"github.com/atticuss/chefconnect/repositories"
 )
-
-type dgraphRoleRepo struct {
-	Client *dgo.Dgraph
-}
-
-// NewDgraphTagRepository configures a dgraph repository for accessing
-// tag data
-func NewDgraphRoleRepository(config *Config) repositories.RoleRepository {
-	conn, _ := grpc.Dial(config.Host, grpc.WithInsecure())
-	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
-
-	return &dgraphRoleRepo{
-		Client: client,
-	}
-}
 
 type manyDgraphRoles struct {
 	Roles []dgraphRole `json:"roles"`
@@ -41,8 +22,8 @@ type dgraphRole struct {
 	DType []string `json:"dgraph.type,omitempty"`
 }
 
-// GetAll roles out of dgraph
-func (d *dgraphRoleRepo) GetAll() (*models.ManyRoles, error) {
+// GetAllRoles roles out of dgraph
+func (d *dgraphRepo) GetAllRoles() (*models.ManyRoles, error) {
 	dRoles := manyDgraphRoles{}
 	roles := models.ManyRoles{}
 	txn := d.Client.NewReadOnlyTxn()
@@ -73,8 +54,8 @@ func (d *dgraphRoleRepo) GetAll() (*models.ManyRoles, error) {
 	return &roles, nil
 }
 
-// Get a role out of dgraph by ID
-func (d *dgraphRoleRepo) Get(id string) (*models.Role, error) {
+// GetRole out of dgraph by ID
+func (d *dgraphRepo) GetRole(id string) (*models.Role, error) {
 	dRoles := manyDgraphRoles{}
 	role := models.Role{}
 	txn := d.Client.NewReadOnlyTxn()

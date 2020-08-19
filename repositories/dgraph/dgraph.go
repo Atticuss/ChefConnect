@@ -11,7 +11,7 @@ import (
 	"github.com/atticuss/chefconnect/repositories"
 )
 
-type dgraphUtilRepo struct {
+type dgraphRepo struct {
 	Client *dgo.Dgraph
 }
 
@@ -20,19 +20,17 @@ type Config struct {
 	Host string
 }
 
-// NewDgraphRepositoryUtility configures a dgraph repository for accessing
-// various utility functions, typically leveraged during testing and
-// application initialization
-func NewDgraphRepositoryUtility(config *Config) repositories.RepositoryUtility {
+// NewDgraphRepository configures a dgraph repository
+func NewDgraphRepository(config *Config) repositories.Repository {
 	conn, _ := grpc.Dial(config.Host, grpc.WithInsecure())
 	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
 
-	return &dgraphUtilRepo{
+	return &dgraphRepo{
 		Client: client,
 	}
 }
 
-func (d *dgraphUtilRepo) InitializeSchema() error {
+func (d *dgraphRepo) InitializeSchema() error {
 	fmt.Println("[*] Initializing schema")
 	op := &api.Operation{}
 
@@ -128,7 +126,7 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 	return nil
 }
 
-func (d *dgraphUtilRepo) InitializeBaseData() error {
+func (d *dgraphRepo) InitializeBaseData() error {
 	fmt.Println("[*] Initializing base data")
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
@@ -155,7 +153,7 @@ func (d *dgraphUtilRepo) InitializeBaseData() error {
 }
 
 // https://github.com/dgraph-io/dgo#running-an-upsert-query--mutation
-func (d *dgraphUtilRepo) InitializeTestData() error {
+func (d *dgraphRepo) InitializeTestData() error {
 	fmt.Println("[*] Initializing test data")
 	const query = `
 		query {
@@ -242,7 +240,7 @@ func (d *dgraphUtilRepo) InitializeTestData() error {
 	return nil
 }
 
-func (d *dgraphUtilRepo) ClearDatastore() error {
+func (d *dgraphRepo) ClearDatastore() error {
 	fmt.Println("[*] Clearing data store")
 	op := &api.Operation{DropAll: true}
 
