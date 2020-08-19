@@ -42,7 +42,8 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 		domain: string .
 		directions: string .
 		ingredients: [uid] @reverse .
-		tags: [uid] @reverse .
+		recipe_tags: [uid] @reverse .
+		ingredient_tags: [uid] @reverse .
 		prep_time: int @index(int) .
 		cook_time: int @index(int) .
 		total_servings: int .
@@ -73,7 +74,8 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 
 		type Tag {
 			name
-			<~tags>
+			<~recipe_tags>
+			<~ingredient_tags>
 		}
 
 		type Recipe {
@@ -86,7 +88,7 @@ func (d *dgraphUtilRepo) InitializeSchema() error {
 			cook_time
 			total_servings
 			related_recipes
-			tags
+			recipe_tags
 			has_been_tried
 			owner
 			

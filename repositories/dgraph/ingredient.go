@@ -36,8 +36,8 @@ type dgraphIngredient struct {
 	ID   string `json:"uid,omitempty"`
 	Name string `json:"name,omitempty" validate:"required"`
 
-	Recipes []models.Recipe `json:"~ingredients,omitempty"`
-	Tags    []dgraphTag     `json:"tags,omitempty"`
+	Recipes []dgraphRecipe `json:"~ingredients,omitempty"`
+	Tags    []dgraphTag    `json:"ingredient_tags,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }

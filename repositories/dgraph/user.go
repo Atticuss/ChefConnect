@@ -3,7 +3,6 @@ package dgraph
 import (
 	"context"
 	"encoding/json"
-	"errors"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -40,7 +39,7 @@ type dgraphUser struct {
 	Password string `json:"password,omitempty"`
 
 	Favorites []dgraphRecipe `json:"favorites,omitempty"`
-	Notes     []models.Note  `json:"~author,omitempty"`
+	Notes     []dgraphNote   `json:"~author,omitempty"`
 	Ratings   []dgraphRecipe `json:"ratings,omitempty"`
 	Roles     []dgraphRole   `json:"roles,omitempty"`
 
@@ -245,5 +244,74 @@ func (d *dgraphUserRepo) Update(user *models.User) (*models.User, error) {
 
 // Delete a user from dgraph
 func (d *dgraphUserRepo) Delete(id string) error {
-	return errors.New("not implemented")
+	readOnlyTxn := d.Client.NewReadOnlyTxn()
+	defer readOnlyTxn.Discard(context.Background())
+
+	txn := d.Client.NewTxn()
+	defer txn.Discard(context.Background())
+
+	dUsers := manyDgraphUsers{}
+	variables := map[string]string{"$id": id}
+	const q = `
+		query all($id: string) {
+			users(func: uid($id)) @filter(type(User)) {
+				uid
+				~author {
+					uid
+				}
+			}
+		}
+	`
+
+	resp, err := readOnlyTxn.QueryWithVars(context.Background(), q, variables)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(resp.Json, &dUsers)
+	if err != nil {
+		return err
+	}
+
+	// Doesn't exist, just return now
+	if len(dUsers.Users) == 0 {
+		return nil
+	}
+
+	// Once the note repo is implemented, we can just call that for deletion. For
+	// now, we'll rely on this.
+	for _, dNote := range dUsers.Users[0].Notes {
+		mu := &api.Mutation{
+			Del: []*api.NQuad{
+				{
+					Subject:   dNote.ID,
+					Predicate: "author",
+					ObjectId:  id,
+				},
+			},
+		}
+
+		_, err = txn.Mutate(context.Background(), mu)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Now lets delete the node itself
+	pb, err := json.Marshal(variables)
+	if err != nil {
+		return err
+	}
+
+	mu := &api.Mutation{
+		CommitNow:  true,
+		DeleteJson: pb,
+	}
+
+	_, err = txn.Mutate(context.Background(), mu)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

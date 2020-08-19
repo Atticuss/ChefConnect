@@ -36,8 +36,8 @@ type dgraphTag struct {
 	ID   string `json:"uid,omitempty"`
 	Name string `json:"name,omitempty" validate:"required"`
 
-	Recipes     []models.Recipe     `json:"~recipe_tags,omitempty"`
-	Ingredients []models.Ingredient `json:"~ingredient_tags,omitempty"`
+	Recipes     []dgraphRecipe     `json:"~recipe_tags,omitempty"`
+	Ingredients []dgraphIngredient `json:"~ingredient_tags,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }
@@ -184,6 +184,73 @@ func (d *dgraphTagRepo) Update(tag *models.Tag) (*models.Tag, error) {
 func (d *dgraphTagRepo) Delete(id string) error {
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
+
+	readOnlyTxn := d.Client.NewReadOnlyTxn()
+	defer txn.Discard(context.Background())
+
+	// Nuke all our reverse edges by the parent node
+	dTags := models.ManyTags{}
+	const q = `
+		query all($id: string) {
+			tags(func: uid($id)) @filter(type(Tag)) {
+				~recipe_tags {
+					uid
+				}
+				~ingredient_tags {
+					uid
+				}
+			}
+		}
+	`
+
+	resp, err := readOnlyTxn.Query(context.Background(), q)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(resp.Json, &dTags)
+	if err != nil {
+		return err
+	}
+
+	// Doesn't exist, just return now
+	if len(dTags.Tags) == 0 {
+		return nil
+	}
+
+	for _, dRecipe := range dTags.Tags[0].Recipes {
+		mu := &api.Mutation{
+			Del: []*api.NQuad{
+				{
+					Subject:   dRecipe.ID,
+					Predicate: "recipe_tags",
+					ObjectId:  id,
+				},
+			},
+		}
+
+		_, err = txn.Mutate(context.Background(), mu)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, dIngredient := range dTags.Tags[0].Ingredients {
+		mu := &api.Mutation{
+			Del: []*api.NQuad{
+				{
+					Subject:   dIngredient.ID,
+					Predicate: "ingredient_tags",
+					ObjectId:  id,
+				},
+			},
+		}
+
+		_, err = txn.Mutate(context.Background(), mu)
+		if err != nil {
+			return err
+		}
+	}
 
 	variables := map[string]string{"uid": id}
 	pb, err := json.Marshal(variables)

@@ -46,14 +46,14 @@ type dgraphRecipe struct {
 
 	Ingredients          []dgraphIngredient `json:"ingredients,omitempty"`
 	IngredientAmounts    map[string]string  `json:"ingredients|amount,omitempty"`
-	Tags                 []dgraphTag        `json:"tags,omitempty"`
+	Tags                 []dgraphTag        `json:"ingredient_tags,omitempty"`
 	RatedBy              []dgraphUser       `json:"~ratings,omitempty"`
 	RatingScore          map[string]string  `json:"~ratings|score,omitempty"`
 	FavoritedBy          []dgraphUser       `json:"~favorites,omitempty"`
 	Owner                []dgraphUser       `json:"owner,omitempty"`
 	RelatedRecipesParent []dgraphRecipe     `json:"related_recipes,omitempty"`
 	RelatedRecipesChild  []dgraphRecipe     `json:"~related_recipes,omitempty"`
-	Notes                []models.Note      `json:"~recipe,omitempty"`
+	Notes                []dgraphNote       `json:"~recipe,omitempty"`
 
 	DType []string `json:"dgraph.type,omitempty"`
 }
@@ -74,20 +74,24 @@ type dgraphRecipe struct {
 // In order to restructure this in a sane manner, we move the "ingredients|amount"
 // field values over into each element of "ingredient". Also need to convert str
 // values into ints when appropriate, as `json.Unmarshal()` refuses to cast for
-// you. Finally, as dgraph returns all edges as a list, we must take special care
+// you.
+//
+// Next, as dgraph returns all edges as a list, we must take special care
 // to handle edges that are meant to only exist once, e.g. the User-type node which
 // created a given recipe. Specifically, the `copier.Copy()` function does not play
 // nicely with two fields of the same name when only one is an array.
 //
-// Next, we need to aggregate both direct (child) and reverse (parent) edges into
-// a single Recipe.RelatedRecipes struct field
+// Finally, we need to aggregate both direct (child) and reverse (parent) edges into
+// a single Recipe.RelatedRecipes struct field.
 func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) error {
 	copier.Copy(&recipe, &dRecipe)
 
+	// list to single value
 	recipeCreator := models.User{}
 	copier.Copy(&recipeCreator, dRecipe.Owner[0])
 	recipe.CreatedBy = recipeCreator
 
+	// merge facet data
 	for s_idx, value := range dRecipe.IngredientAmounts {
 		i_idx, err := strconv.Atoi(s_idx)
 
@@ -112,6 +116,7 @@ func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) error {
 		recipe.RatedBy[i_idx].RatingScore = i_value
 	}
 
+	// merge matching edges and reverse edges
 	relatedRecipes := []models.Recipe{}
 	dRelatedRecipes := append(dRecipe.RelatedRecipesParent, dRecipe.RelatedRecipesChild...)
 	copier.Copy(&relatedRecipes, &dRelatedRecipes)
@@ -298,25 +303,133 @@ func (d *dgraphRecipeRepo) Update(recipe *models.Recipe) (*models.Recipe, error)
 
 // Delete a recipe from dgraph
 func (d *dgraphRecipeRepo) Delete(id string) error {
-	txn := d.Client.NewTxn()
+	dRecipes := manyDgraphRecipes{}
+	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
-	mu := &api.Mutation{
-		CommitNow: true,
-	}
-	dgo.DeleteEdges(mu, id, "~favorites")
+	// First we need to grab all reverse edges as they must deleted by referencing
+	// the parent node itself, and not the current child recipe being deleted. This
+	// is a good sign that the schema isn't well designed, but that will be addressed
+	// later on. This works Good Enough for now.
+	variables := map[string]string{"$id": id}
+	const q = `
+		query all($id: string) {
+			recipes(func: uid($id)) @filter(type(Recipe)) {
+				uid
+				~related_recipes {
+					uid
+				}
+				~ratings {
+					uid
+				}
+				~favorites {
+					uid
+				}
+				~recipe {
+					uid
+				}
+			}
+		}
+	`
 
+	resp, err := txn.QueryWithVars(context.Background(), q, variables)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(resp.Json, &dRecipes)
+	if err != nil {
+		return err
+	}
+
+	// Doesn't exist, just return now
+	if len(dRecipes.Recipes) == 0 {
+		return nil
+	}
+
+	txn = d.Client.NewTxn()
+	defer txn.Discard(context.Background())
+
+	// Now lets delete all our reverse edges by referencing the parent node as the subject
+	for _, dRecipe := range dRecipes.Recipes[0].RelatedRecipesParent {
+		mu := &api.Mutation{
+			Del: []*api.NQuad{
+				{
+					Subject:   dRecipe.ID,
+					Predicate: "related_recipes",
+					ObjectId:  id,
+				},
+			},
+		}
+
+		_, err = txn.Mutate(context.Background(), mu)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, dUser := range dRecipes.Recipes[0].RatedBy {
+		mu := &api.Mutation{
+			Del: []*api.NQuad{
+				{
+					Subject:   dUser.ID,
+					Predicate: "ratings",
+					ObjectId:  id,
+				},
+			},
+		}
+
+		_, err = txn.Mutate(context.Background(), mu)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, dUser := range dRecipes.Recipes[0].FavoritedBy {
+		mu := &api.Mutation{
+			Del: []*api.NQuad{
+				{
+					Subject:   dUser.ID,
+					Predicate: "favorites",
+					ObjectId:  id,
+				},
+			},
+		}
+
+		_, err = txn.Mutate(context.Background(), mu)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, dNote := range dRecipes.Recipes[0].Notes {
+		mu := &api.Mutation{
+			Del: []*api.NQuad{
+				{
+					Subject:   dNote.ID,
+					Predicate: "recipes",
+					ObjectId:  id,
+				},
+			},
+		}
+
+		_, err = txn.Mutate(context.Background(), mu)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Now lets delete the node itself
 	m := map[string]string{"uid": id}
 	pb, err := json.Marshal(m)
 	if err != nil {
 		return err
 	}
 
-	mu = &api.Mutation{
+	mu := &api.Mutation{
 		CommitNow:  true,
 		DeleteJson: pb,
 	}
-
 	_, err = txn.Mutate(context.Background(), mu)
 	if err != nil {
 		return err
