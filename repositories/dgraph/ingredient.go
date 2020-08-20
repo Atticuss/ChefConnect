@@ -7,26 +7,9 @@ import (
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/jinzhu/copier"
-	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/models"
-	"github.com/atticuss/chefconnect/repositories"
 )
-
-type dgraphIngredientRepo struct {
-	Client *dgo.Dgraph
-}
-
-// NewDgraphIngredientRepository configures a dgraph repository for accessing
-// ingredient data
-func NewDgraphIngredientRepository(config *Config) repositories.IngredientRepository {
-	conn, _ := grpc.Dial(config.Host, grpc.WithInsecure())
-	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
-
-	return &dgraphIngredientRepo{
-		Client: client,
-	}
-}
 
 type manyDgraphIngredients struct {
 	Ingredients []dgraphIngredient `json:"ingredients"`
@@ -42,8 +25,8 @@ type dgraphIngredient struct {
 	DType []string `json:"dgraph.type,omitempty"`
 }
 
-// GetAll ingredients out of dgraph
-func (d *dgraphIngredientRepo) GetAll() (*models.ManyIngredients, error) {
+// GetAllIngredients out of dgraph
+func (d *dgraphRepo) GetAllIngredients() (*models.ManyIngredients, error) {
 	ingredients := models.ManyIngredients{}
 	dIngredients := manyDgraphIngredients{}
 	txn := d.Client.NewReadOnlyTxn()
@@ -74,8 +57,8 @@ func (d *dgraphIngredientRepo) GetAll() (*models.ManyIngredients, error) {
 	return &ingredients, nil
 }
 
-// Get an ingredient out of dgraph by ID
-func (d *dgraphIngredientRepo) Get(id string) (*models.Ingredient, error) {
+// GetIngredient out of dgraph by ID
+func (d *dgraphRepo) GetIngredient(id string) (*models.Ingredient, error) {
 	ingredient := models.Ingredient{}
 	dIngredients := manyDgraphIngredients{}
 	txn := d.Client.NewReadOnlyTxn()
@@ -120,8 +103,8 @@ func (d *dgraphIngredientRepo) Get(id string) (*models.Ingredient, error) {
 	return &ingredient, nil
 }
 
-// Create an ingredient within dgraph
-func (d *dgraphIngredientRepo) Create(ingredient *models.Ingredient) (*models.Ingredient, error) {
+// CreateIngredient within dgraph
+func (d *dgraphRepo) CreateIngredient(ingredient *models.Ingredient) (*models.Ingredient, error) {
 	dIngredient := dgraphIngredient{}
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
@@ -150,8 +133,8 @@ func (d *dgraphIngredientRepo) Create(ingredient *models.Ingredient) (*models.In
 	return ingredient, nil
 }
 
-// Update an ingredient within dgraph
-func (d *dgraphIngredientRepo) Update(ingredient *models.Ingredient) (*models.Ingredient, error) {
+// UpdateIngredient within dgraph
+func (d *dgraphRepo) UpdateIngredient(ingredient *models.Ingredient) (*models.Ingredient, error) {
 	dIngredient := dgraphIngredient{}
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
@@ -187,8 +170,8 @@ func (d *dgraphIngredientRepo) Update(ingredient *models.Ingredient) (*models.In
 	return ingredient, nil
 }
 
-// Delete an ingredient from dgraph
-func (d *dgraphIngredientRepo) Delete(id string) error {
+// DeleteIngredient from dgraph
+func (d *dgraphRepo) DeleteIngredient(id string) error {
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 

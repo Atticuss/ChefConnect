@@ -22,7 +22,7 @@ func (s *v1Service) GetAllRoles(callingUser *models.User) (*models.ManyRoles, *s
 		return roles, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	roles, err := s.RoleRepository.GetAll()
+	roles, err := s.Repository.GetAllRoles()
 	if err != nil {
 		return roles, &services.ServiceError{Error: err}
 	}
@@ -45,7 +45,7 @@ func (s *v1Service) GetRole(callingUser *models.User, id string) (*models.Role, 
 		return role, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	role, err := s.RoleRepository.Get(id)
+	role, err := s.Repository.GetRole(id)
 	if err != nil {
 		return role, &services.ServiceError{Error: err}
 	}

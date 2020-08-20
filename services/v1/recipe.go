@@ -26,7 +26,7 @@ func cleanUnauthorizedRecipeFields(callingUser *models.User, recipe *models.Reci
 
 // GetAllRecipes handles the business logic when a client requests all recipes
 func (s *v1Service) GetAllRecipes(callingUser *models.User) (*models.ManyRecipes, *services.ServiceError) {
-	recipes, err := s.RecipeRepository.GetAll()
+	recipes, err := s.Repository.GetAllRecipes()
 	if err != nil {
 		return recipes, &services.ServiceError{Error: err}
 	}
@@ -40,7 +40,7 @@ func (s *v1Service) GetAllRecipes(callingUser *models.User) (*models.ManyRecipes
 
 // GetRecipe handles the business logic when a client requests a specific recipe
 func (s *v1Service) GetRecipe(callingUser *models.User, id string) (*models.Recipe, *services.ServiceError) {
-	recipe, err := s.RecipeRepository.Get(id)
+	recipe, err := s.Repository.GetRecipe(id)
 	if err != nil {
 		return recipe, &services.ServiceError{Error: err}
 	}
@@ -63,7 +63,7 @@ func (s *v1Service) CreateRecipe(callingUser *models.User, recipe *models.Recipe
 		return recipe, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	recipe, err := s.RecipeRepository.Create(recipe)
+	recipe, err := s.Repository.CreateRecipe(recipe)
 
 	if err != nil {
 		return recipe, &services.ServiceError{Error: err}
@@ -85,7 +85,7 @@ func (s *v1Service) UpdateRecipe(callingUser *models.User, recipe *models.Recipe
 		return recipe, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	recipe, err := s.RecipeRepository.Update(recipe)
+	recipe, err := s.Repository.UpdateRecipe(recipe)
 	if err != nil {
 		return recipe, &services.ServiceError{Error: err}
 	}
@@ -106,7 +106,7 @@ func (s *v1Service) DeleteRecipe(callingUser *models.User, id string) *services.
 		return &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	err := s.RecipeRepository.Delete(id)
+	err := s.Repository.DeleteRecipe(id)
 	if err != nil {
 		return &services.ServiceError{Error: err}
 	}

@@ -9,7 +9,7 @@ import (
 
 // GetAllIngredients handles the business logic when a client requests all ingredients
 func (s *v1Service) GetAllIngredients(callingUser *models.User) (*models.ManyIngredients, *services.ServiceError) {
-	ingredients, err := s.IngredientRepository.GetAll()
+	ingredients, err := s.Repository.GetAllIngredients()
 	if err != nil {
 		return ingredients, &services.ServiceError{Error: err}
 	}
@@ -19,7 +19,7 @@ func (s *v1Service) GetAllIngredients(callingUser *models.User) (*models.ManyIng
 
 // GetIngredient handles the business logic when a client requests a specific ingredient
 func (s *v1Service) GetIngredient(callingUser *models.User, id string) (*models.Ingredient, *services.ServiceError) {
-	ingredient, err := s.IngredientRepository.Get(id)
+	ingredient, err := s.Repository.GetIngredient(id)
 	if err != nil {
 		return ingredient, &services.ServiceError{Error: err}
 	}
@@ -40,7 +40,7 @@ func (s *v1Service) CreateIngredient(callingUser *models.User, ingredient *model
 		return ingredient, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	ingredient, err := s.IngredientRepository.Create(ingredient)
+	ingredient, err := s.Repository.CreateIngredient(ingredient)
 	if err != nil {
 		return ingredient, &services.ServiceError{Error: err}
 	}
@@ -61,7 +61,7 @@ func (s *v1Service) UpdateIngredient(callingUser *models.User, ingredient *model
 		return ingredient, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	ingredient, err := s.IngredientRepository.Update(ingredient)
+	ingredient, err := s.Repository.UpdateIngredient(ingredient)
 	if err != nil {
 		return ingredient, &services.ServiceError{Error: err}
 	}
@@ -82,7 +82,7 @@ func (s *v1Service) DeleteIngredient(callingUser *models.User, id string) *servi
 		return &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	ingredient, err := s.IngredientRepository.Get(id)
+	ingredient, err := s.Repository.GetIngredient(id)
 	if err != nil {
 		return &services.ServiceError{Error: err}
 	}
@@ -91,7 +91,7 @@ func (s *v1Service) DeleteIngredient(callingUser *models.User, id string) *servi
 		return &services.ServiceError{Error: errors.New("resource is in use"), ErrorCode: services.ResourceInUse}
 	}
 
-	err = s.IngredientRepository.Delete(id)
+	err = s.Repository.DeleteIngredient(id)
 	if err != nil {
 		return &services.ServiceError{Error: err}
 	}

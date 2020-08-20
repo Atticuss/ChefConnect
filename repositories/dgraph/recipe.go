@@ -8,26 +8,9 @@ import (
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/jinzhu/copier"
-	"google.golang.org/grpc"
 
 	"github.com/atticuss/chefconnect/models"
-	"github.com/atticuss/chefconnect/repositories"
 )
-
-type dgraphRecipeRepo struct {
-	Client *dgo.Dgraph
-}
-
-// NewDgraphRecipeRepository configures a dgraph repository for accessing
-// recipe data
-func NewDgraphRecipeRepository(config *Config) repositories.RecipeRepository {
-	conn, _ := grpc.Dial(config.Host, grpc.WithInsecure())
-	client := dgo.NewDgraphClient(api.NewDgraphClient(conn))
-
-	return &dgraphRecipeRepo{
-		Client: client,
-	}
-}
 
 type manyDgraphRecipes struct {
 	Recipes []dgraphRecipe `json:"recipes"`
@@ -125,8 +108,8 @@ func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) error {
 	return nil
 }
 
-// GetAll recipes out of dgraph
-func (d *dgraphRecipeRepo) GetAll() (*models.ManyRecipes, error) {
+// GetAllRecipes out of dgraph
+func (d *dgraphRepo) GetAllRecipes() (*models.ManyRecipes, error) {
 	recipes := models.ManyRecipes{}
 	dRecipes := manyDgraphRecipes{}
 	txn := d.Client.NewReadOnlyTxn()
@@ -157,8 +140,8 @@ func (d *dgraphRecipeRepo) GetAll() (*models.ManyRecipes, error) {
 	return &recipes, nil
 }
 
-// Get a recipe out of dgraph by ID
-func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
+// GetRecipe out of dgraph by ID
+func (d *dgraphRepo) GetRecipe(id string) (*models.Recipe, error) {
 	recipe := models.Recipe{}
 	dRecipes := manyDgraphRecipes{}
 	txn := d.Client.NewReadOnlyTxn()
@@ -239,8 +222,8 @@ func (d *dgraphRecipeRepo) Get(id string) (*models.Recipe, error) {
 	return &recipe, nil
 }
 
-// Create a recipe within dgraph
-func (d *dgraphRecipeRepo) Create(recipe *models.Recipe) (*models.Recipe, error) {
+// CreateRecipe within dgraph
+func (d *dgraphRepo) CreateRecipe(recipe *models.Recipe) (*models.Recipe, error) {
 	dRecipe := dgraphRecipe{}
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
@@ -269,8 +252,8 @@ func (d *dgraphRecipeRepo) Create(recipe *models.Recipe) (*models.Recipe, error)
 	return recipe, nil
 }
 
-// Update a recipe within dgraph
-func (d *dgraphRecipeRepo) Update(recipe *models.Recipe) (*models.Recipe, error) {
+// UpdateRecipe within dgraph
+func (d *dgraphRepo) UpdateRecipe(recipe *models.Recipe) (*models.Recipe, error) {
 	dRecipe := dgraphRecipe{}
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
@@ -301,8 +284,8 @@ func (d *dgraphRecipeRepo) Update(recipe *models.Recipe) (*models.Recipe, error)
 	return recipe, nil
 }
 
-// Delete a recipe from dgraph
-func (d *dgraphRecipeRepo) Delete(id string) error {
+// DeleteRecipe from dgraph
+func (d *dgraphRepo) DeleteRecipe(id string) error {
 	dRecipes := manyDgraphRecipes{}
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
