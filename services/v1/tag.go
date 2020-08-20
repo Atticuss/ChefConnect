@@ -9,7 +9,7 @@ import (
 
 // GetAllTags handles the business logic when a client requests all tags
 func (s *v1Service) GetAllTags(callingUser *models.User) (*models.ManyTags, *services.ServiceError) {
-	tags, err := s.TagRepository.GetAll()
+	tags, err := s.Repository.GetAllTags()
 	if err != nil {
 		return tags, &services.ServiceError{Error: err}
 	}
@@ -19,7 +19,7 @@ func (s *v1Service) GetAllTags(callingUser *models.User) (*models.ManyTags, *ser
 
 // GetTag handles the business logic when a client requests a specific tag
 func (s *v1Service) GetTag(callingUser *models.User, id string) (*models.Tag, *services.ServiceError) {
-	tag, err := s.TagRepository.Get(id)
+	tag, err := s.Repository.GetTag(id)
 	if err != nil {
 		return tag, &services.ServiceError{Error: err}
 	}
@@ -40,7 +40,7 @@ func (s *v1Service) CreateTag(callingUser *models.User, tag *models.Tag) (*model
 		return tag, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	tag, err := s.TagRepository.Create(tag)
+	tag, err := s.Repository.CreateTag(tag)
 
 	if err != nil {
 		return tag, &services.ServiceError{Error: err}
@@ -62,7 +62,7 @@ func (s *v1Service) UpdateTag(callingUser *models.User, tag *models.Tag) (*model
 		return tag, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	tag, err := s.TagRepository.Update(tag)
+	tag, err := s.Repository.UpdateTag(tag)
 
 	if err != nil {
 		return tag, &services.ServiceError{Error: err}
@@ -84,7 +84,7 @@ func (s *v1Service) DeleteTag(callingUser *models.User, id string) *services.Ser
 		return &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	err := s.TagRepository.Delete(id)
+	err := s.Repository.DeleteTag(id)
 	if err != nil {
 		return &services.ServiceError{Error: err}
 	}

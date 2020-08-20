@@ -10,25 +10,12 @@ import (
 )
 
 type v1Service struct {
-	Validator            *validator.Validate
-	TagRepository        repositories.TagRepository
-	IngredientRepository repositories.IngredientRepository
-	RecipeRepository     repositories.RecipeRepository
-	UserRepository       repositories.UserRepository
-	RoleRepository       repositories.RoleRepository
-	RepositoryUtility    repositories.RepositoryUtility
+	Validator  *validator.Validate
+	Repository repositories.Repository
 }
 
 // NewV1Service configures a service for handling business logic
-func NewV1Service(
-	tag *repositories.TagRepository,
-	ing *repositories.IngredientRepository,
-	rec *repositories.RecipeRepository,
-	user *repositories.UserRepository,
-	role *repositories.RoleRepository,
-	util *repositories.RepositoryUtility,
-) services.Service {
-
+func NewV1Service(repo *repositories.Repository) services.Service {
 	v := validator.New()
 	_ = v.RegisterValidation("required-update", func(fl validator.FieldLevel) bool {
 		fmt.Printf("inside 'required-update' check with value: %+v\n", fl.Field())
@@ -44,13 +31,8 @@ func NewV1Service(
 	})
 
 	svc := v1Service{
-		Validator:            v,
-		TagRepository:        *tag,
-		IngredientRepository: *ing,
-		RecipeRepository:     *rec,
-		UserRepository:       *user,
-		RoleRepository:       *role,
-		RepositoryUtility:    *util,
+		Validator:  v,
+		Repository: *repo,
 	}
 
 	return &svc

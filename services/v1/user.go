@@ -9,7 +9,7 @@ import (
 
 // GetAllUsers handles the business logic when a client requests all users
 func (s *v1Service) GetAllUsers(callingUser *models.User) (*models.ManyUsers, *services.ServiceError) {
-	users, err := s.UserRepository.GetAll()
+	users, err := s.Repository.GetAllUsers()
 	if err != nil {
 		return users, &services.ServiceError{Error: err}
 	}
@@ -23,7 +23,7 @@ func (s *v1Service) GetAllUsers(callingUser *models.User) (*models.ManyUsers, *s
 
 // GetUser handles the business logic when a client requests a specific user
 func (s *v1Service) GetUser(callingUser *models.User, id string) (*models.User, *services.ServiceError) {
-	user, err := s.UserRepository.Get(id)
+	user, err := s.Repository.GetUser(id)
 	if err != nil {
 		return user, &services.ServiceError{Error: err}
 	}
@@ -45,7 +45,7 @@ func (s *v1Service) CreateUser(callingUser *models.User, user *models.User) (*mo
 		return user, &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	user, err := s.UserRepository.Create(user)
+	user, err := s.Repository.CreateUser(user)
 	if err != nil {
 		return user, &services.ServiceError{Error: err}
 	}
@@ -76,7 +76,7 @@ func (s *v1Service) UpdateUser(callingUser *models.User, user *models.User) (*mo
 	}
 
 	user.Password = hash
-	user, err = s.UserRepository.Update(user)
+	user, err = s.Repository.UpdateUser(user)
 	if err != nil {
 		return user, &services.ServiceError{Error: err}
 	}
@@ -97,7 +97,7 @@ func (s *v1Service) DeleteUser(callingUser *models.User, id string) *services.Se
 		return &services.ServiceError{Error: errors.New("unathorized"), ErrorCode: services.NotAuthorized}
 	}
 
-	err := s.UserRepository.Delete(id)
+	err := s.Repository.DeleteUser(id)
 	if err != nil {
 		return &services.ServiceError{Error: err}
 	}

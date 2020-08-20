@@ -47,21 +47,8 @@ func main() {
 		Host: "ec2-34-238-150-16.compute-1.amazonaws.com:9080",
 	}
 
-	tagRepo := dgraph.NewDgraphTagRepository(&dgraphConfig)
-	ingredientRepo := dgraph.NewDgraphIngredientRepository(&dgraphConfig)
-	recipeRepo := dgraph.NewDgraphRecipeRepository(&dgraphConfig)
-	userRepo := dgraph.NewDgraphUserRepository(&dgraphConfig)
-	roleRepo := dgraph.NewDgraphRoleRepository(&dgraphConfig)
-	utilRepo := dgraph.NewDgraphRepositoryUtility(&dgraphConfig)
-
-	service := v1.NewV1Service(
-		&tagRepo,
-		&ingredientRepo,
-		&recipeRepo,
-		&userRepo,
-		&roleRepo,
-		&utilRepo,
-	)
+	dgraphRepo := dgraph.NewDgraphRepository(&dgraphConfig)
+	service := v1.NewV1Service(&dgraphRepo)
 
 	controller := rest.NewRestController(&service, &restConfig)
 	controller.SetupController()
