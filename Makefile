@@ -5,11 +5,22 @@ build:
 	go mod tidy
 	go build -o bin/chefconnect cmd/chefconnect/main.go
 	go build -o bin/manage cmd/manager/main.go
+buildLambda:
+	gofmt -l -s -w .
+	go mod tidy
+	GOOS=linux go build -o bin/main cmd/chefconnect/main.go
+	zip function.zip bin/main
+buildSandbox:
+	gofmt -l -s -w .
+	go mod tidy
+	go build -o bin/sandbox cmd/sandbox/main.go
+	GOOS=linux go build -o bin/main cmd/sandbox/main.go
+	zip function.zip bin/main
 swagger:
 	go get github.com/go-swagger/go-swagger/cmd/swagger
 	swagger generate spec -o ./swagger.json
 run:
-	go run main.go
+	go run bin/chefconnect
 swagger-ui:
 	#docker run --rm -it -p 8081:8080 -e SWAGGER_JSON=/tmp/swagger.json -v ${PWD}:/tmp swaggerapi/swagger-ui
 	swagger serve -F=swagger swagger.json
