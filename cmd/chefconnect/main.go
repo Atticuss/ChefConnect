@@ -18,6 +18,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -38,9 +39,10 @@ func main() {
 
 	subLog := zerolog.New(os.Stdout).With().Logger()
 	restConfig := rest.Config{
-		Port:   ":8000",
-		Logger: &subLog,
-		UTC:    true,
+		Port:     ":8000",
+		Logger:   &subLog,
+		UTC:      true,
+		IsLambda: true,
 	}
 
 	dgraphConfig := dgraph.Config{
@@ -49,8 +51,13 @@ func main() {
 
 	dgraphRepo := dgraph.NewDgraphRepository(&dgraphConfig)
 	service := v1.NewV1Service(&dgraphRepo)
-
 	controller := rest.NewRestController(&service, &restConfig)
-	controller.SetupController()
-	controller.Run()
+	if err := controller.SetupController(); err != nil {
+		log.Fatal().Msg(err.Error())
+	}
+
+	fmt.Println("run()")
+	if err := controller.Run(); err != nil {
+		log.Fatal().Msg(err.Error())
+	}
 }
