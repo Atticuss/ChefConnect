@@ -21,13 +21,47 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 
 	"github.com/atticuss/chefconnect/controllers/rest"
 	"github.com/atticuss/chefconnect/repositories/dgraph"
 	v1 "github.com/atticuss/chefconnect/services/v1"
 )
+
+type configuration struct {
+	Database struct {
+		Host string `envconfig:"DB_HOST"`
+		Port string `envconfig:"DB_PORT"`
+	}
+	Server struct {
+		Port     string `envconfig:"SERVER_PORT"`
+		IsLambda bool   `envconfig:"IS_LAMBDA"`
+	}
+}
+
+func parseConfig() (*configuration, error) {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	var config configuration
+
+	if err := viper.ReadInConfig(); err != nil {
+		return &config, err
+	}
+	err := viper.Unmarshal(&config)
+	if err != nil {
+		return &config, err
+	}
+
+	err = envconfig.Process("", &config)
+	if err != nil {
+		return &config, err
+	}
+
+	return &config, nil
+}
 
 func main() {
 	log.Logger = log.Output(
@@ -37,16 +71,21 @@ func main() {
 		},
 	)
 
+	config, err := parseConfig()
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
+
 	subLog := zerolog.New(os.Stdout).With().Logger()
 	restConfig := rest.Config{
-		Port:     ":8000",
+		Port:     config.Server.Port,
 		Logger:   &subLog,
 		UTC:      true,
-		IsLambda: true,
+		IsLambda: config.Server.IsLambda,
 	}
 
 	dgraphConfig := dgraph.Config{
-		Host: "ec2-34-238-150-16.compute-1.amazonaws.com:9080",
+		Host: fmt.Sprintf("%s:%s", config.Database.Host, config.Database.Port),
 	}
 
 	dgraphRepo := dgraph.NewDgraphRepository(&dgraphConfig)
@@ -56,7 +95,6 @@ func main() {
 		log.Fatal().Msg(err.Error())
 	}
 
-	fmt.Println("run()")
 	if err := controller.Run(); err != nil {
 		log.Fatal().Msg(err.Error())
 	}
