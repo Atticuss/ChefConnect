@@ -5,25 +5,34 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/atticuss/chefconnect/controllers"
-	"github.com/atticuss/chefconnect/services"
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+
+	"github.com/atticuss/chefconnect/controllers"
+	"github.com/atticuss/chefconnect/services"
 )
 
 type restController struct {
-	Service services.Service
-	Config  Config
-	Router  *gin.Engine
+	Service   services.Service
+	Config    Config
+	Router    *gin.Engine
+	GinRouter *ginadapter.GinLambda
 }
 
 // Config defines the... configuration? I guess for the REST controller itself.
 type Config struct {
 	Port   string
 	Logger *zerolog.Logger
+
 	// UTC a boolean stating whether to use UTC time zone or local.
 	UTC bool
+
+	// IsLambda a boolean that toggles between AWS serverless and local deployments
+	IsLambda bool
 }
 
 // NewRestController configures a controller for handling request/response logic as a REST API
@@ -37,7 +46,7 @@ func NewRestController(svc *services.Service, config *Config) controllers.Contro
 }
 
 //https://github.com/aws/aws-lambda-go
-func (restCtlr *restController) SetupController() (interface{}, error) {
+func (restCtlr *restController) SetupController() error {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	if gin.IsDebugging() {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -56,7 +65,7 @@ func (restCtlr *restController) SetupController() (interface{}, error) {
 
 	authMiddleware, err := restCtlr.configureMiddleware()
 	if err != nil {
-		return router, errors.New("error configuring gin-jwt:" + err.Error())
+		return errors.New("error configuring gin-jwt:" + err.Error())
 	}
 
 	router.GET("/ping", healthCheck)
@@ -115,18 +124,31 @@ func (restCtlr *restController) SetupController() (interface{}, error) {
 		roleRouter.GET("/:id", restCtlr.getRole)
 	}
 
-	restCtlr.Router = router
+	if restCtlr.Config.IsLambda {
+		restCtlr.GinRouter = ginadapter.New(router)
+	} else {
+		restCtlr.Router = router
+	}
 
-	return router, nil
+	return nil
 }
 
 func (restCtlr *restController) Run() error {
-	err := restCtlr.Router.Run(restCtlr.Config.Port)
-	return err
+	if restCtlr.Config.IsLambda {
+		lambda.Start(restCtlr.handler)
+		return nil
+	} else {
+		err := restCtlr.Router.Run(restCtlr.Config.Port)
+		return err
+	}
 }
 
 func (restCtlr *restController) Stop() error {
 	return errors.New("not implemented")
+}
+
+func (restCtlr *restController) handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return restCtlr.GinRouter.Proxy(req)
 }
 
 func healthCheck(c *gin.Context) {
