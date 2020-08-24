@@ -27,5 +27,5 @@ jobs:
       # When we go to production this will shift to dev and we'll create a new step for master
       - name: Build & Deploy to AWS
         run: |
-          sam package --output-template-file packaged.yaml --s3-bucket sam-chefconnect-dev
+          sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sam-chefconnect-dev
           sam deploy --template-file packaged.yaml --stack-name sam-chefconnect-dev --capabilities CAPABILITY_NAMED_IAM --region us-east-1
