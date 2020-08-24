@@ -1,0 +1,31 @@
+name: Build and Deploy
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          pip install aws-sam-cli
+
+      - name: Configure AWS credentials [LAB]
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+
+      # When we go to production this will shift to dev and we'll create a new step for master
+      - name: Build & Deploy to AWS
+        run: |
+          sam package --output-template-file packaged.yaml --s3-bucket sam-chefconnect-dev
+          sam deploy --template-file packaged.yaml --stack-name sam-chefconnect-dev --capabilities CAPABILITY_NAMED_IAM --region us-east-1

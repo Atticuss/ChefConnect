@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: ChefConnect API
+Resources:
+  APIServer:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      Handler: bin/main
+      VpcConfig:
+        SubnetIds:
+          - "subnet-3fc89a17"
+          - "subnet-6a3db166"
+        SecurityGroupIds:
+          - "sg-0a8152dc68b10c5e4"
+          - "sg-0a8152dc68b10c5e4"
+      Environment:
+        Variables:
+          IS_LAMBDA: true
+          DB_HOST: "ip-172-31-12-209.ec2.internal"
+          DB_PORT: 9080
+      Events:
+        RootHandler:
+          Type: Api
+          Properties:
+            Path: "/{proxy+}"
+            Method: any
+
+Outputs:
+  Endpoint:
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
