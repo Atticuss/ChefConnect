@@ -3,7 +3,17 @@ Transform: AWS::Serverless-2016-10-31
 
 Description: ChefConnect API
 Resources:
-  APIServer:
+  ApiTarget:
+    Type: AWS::Serverless::Api
+    Properties:
+      Domain:
+        - DomainName: example.com # Required
+          Route53:
+            EvaluateTargetHealth: true # Default to false
+          EndpointConfiguration: REGIONAL
+          BasePath: "/"
+
+  LambdaTarget:
     Type: AWS::Serverless::Function
     Properties:
       Runtime: go1.x
@@ -24,8 +34,21 @@ Resources:
         RootHandler:
           Type: Api
           Properties:
+            RestApiId:
+              Ref: ApiTarget
             Path: "/{proxy+}"
             Method: any
+
+  Route53Entry:
+    Type: AWS::Route53::RecordSet
+    Condition: CreateRoute53
+    Properties:
+      AliasTarget:
+        DNSName: !GetAtt FrontendCloudfrontDistribution.DomainName
+        HostedZoneId: Z04564473TXYVWUJFRVM3
+      HostedZoneId: Z04564473TXYVWUJFRVM3
+      Name: "api.recipe.veraciousdata.io"
+      Type: A
 
 Outputs:
   Endpoint:
