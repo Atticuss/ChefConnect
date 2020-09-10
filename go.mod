@@ -9,6 +9,7 @@ require (
 	github.com/dgraph-io/dgo/v2 v2.2.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.2.0
+	github.com/hajimehoshi/wasmserve v0.0.0-20200812063057-947821f8a49c // indirect
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/text v0.2.0 // indirect
