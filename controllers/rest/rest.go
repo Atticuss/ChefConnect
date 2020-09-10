@@ -69,7 +69,6 @@ func (restCtlr *restController) SetupController() error {
 	}
 
 	router.GET("/ping", healthCheck)
-	router.GET("/swagger.json", swagger)
 
 	authRouter := router.Group("/auth")
 	{
