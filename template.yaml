@@ -2,30 +2,52 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
 Description: ChefConnect API
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [prod, dev]
+    Default: dev
+    Description: Target deployment environment. Defaults to "dev".
+
+Mappings:
+  EnvMap:
+    dev:
+      domain: api.dev.recipes.veraciousdata.io
+    prod:
+      domain: api.recipes.veraciousdata.io
+
 Resources:
-  ApiTarget:
+  ServerlessRestApi:
     Type: AWS::Serverless::Api
     Properties:
-      StageName: "dev"
+      StageName: !Ref Environment
+      EndpointConfiguration:
+        Type: REGIONAL
       Domain:
-        - DomainName: example.com # Required
+        - DomainName: !FindInMap [EnvMap, !Ref Environment, domain]
+          CertificateArn: arn:aws:acm:us-east-1:178067731538:certificate/703adec2-085e-4311-860d-481d4589f79d
           Route53:
-            EvaluateTargetHealth: true # Default to false
+            EvaluateTargetHealth: false
+            HostedZoneId: Z04564473TXYVWUJFRVM3
           EndpointConfiguration: REGIONAL
-          BasePath: "/"
+          BasePath: "/dev"
 
-  LambdaTarget:
+  ServerlessLambda:
     Type: AWS::Serverless::Function
     Properties:
       Runtime: go1.x
       Handler: bin/main
-      VpcConfig:
-        SubnetIds:
-          - "subnet-3fc89a17"
-          - "subnet-6a3db166"
-        SecurityGroupIds:
-          - "sg-0a8152dc68b10c5e4"
-          - "sg-0a8152dc68b10c5e4"
+      # CF can't handle tearing down ENIs associated with VPC-deployed Lambdas. recommended
+      # solution is to create VPC resource in a separate CF stack. ref:
+      # https://github.com/serverless/serverless/issues/5008
+      #VpcConfig:
+      #  SubnetIds:
+      #    - "subnet-3fc89a17"
+      #    - "subnet-6a3db166"
+      #  SecurityGroupIds:
+      #    - "sg-0a8152dc68b10c5e4"
+      #    - "sg-0a8152dc68b10c5e4"
       Environment:
         Variables:
           IS_LAMBDA: true
@@ -36,21 +58,27 @@ Resources:
           Type: Api
           Properties:
             RestApiId:
-              Ref: ApiTarget
+              Ref: ServerlessRestApi
             Path: "/{proxy+}"
             Method: any
 
+  CustomDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !FindInMap [EnvMap, !Ref Environment, domain]
+      DomainNameConfigurations:
+        - CertificateArn: arn:aws:acm:us-east-1:178067731538:certificate/703adec2-085e-4311-860d-481d4589f79d
+
   Route53Entry:
     Type: AWS::Route53::RecordSet
-    Condition: CreateRoute53
     Properties:
       AliasTarget:
-        DNSName: !GetAtt FrontendCloudfrontDistribution.DomainName
-        HostedZoneId: Z04564473TXYVWUJFRVM3
+        DNSName: !GetAtt CustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt CustomDomain.RegionalHostedZoneId
       HostedZoneId: Z04564473TXYVWUJFRVM3
-      Name: "api.recipe.veraciousdata.io"
+      Name: !FindInMap [EnvMap, !Ref Environment, domain]
       Type: A
 
 Outputs:
   Endpoint:
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Value: !FindInMap [EnvMap, !Ref Environment, domain]
