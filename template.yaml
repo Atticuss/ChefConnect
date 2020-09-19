@@ -10,75 +10,22 @@ Parameters:
     Default: dev
     Description: Target deployment environment. Defaults to "dev".
 
-Mappings:
-  EnvMap:
-    dev:
-      domain: api.dev.recipes.veraciousdata.io
-    prod:
-      domain: api.recipes.veraciousdata.io
-
+# CFN can't handle tearing down ENIs associated with VPC-deployed Lambdas. recommended
+# solution is to create VPC resource in a separate CF stack. to address this, split up
+# the CFN templates for VPC infra and API GW/Lambda code resources.
+# ref: https://github.com/serverless/serverless/issues/5008
 Resources:
-  ServerlessRestApi:
-    Type: AWS::Serverless::Api
+  InfraDeployment:
+    Type: AWS::Serverless::Application
     Properties:
-      StageName: !Ref Environment
-      EndpointConfiguration:
-        Type: REGIONAL
-      Domain:
-        - DomainName: !FindInMap [EnvMap, !Ref Environment, domain]
-          CertificateArn: arn:aws:acm:us-east-1:178067731538:certificate/703adec2-085e-4311-860d-481d4589f79d
-          Route53:
-            EvaluateTargetHealth: false
-            HostedZoneId: Z04564473TXYVWUJFRVM3
-          EndpointConfiguration: REGIONAL
-          BasePath: "/dev"
-
-  ServerlessLambda:
-    Type: AWS::Serverless::Function
+      Location: infra.yaml
+  CodeDeployment:
+    Type: AWS::Serverless::Application
     Properties:
-      Runtime: go1.x
-      Handler: bin/main
-      # CF can't handle tearing down ENIs associated with VPC-deployed Lambdas. recommended
-      # solution is to create VPC resource in a separate CF stack. ref:
-      # https://github.com/serverless/serverless/issues/5008
-      #VpcConfig:
-      #  SubnetIds:
-      #    - "subnet-3fc89a17"
-      #    - "subnet-6a3db166"
-      #  SecurityGroupIds:
-      #    - "sg-0a8152dc68b10c5e4"
-      #    - "sg-0a8152dc68b10c5e4"
-      Environment:
-        Variables:
-          IS_LAMBDA: true
-          DB_HOST: "ip-172-31-12-209.ec2.internal"
-          DB_PORT: 9080
-      Events:
-        RootHandler:
-          Type: Api
-          Properties:
-            RestApiId:
-              Ref: ServerlessRestApi
-            Path: "/{proxy+}"
-            Method: any
-
-  CustomDomain:
-    Type: AWS::ApiGatewayV2::DomainName
-    Properties:
-      DomainName: !FindInMap [EnvMap, !Ref Environment, domain]
-      DomainNameConfigurations:
-        - CertificateArn: arn:aws:acm:us-east-1:178067731538:certificate/703adec2-085e-4311-860d-481d4589f79d
-
-  Route53Entry:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      AliasTarget:
-        DNSName: !GetAtt CustomDomain.RegionalDomainName
-        HostedZoneId: !GetAtt CustomDomain.RegionalHostedZoneId
-      HostedZoneId: Z04564473TXYVWUJFRVM3
-      Name: !FindInMap [EnvMap, !Ref Environment, domain]
-      Type: A
-
-Outputs:
-  Endpoint:
-    Value: !FindInMap [EnvMap, !Ref Environment, domain]
+      Location: code.yaml
+      Parameters:
+        Environment: !Ref Environment
+        SecurityGroup:
+          Fn::GetAtt: [InfraDeployment, Outputs.LambdaSecurityGroup]
+        SubnetIdList:
+          Fn::GetAtt: [InfraDeployment, Outputs.SubnetIdList]

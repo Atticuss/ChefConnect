@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: ChefConnect Lambda + API Gateway
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: ChefConnect
+    Description: Project name, to be used for tagging
+  Environment:
+    Type: String
+    AllowedValues: [prod, dev]
+    Default: dev
+    Description: Target deployment environment. Defaults to "dev".
+  SubnetIdList:
+    Type: List<String>
+    Description: Exactly three comma-separated subnets that the Lambda should deploy within.
+  SecurityGroup:
+    Type: String
+    Description: The security group to associate with the Lambda.
+  DbHost:
+    Type: String
+    Default: ip-172-31-12-209.ec2.internal
+    Description: Private EC2 IP address for the dgraph DB.
+  DbPort:
+    Type: String
+    Default: 9080
+    Description: Port for the dgraph DB.
+
+Mappings:
+  EnvMap:
+    dev:
+      domain: api.dev.recipes.veraciousdata.io
+    prod:
+      domain: api.recipes.veraciousdata.io
+
+Resources:
+  ServerlessRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      EndpointConfiguration:
+        Type: EDGE
+      Tags:
+        Project: !Ref ProjectName
+
+  ServerlessLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      Handler: bin/main
+      VpcConfig:
+        SubnetIds:
+          - !Select [0, !Ref SubnetIdList]
+          - !Select [1, !Ref SubnetIdList]
+          - !Select [2, !Ref SubnetIdList]
+        SecurityGroupIds:
+          - !Ref SecurityGroup
+      Environment:
+        Variables:
+          IS_LAMBDA: true
+          DB_HOST: !Ref DbHost
+          DB_PORT: !Ref DbPort
+      Events:
+        ProxyRequest:
+          Type: Api
+          Properties:
+            Path: "/{proxy+}"
+            Method: any
+            RestApiId: !Ref ServerlessRestApi
+      Tags:
+        Project: !Ref ProjectName
+
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - ServerlessLambda
+    Properties:
+      RestApiId: !Ref ServerlessRestApi
+      Description: !Ref Environment
+      StageName: !Ref Environment
+
+  CustomDomain:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      DomainName: !FindInMap [EnvMap, !Ref Environment, domain]
+      EndpointConfiguration:
+        Types:
+          - EDGE
+      CertificateArn: arn:aws:acm:us-east-1:178067731538:certificate/703adec2-085e-4311-860d-481d4589f79d
+
+  ApiMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    DependsOn:
+      - ServerlessRestApi
+      - ApiDeployment
+    Properties:
+      DomainName: !FindInMap [EnvMap, !Ref Environment, domain]
+      RestApiId: !Ref ServerlessRestApi
+      Stage: !Ref Environment
+      # this is required to allow for successful deletion by CFN
+      # ref: https://github.com/hashicorp/terraform/issues/9212
+      BasePath: "(none)"
+
+  Route53Entry:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      AliasTarget:
+        DNSName: !GetAtt CustomDomain.DistributionDomainName
+        HostedZoneId: !GetAtt CustomDomain.DistributionHostedZoneId
+      HostedZoneId: Z04564473TXYVWUJFRVM3
+      Name: !FindInMap [EnvMap, !Ref Environment, domain]
+      Type: A
+
+Outputs:
+  Endpoint:
+    Value: !FindInMap [EnvMap, !Ref Environment, domain]
+
+  Deployment:
+    Value: !GetAtt CustomDomain.DistributionDomainName

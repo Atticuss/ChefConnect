@@ -1,0 +1,172 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: ChefConnect VPC + SGs
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: ChefConnect
+    Description: Project name, to be used for tagging
+  Environment:
+    Type: String
+    AllowedValues: [prod, dev]
+    Default: dev
+    Description: Target deployment environment. Defaults to "dev".
+  VpcBlock:
+    Type: String
+    Default: "172.20.1.0/16"
+    Description: CIDR block for the VPC.
+  SubnetBlocks:
+    Type: CommaDelimitedList
+    Default: "172.20.1.0/24, 172.20.2.0/24, 172.20.3.0/24"
+    Description: List of 3 CIDR blocks for each subnet.
+  DatabaseSgId:
+    Type: String
+    Default: "sg-0a8152dc68b10c5e4"
+    Description: The database EC2 server SG. An ingress rule will be created, allowing Lambdas to interact with it.
+  DatabaseVpc:
+    Type: String
+    Default: "vpc-e8847d8d"
+    Description: The VPC which the dgraph EC2 is deployed to.
+
+Resources:
+  InfraVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcBlock
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+
+  InternetGateway:
+    Type: "AWS::EC2::InternetGateway"
+
+  VPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref InfraVpc
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref InfraVpc
+
+  Route:
+    DependsOn: VPCGatewayAttachment
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  Subnet01:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - "0"
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      CidrBlock: !Select [0, !Ref SubnetBlocks]
+      VpcId: !Ref InfraVpc
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  Subnet02:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - "1"
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      CidrBlock: !Select [1, !Ref SubnetBlocks]
+      VpcId: !Ref InfraVpc
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  Subnet03:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - "0"
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      CidrBlock: !Select [2, !Ref SubnetBlocks]
+      VpcId: !Ref InfraVpc
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  Subnet01RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet01
+      RouteTableId: !Ref RouteTable
+
+  Subnet02RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet02
+      RouteTableId: !Ref RouteTable
+
+  Subnet03RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet03
+      RouteTableId: !Ref RouteTable
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for the VPC-attached Lambda
+      GroupName: ChefConenctLambdaSG
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+      VpcId: !Ref InfraVpc
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  PeeringConn:
+    Type: AWS::EC2::VPCPeeringConnection
+    Properties:
+      VpcId: !Ref InfraVpc
+      PeerVpcId: !Ref DatabaseVpc
+
+  Ec2DatabaseSgIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    DependsOn:
+      - PeeringConn
+    Properties:
+      GroupId: !Ref DatabaseSgId
+      IpProtocol: -1
+      FromPort: -1
+      ToPort: -1
+      SourceSecurityGroupId: !GetAtt LambdaSecurityGroup.GroupId
+
+Outputs:
+  LambdaSecurityGroup:
+    Description: The SG attached to the Lambdas
+    Value: !Ref LambdaSecurityGroup
+    Export:
+      Name: LambdaSecurityGroup
+  SubnetIdList:
+    Description: Subnets used by the Lambda VPC
+    Value: !Join
+      - ","
+      - - !Ref Subnet01
+        - !Ref Subnet02
+        - !Ref Subnet03
+    Export:
+      Name: SubnetIdList
