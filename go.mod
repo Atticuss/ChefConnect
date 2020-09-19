@@ -12,6 +12,7 @@ require (
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/text v0.2.0 // indirect
+	github.com/lucasepe/modgv/modgv v0.0.0-20200914122725-98716ccc689e // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/onsi/ginkgo v1.14.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
