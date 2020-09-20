@@ -20,6 +20,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
@@ -41,6 +42,8 @@ type configuration struct {
 		Port     string `envconfig:"SERVER_PORT"`
 		IsLambda bool   `envconfig:"IS_LAMBDA"`
 	}
+
+	Environment string `envconfig:"ENVIRONMENT"`
 }
 
 func parseConfig() (*configuration, error) {
@@ -83,6 +86,11 @@ func main() {
 		Logger:   &subLog,
 		UTC:      true,
 		IsLambda: config.Server.IsLambda,
+	}
+
+	env := strings.ToLower(config.Environment)
+	if env == "prod" || env == "production" {
+		restConfig.IsProd = true
 	}
 
 	dgraphConfig := dgraph.Config{

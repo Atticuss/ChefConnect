@@ -27,6 +27,7 @@ type restController struct {
 type Config struct {
 	Port   string
 	Logger *zerolog.Logger
+	IsProd bool
 
 	// UTC a boolean stating whether to use UTC time zone or local.
 	UTC bool
@@ -45,7 +46,6 @@ func NewRestController(svc *services.Service, config *Config) controllers.Contro
 	return &rest
 }
 
-//https://github.com/aws/aws-lambda-go
 func (restCtlr *restController) SetupController() error {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	if gin.IsDebugging() {
@@ -58,6 +58,10 @@ func (restCtlr *restController) SetupController() error {
 			NoColor: false,
 		},
 	)
+
+	if restCtlr.Config.IsProd {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	router := gin.New()
 	router.Use(gin.Recovery())
