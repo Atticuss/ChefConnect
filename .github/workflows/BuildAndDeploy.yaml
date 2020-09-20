@@ -37,4 +37,4 @@ jobs:
         run: |
           make buildLambda
           sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sam-chefconnect-dev
-          sam deploy --template-file packaged.yaml --stack-name sam-chefconnect-dev --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM --region us-east-1 --parameter-overrides Environment={GITHUB_REF##*/}
+          sam deploy --template-file packaged.yaml --stack-name sam-chefconnect-dev --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM CAPABILITY_NAMED_IAM --region us-east-1 --parameter-overrides Environment={GITHUB_REF##*/} --parameter-overrides DgraphAuthToken=${{ secrets.DGRAPH_TOKEN_DEV }}
