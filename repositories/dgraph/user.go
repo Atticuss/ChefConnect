@@ -32,6 +32,7 @@ type dgraphUser struct {
 func (d *dgraphRepo) GetAllUsers() (*models.ManyUsers, error) {
 	users := models.ManyUsers{}
 	dUsers := manyDgraphUsers{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -57,7 +58,7 @@ func (d *dgraphRepo) GetAllUsers() (*models.ManyUsers, error) {
 		}
 	`
 
-	resp, err := txn.Query(context.Background(), q)
+	resp, err := txn.Query(ctx, q)
 	if err != nil {
 		return &users, err
 	}
@@ -75,6 +76,7 @@ func (d *dgraphRepo) GetAllUsers() (*models.ManyUsers, error) {
 func (d *dgraphRepo) GetUser(id string) (*models.User, error) {
 	user := models.User{}
 	dUsers := manyDgraphUsers{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -101,7 +103,7 @@ func (d *dgraphRepo) GetUser(id string) (*models.User, error) {
 		}
 	`
 
-	resp, err := txn.QueryWithVars(context.Background(), q, variables)
+	resp, err := txn.QueryWithVars(ctx, q, variables)
 	if err != nil {
 		return &user, err
 	}
@@ -123,6 +125,7 @@ func (d *dgraphRepo) GetUser(id string) (*models.User, error) {
 func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 	user := models.User{}
 	dUsers := manyDgraphUsers{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -149,7 +152,7 @@ func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 		}
 	`
 
-	resp, err := txn.QueryWithVars(context.Background(), q, variables)
+	resp, err := txn.QueryWithVars(ctx, q, variables)
 	if err != nil {
 		return &user, err
 	}
@@ -170,6 +173,7 @@ func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 // Create a user within dgraph
 func (d *dgraphRepo) CreateUser(user *models.User) (*models.User, error) {
 	dUser := dgraphUser{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -187,7 +191,7 @@ func (d *dgraphRepo) CreateUser(user *models.User) (*models.User, error) {
 		SetJson:   pb,
 	}
 
-	res, err := txn.Mutate(context.Background(), mu)
+	res, err := txn.Mutate(ctx, mu)
 	if err != nil {
 		return user, err
 	}
@@ -200,6 +204,7 @@ func (d *dgraphRepo) CreateUser(user *models.User) (*models.User, error) {
 // Update a user within dgraph
 func (d *dgraphRepo) UpdateUser(user *models.User) (*models.User, error) {
 	dUser := dgraphUser{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -216,7 +221,7 @@ func (d *dgraphRepo) UpdateUser(user *models.User) (*models.User, error) {
 		SetJson:   pb,
 	}
 
-	_, err = txn.Mutate(context.Background(), mu)
+	_, err = txn.Mutate(ctx, mu)
 	if err != nil {
 		return user, err
 	}
@@ -226,6 +231,7 @@ func (d *dgraphRepo) UpdateUser(user *models.User) (*models.User, error) {
 
 // Delete a user from dgraph
 func (d *dgraphRepo) DeleteUser(id string) error {
+	ctx := d.buildAuthContext(context.Background())
 	readOnlyTxn := d.Client.NewReadOnlyTxn()
 	defer readOnlyTxn.Discard(context.Background())
 
@@ -245,7 +251,7 @@ func (d *dgraphRepo) DeleteUser(id string) error {
 		}
 	`
 
-	resp, err := readOnlyTxn.QueryWithVars(context.Background(), q, variables)
+	resp, err := readOnlyTxn.QueryWithVars(ctx, q, variables)
 	if err != nil {
 		return err
 	}
@@ -273,7 +279,7 @@ func (d *dgraphRepo) DeleteUser(id string) error {
 			},
 		}
 
-		_, err = txn.Mutate(context.Background(), mu)
+		_, err = txn.Mutate(ctx, mu)
 		if err != nil {
 			return err
 		}
@@ -290,7 +296,7 @@ func (d *dgraphRepo) DeleteUser(id string) error {
 		DeleteJson: pb,
 	}
 
-	_, err = txn.Mutate(context.Background(), mu)
+	_, err = txn.Mutate(ctx, mu)
 	if err != nil {
 		return err
 	}

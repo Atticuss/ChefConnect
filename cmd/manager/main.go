@@ -11,8 +11,9 @@ import (
 
 type configuration struct {
 	Database struct {
-		Host string `envconfig:"DB_HOST"`
-		Port string `envconfig:"DB_PORT"`
+		Host      string `envconfig:"DB_HOST"`
+		Port      string `envconfig:"DB_PORT"`
+		AuthToken string `envconfig:"DB_TOKEN"`
 	}
 }
 
@@ -44,7 +45,8 @@ func main() {
 	}
 
 	dgraphConfig := dgraph.Config{
-		Host: fmt.Sprintf("%s:%s", config.Database.Host, config.Database.Port),
+		Host:      fmt.Sprintf("%s:%s", config.Database.Host, config.Database.Port),
+		AuthToken: config.Database.AuthToken,
 	}
 	repo := dgraph.NewDgraphRepository(&dgraphConfig)
 

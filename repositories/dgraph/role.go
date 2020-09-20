@@ -26,6 +26,7 @@ type dgraphRole struct {
 func (d *dgraphRepo) GetAllRoles() (*models.ManyRoles, error) {
 	dRoles := manyDgraphRoles{}
 	roles := models.ManyRoles{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -39,7 +40,7 @@ func (d *dgraphRepo) GetAllRoles() (*models.ManyRoles, error) {
 		}
 	`
 
-	resp, err := txn.Query(context.Background(), q)
+	resp, err := txn.Query(ctx, q)
 	if err != nil {
 		return &roles, err
 	}
@@ -58,6 +59,7 @@ func (d *dgraphRepo) GetAllRoles() (*models.ManyRoles, error) {
 func (d *dgraphRepo) GetRole(id string) (*models.Role, error) {
 	dRoles := manyDgraphRoles{}
 	role := models.Role{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -79,7 +81,7 @@ func (d *dgraphRepo) GetRole(id string) (*models.Role, error) {
 		}
 	`
 
-	resp, err := txn.QueryWithVars(context.Background(), q, variables)
+	resp, err := txn.QueryWithVars(ctx, q, variables)
 	if err != nil {
 		return &role, err
 	}

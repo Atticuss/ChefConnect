@@ -7,17 +7,20 @@ import (
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/atticuss/chefconnect/repositories"
 )
 
 type dgraphRepo struct {
 	Client *dgo.Dgraph
+	Config Config
 }
 
 // Config for a dgraph repo
 type Config struct {
-	Host string
+	Host      string
+	AuthToken string
 }
 
 // NewDgraphRepository configures a dgraph repository
@@ -27,11 +30,26 @@ func NewDgraphRepository(config *Config) repositories.Repository {
 
 	return &dgraphRepo{
 		Client: client,
+		Config: *config,
 	}
+}
+
+func (d *dgraphRepo) buildAuthContext(ctx context.Context) context.Context {
+	if d.Config.AuthToken == "" {
+		fmt.Println("no auth token found -- returning empty context")
+		return ctx
+	}
+
+	md := metadata.New(nil)
+	md.Append("auth-token", d.Config.AuthToken)
+	authCtx := metadata.NewOutgoingContext(ctx, md)
+
+	return authCtx
 }
 
 func (d *dgraphRepo) InitializeSchema() error {
 	fmt.Println("[*] Initializing schema")
+	ctx := d.buildAuthContext(context.Background())
 	op := &api.Operation{}
 
 	op.Schema = `
@@ -119,7 +137,7 @@ func (d *dgraphRepo) InitializeSchema() error {
 		}
 	`
 
-	if err := d.Client.Alter(context.Background(), op); err != nil {
+	if err := d.Client.Alter(ctx, op); err != nil {
 		return err
 	}
 
@@ -128,6 +146,7 @@ func (d *dgraphRepo) InitializeSchema() error {
 
 func (d *dgraphRepo) InitializeBaseData() error {
 	fmt.Println("[*] Initializing base data")
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -144,7 +163,7 @@ func (d *dgraphRepo) InitializeBaseData() error {
 		SetNquads: []byte(nquads),
 	}
 
-	_, err := txn.Mutate(context.Background(), mu)
+	_, err := txn.Mutate(ctx, mu)
 	if err != nil {
 		return err
 	}
@@ -155,6 +174,7 @@ func (d *dgraphRepo) InitializeBaseData() error {
 // https://github.com/dgraph-io/dgo#running-an-upsert-query--mutation
 func (d *dgraphRepo) InitializeTestData() error {
 	fmt.Println("[*] Initializing test data")
+	ctx := d.buildAuthContext(context.Background())
 	const query = `
 		query {
 			var(func: eq(name, "Admin")) @filter(type(Role)) {
@@ -233,7 +253,7 @@ func (d *dgraphRepo) InitializeTestData() error {
 		CommitNow: true,
 	}
 
-	if _, err := d.Client.NewTxn().Do(context.Background(), req); err != nil {
+	if _, err := d.Client.NewTxn().Do(ctx, req); err != nil {
 		return err
 	}
 
@@ -242,9 +262,10 @@ func (d *dgraphRepo) InitializeTestData() error {
 
 func (d *dgraphRepo) ClearDatastore() error {
 	fmt.Println("[*] Clearing data store")
+	ctx := d.buildAuthContext(context.Background())
 	op := &api.Operation{DropAll: true}
 
-	if err := d.Client.Alter(context.Background(), op); err != nil {
+	if err := d.Client.Alter(ctx, op); err != nil {
 		return err
 	}
 
