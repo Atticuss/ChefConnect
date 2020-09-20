@@ -9,6 +9,9 @@ Parameters:
     AllowedValues: [prod, dev]
     Default: dev
     Description: Target deployment environment. Defaults to "dev".
+  DgraphAuthToken:
+    Type: String
+    Description: Auth token for the dgraph server
 
 # CFN can't handle tearing down ENIs associated with VPC-deployed Lambdas. recommended
 # solution is to create VPC resource in a separate CF stack. to address this, split up
@@ -25,6 +28,7 @@ Resources:
       Location: code.yaml
       Parameters:
         Environment: !Ref Environment
+        DgraphAuthToken: !Ref DgraphAuthToken
         SecurityGroup:
           Fn::GetAtt: [InfraDeployment, Outputs.LambdaSecurityGroup]
         SubnetIdList:

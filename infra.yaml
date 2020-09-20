@@ -37,6 +37,9 @@ Resources:
       CidrBlock: !Ref VpcBlock
       EnableDnsSupport: true
       EnableDnsHostnames: true
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
 
   InternetGateway:
     Type: "AWS::EC2::InternetGateway"
@@ -59,6 +62,14 @@ Resources:
       RouteTableId: !Ref RouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
+
+  PxnRoute:
+    DependsOn: VPCGatewayAttachment
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 172.31.0.0/16
+      VpcPeeringConnectionId: !Ref PeeringConn
 
   Subnet01:
     Type: AWS::EC2::Subnet

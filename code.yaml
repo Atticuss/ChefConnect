@@ -7,7 +7,7 @@ Parameters:
   ProjectName:
     Type: String
     Default: ChefConnect
-    Description: Project name, to be used for tagging
+    Description: Project name, to be used for labeling and  tagging
   Environment:
     Type: String
     AllowedValues: [prod, dev]
@@ -27,6 +27,9 @@ Parameters:
     Type: String
     Default: 9080
     Description: Port for the dgraph DB.
+  DgraphAuthToken:
+    Type: String
+    Description: Auth token for the dgraph server
 
 Mappings:
   EnvMap:
@@ -48,8 +51,10 @@ Resources:
   ServerlessLambda:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Ref ProjectName
       Runtime: go1.x
       Handler: bin/main
+      Role: !GetAtt LambdaRole.Arn
       VpcConfig:
         SubnetIds:
           - !Select [0, !Ref SubnetIdList]
@@ -62,6 +67,7 @@ Resources:
           IS_LAMBDA: true
           DB_HOST: !Ref DbHost
           DB_PORT: !Ref DbPort
+          DB_TOKEN: !Ref DgraphAuthToken
       Events:
         ProxyRequest:
           Type: Api
@@ -71,6 +77,12 @@ Resources:
             RestApiId: !Ref ServerlessRestApi
       Tags:
         Project: !Ref ProjectName
+
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}"
+      RetentionInDays: 5
 
   ApiDeployment:
     Type: AWS::ApiGateway::Deployment
@@ -112,6 +124,43 @@ Resources:
       HostedZoneId: Z04564473TXYVWUJFRVM3
       Name: !FindInMap [EnvMap, !Ref Environment, domain]
       Type: A
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: chefconnect-service-role
+      ManagedPolicyArns:
+        - Ref: LambdaRolePolicy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+
+  LambdaRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Managed policy to allow ODTP Lab Manager Infrastructure to access the resources created by this template.
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:CreateNetworkInterface
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DeleteNetworkInterface
+            Resource:
+              - "*"
+          - Effect: Allow
+            Action:
+              - "logs:CreateLogStream"
+              - "logs:PutLogEvents"
+            Resource: !GetAtt LambdaLogGroup.Arn
 
 Outputs:
   Endpoint:
