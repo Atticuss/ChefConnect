@@ -36,7 +36,6 @@ func NewDgraphRepository(config *Config) repositories.Repository {
 
 func (d *dgraphRepo) buildAuthContext(ctx context.Context) context.Context {
 	if d.Config.AuthToken == "" {
-		fmt.Println("no auth token found -- returning empty context")
 		return ctx
 	}
 
@@ -83,7 +82,7 @@ func (d *dgraphRepo) InitializeSchema() error {
 		type Ingredient {
 			name
 			<~ingredients>
-			tags
+			ingredient_tags
 
 			amount
 		}
