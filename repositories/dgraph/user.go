@@ -232,11 +232,11 @@ func (d *dgraphRepo) UpdateUser(user *models.User) (*models.User, error) {
 // Delete a user from dgraph
 func (d *dgraphRepo) DeleteUser(id string) error {
 	ctx := d.buildAuthContext(context.Background())
-	readOnlyTxn := d.Client.NewReadOnlyTxn()
-	defer readOnlyTxn.Discard(context.Background())
-
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
+
+	readOnlyTxn := d.Client.NewReadOnlyTxn()
+	defer readOnlyTxn.Discard(context.Background())
 
 	dUsers := manyDgraphUsers{}
 	variables := map[string]string{"$id": id}
@@ -286,6 +286,7 @@ func (d *dgraphRepo) DeleteUser(id string) error {
 	}
 
 	// Now lets delete the node itself
+	variables = map[string]string{"uid": id}
 	pb, err := json.Marshal(variables)
 	if err != nil {
 		return err
