@@ -4,12 +4,10 @@ import (
 	"errors"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -75,15 +73,8 @@ func (restCtlr *restController) SetupController() error {
 		return errors.New("error configuring gin-jwt:" + err.Error())
 	}
 
+	router.Use(corsMiddleware())
 	router.GET("/ping", healthCheck)
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{restCtlr.Config.Domain},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
 
 	authRouter := router.Group("/auth")
 	{
@@ -159,6 +150,22 @@ func (restCtlr *restController) Run() error {
 
 func (restCtlr *restController) Stop() error {
 	return errors.New("not implemented")
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
 
 func (restCtlr *restController) handler(req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
