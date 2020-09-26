@@ -4,10 +4,12 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -26,6 +28,7 @@ type restController struct {
 // Config defines the... configuration? I guess for the REST controller itself.
 type Config struct {
 	Port   string
+	Domain string
 	Logger *zerolog.Logger
 	IsProd bool
 
@@ -73,6 +76,14 @@ func (restCtlr *restController) SetupController() error {
 	}
 
 	router.GET("/ping", healthCheck)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{restCtlr.Config.Domain},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	authRouter := router.Group("/auth")
 	{

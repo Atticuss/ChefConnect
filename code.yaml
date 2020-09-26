@@ -68,6 +68,7 @@ Resources:
           DB_HOST: !Ref DbHost
           DB_PORT: !Ref DbPort
           DB_TOKEN: !Ref DgraphAuthToken
+          DOMAIN: !FindInMap [EnvMap, !Ref Environment, domain]
       Events:
         ProxyRequest:
           Type: Api
