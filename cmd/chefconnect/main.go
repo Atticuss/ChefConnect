@@ -39,6 +39,7 @@ type configuration struct {
 		AuthToken string `envconfig:"DB_TOKEN"`
 	}
 	Server struct {
+		Domain   string `envconfig:"DOMAIN"`
 		Port     string `envconfig:"SERVER_PORT"`
 		IsLambda bool   `envconfig:"IS_LAMBDA"`
 	}
