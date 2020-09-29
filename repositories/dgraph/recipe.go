@@ -123,6 +123,11 @@ func (d *dgraphRepo) GetAllRecipes() (*models.ManyRecipes, error) {
 				name
 
 				dgraph.type
+
+				tags {
+					uid
+					name
+				}
 			}
 		}
 	`

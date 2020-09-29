@@ -65,8 +65,9 @@ type restResponseRecipe struct {
 }
 
 type nestedRecipe struct {
-	ID   string `json:"uid,omitempty"`
-	Name string `json:"name,omitempty" validate:"required"`
+	ID   string      `json:"uid,omitempty"`
+	Name string      `json:"name,omitempty" validate:"required"`
+	Tags []nestedTag `json:"tags,omitempty"`
 }
 
 type manyRecipes struct {
