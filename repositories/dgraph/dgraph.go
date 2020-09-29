@@ -205,6 +205,9 @@ func (d *dgraphRepo) InitializeTestData() error {
 		_:tag_condiment <name> "Condiment" .
 		_:tag_condiment <dgraph.type> "Tag" .
 
+		_:tag_vegetarian <name> "Vegetarian" .
+		_:tag_vegetarian <dgraph.type> "Tag" .
+
 		_:ing_soy_curls <name> "Soy Curls" .
 		_:ing_soy_curls <ingredient_tags> _:tag_fake_meat .
 		_:ing_soy_curls <dgraph.type> "Ingredient" .
@@ -232,6 +235,7 @@ func (d *dgraphRepo) InitializeTestData() error {
 		_:rec_soy_bowl <cook_time> "15" .
 		_:rec_soy_bowl <total_servings> "2" .
 		_:rec_soy_bowl <has_been_tried> "False" .
+		_:rec_soy_bowl <recipe_tags> _:tag_vegetarian .
 		_:rec_soy_bowl <dgraph.type> "Recipe" .
 
 		_:note_jay_soy <text> "pretty damn good" .
