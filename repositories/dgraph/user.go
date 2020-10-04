@@ -170,6 +170,8 @@ func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 		return &user, err
 	}
 
+	fmt.Printf("dusers: %+v\n", dUsers)
+
 	if len(dUsers.Users) > 0 {
 		fmt.Println("user not found")
 		copier.Copy(&user, &dUsers.Users[0])
