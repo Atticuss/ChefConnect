@@ -162,6 +162,7 @@ func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 		return &user, err
 	}
 
+	fmt.Printf("resp json: %+v\n", resp.Json)
 	fmt.Println("json unmarshalling")
 
 	err = json.Unmarshal(resp.Json, &dUsers)
