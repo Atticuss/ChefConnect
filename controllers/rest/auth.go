@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	jwt "github.com/appleboy/gin-jwt/v2"
@@ -117,8 +116,6 @@ func (restCtrl *restController) login(c *gin.Context) (interface{}, error) {
 	// responses:
 	//   200: AuthnResponse
 
-	fmt.Println("in login()")
-
 	var authnReq authnRequest
 	if err := c.ShouldBindJSON(&authnReq); err != nil {
 		return nil, jwt.ErrMissingLoginValues
@@ -127,24 +124,16 @@ func (restCtrl *restController) login(c *gin.Context) (interface{}, error) {
 	user := &models.User{}
 	copier.Copy(user, &authnReq)
 
-	fmt.Println("initial struct copied")
-
 	user, sErr := restCtrl.Service.ValidateCredentials(user)
 	if sErr.Error != nil {
-		fmt.Println("error when validating credentials")
-		fmt.Printf("%+v\n", sErr.Error)
 		if sErr.ErrorCode == services.NotAuthorized {
 			return nil, jwt.ErrFailedAuthentication
 		}
 		return nil, sErr.Error
 	}
 
-	fmt.Printf("return user: %+v\n", user)
-
 	claimDetails := jwtClaims{}
 	copier.Copy(&claimDetails, &user)
-
-	fmt.Println("final struct copied")
 
 	return claimDetails, nil
 }

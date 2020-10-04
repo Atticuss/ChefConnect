@@ -124,7 +124,6 @@ func (d *dgraphRepo) GetUser(id string) (*models.User, error) {
 
 // Get a user out of dgraph by name
 func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
-	fmt.Println("in GetUserByUsername()")
 	user := models.User{}
 	dUsers := manyDgraphUsers{}
 	ctx := d.buildAuthContext(context.Background())
@@ -154,32 +153,21 @@ func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 		}
 	`
 
-	fmt.Println("starting txn")
-
 	resp, err := txn.QueryWithVars(ctx, q, variables)
 	if err != nil {
 		fmt.Printf("error during txn: %+v\n", err)
 		return &user, err
 	}
 
-	fmt.Printf("resp json: %+v\n", resp.Json)
-	fmt.Println("json unmarshalling")
-
 	err = json.Unmarshal(resp.Json, &dUsers)
 	if err != nil {
-		fmt.Printf("error when json unmarshalling: %+v\n", err)
 		return &user, err
 	}
 
-	fmt.Printf("dusers: %+v\n", dUsers)
-
 	if len(dUsers.Users) > 0 {
-		fmt.Println("user found")
 		copier.Copy(&user, &dUsers.Users[0])
 		return &user, nil
 	}
-
-	fmt.Println("returning empty user details")
 
 	return &user, nil
 }
