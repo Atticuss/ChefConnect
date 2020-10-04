@@ -38,6 +38,10 @@ Mappings:
     prod:
       domain: api.recipes.veraciousdata.io
 
+Globals:
+  Function:
+    Timeout: 10
+
 Resources:
   ServerlessRestApi:
     Type: AWS::Serverless::Api
