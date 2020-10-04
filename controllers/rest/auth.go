@@ -139,6 +139,8 @@ func (restCtrl *restController) login(c *gin.Context) (interface{}, error) {
 		return nil, sErr.Error
 	}
 
+	fmt.Printf("return user: %+v\n", user)
+
 	claimDetails := jwtClaims{}
 	copier.Copy(&claimDetails, &user)
 

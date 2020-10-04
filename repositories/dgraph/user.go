@@ -3,6 +3,7 @@ package dgraph
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/jinzhu/copier"
@@ -123,6 +124,7 @@ func (d *dgraphRepo) GetUser(id string) (*models.User, error) {
 
 // Get a user out of dgraph by name
 func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
+	fmt.Println("in GetUserByUsername()")
 	user := models.User{}
 	dUsers := manyDgraphUsers{}
 	ctx := d.buildAuthContext(context.Background())
@@ -152,20 +154,29 @@ func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 		}
 	`
 
+	fmt.Println("starting txn")
+
 	resp, err := txn.QueryWithVars(ctx, q, variables)
 	if err != nil {
+		fmt.Printf("error during txn: %+v\n", err)
 		return &user, err
 	}
 
+	fmt.Println("json unmarshalling")
+
 	err = json.Unmarshal(resp.Json, &dUsers)
 	if err != nil {
+		fmt.Printf("error when json unmarshalling: %+v\n", err)
 		return &user, err
 	}
 
 	if len(dUsers.Users) > 0 {
+		fmt.Println("user not found")
 		copier.Copy(&user, &dUsers.Users[0])
 		return &user, nil
 	}
+
+	fmt.Println("returning user details")
 
 	return &user, nil
 }

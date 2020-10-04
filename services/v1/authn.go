@@ -22,6 +22,7 @@ func compareHash(password, hash string) bool {
 
 // ValidateCredentials handles the business logic when a client passes in authn creds
 func (s *v1Service) ValidateCredentials(userReq *models.User) (*models.User, *services.ServiceError) {
+	fmt.Println("inside ValidateCredentials()")
 	user, err := s.Repository.GetUserByUsername(userReq.Username)
 	if err != nil {
 		fmt.Println("error when calling GetUserByUsername")
