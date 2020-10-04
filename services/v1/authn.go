@@ -21,9 +21,11 @@ func compareHash(password, hash string) bool {
 
 	if err != nil {
 		fmt.Printf("err not nil: %+v\n", err)
+		return false
+	} else {
+		fmt.Printf("password is valid")
+		return true
 	}
-
-	return err == nil
 }
 
 // ValidateCredentials handles the business logic when a client passes in authn creds
