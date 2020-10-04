@@ -16,7 +16,13 @@ func hashPassword(password string) (string, error) {
 }
 
 func compareHash(password, hash string) bool {
+	fmt.Println("inside compareHash")
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+
+	if err != nil {
+		fmt.Printf("err not nil: %+v\n", err)
+	}
+
 	return err == nil
 }
 
@@ -29,6 +35,9 @@ func (s *v1Service) ValidateCredentials(userReq *models.User) (*models.User, *se
 		fmt.Printf("%+v\n", err)
 		return user, &services.ServiceError{Error: err, ErrorCode: services.Unhandled}
 	}
+
+	fmt.Println("user found -- validating pw hash")
+	fmt.Printf("user: %+v\n", user)
 
 	if compareHash(userReq.Password, user.Password) {
 		fmt.Println("valid password")
