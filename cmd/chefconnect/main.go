@@ -77,6 +77,7 @@ func main() {
 	)
 
 	config, err := parseConfig()
+	fmt.Printf("config: %+v\n", config)
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}
