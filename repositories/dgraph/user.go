@@ -3,7 +3,6 @@ package dgraph
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/dgraph-io/dgo/v2/protos/api"
 	"github.com/jinzhu/copier"
@@ -155,7 +154,6 @@ func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 
 	resp, err := txn.QueryWithVars(ctx, q, variables)
 	if err != nil {
-		fmt.Printf("error during txn: %+v\n", err)
 		return &user, err
 	}
 
