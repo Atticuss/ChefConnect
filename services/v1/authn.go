@@ -2,6 +2,7 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -23,13 +24,18 @@ func compareHash(password, hash string) bool {
 // ValidateCredentials handles the business logic when a client passes in authn creds
 func (s *v1Service) ValidateCredentials(userReq *models.User) (*models.User, *services.ServiceError) {
 	user, err := s.Repository.GetUserByUsername(userReq.Username)
+	fmt.Printf("user: %+v\n", user)
 	if err != nil {
+		fmt.Printf("svc error %+v\n", err)
 		return user, &services.ServiceError{Error: err, ErrorCode: services.Unhandled}
 	}
 
 	if compareHash(userReq.Password, user.Password) {
+		fmt.Println("comparehash true")
 		return user, &nilErr
 	}
+
+	fmt.Println("comparehash false")
 
 	return user, &services.ServiceError{
 		Error:     errors.New("invalid credentials provided"),
