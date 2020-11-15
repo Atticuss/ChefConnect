@@ -7,7 +7,6 @@ require (
 	github.com/aws/aws-lambda-go v1.19.1
 	github.com/awslabs/aws-lambda-go-api-proxy v0.8.0
 	github.com/dgraph-io/dgo/v2 v2.2.0
-	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.2.0
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
