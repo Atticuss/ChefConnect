@@ -30,13 +30,31 @@ Parameters:
   DgraphAuthToken:
     Type: String
     Description: Auth token for the dgraph server
+  TokenExpiry:
+    Type: Integer
+    Description: Life duration of a JWT, in seconds
+    Default: 600
+  RefreshTokenLength:
+    Type: Integer
+    Description: Length of the refresh token, used to obtain a new JWT
+    Default: 40
+  JwtSecretKeyDev:
+    Type: String
+    Description: The secret used for generating JWT HMACs
+    Default: "youllneverguessme"
+  JwtSecretKeyProd:
+    Type: String
+    Description: The secret used for generating JWT HMACs
+    Default: "youllneverguessme"
 
 Mappings:
   EnvMap:
     dev:
       domain: api.dev.recipes.veraciousdata.io
+      jwtSecret: !Ref JwtSecretKeyDev
     prod:
       domain: api.recipes.veraciousdata.io
+      jwtSecret: !Ref JwtSecretKeyProd
 
 Globals:
   Function:
@@ -73,6 +91,10 @@ Resources:
           DB_PORT: !Ref DbPort
           DB_TOKEN: !Ref DgraphAuthToken
           DOMAIN: !FindInMap [EnvMap, !Ref Environment, domain]
+          SECRET_KEY: !FindInMap [EnvMap, !Ref Environment, jwtSecret]
+          TOKEN_EXPIRY: !Ref TokenExpiry
+          REFRESH_TOKEN_LEN: !Ref RefreshTokenLength
+          AUTH_TOKEN_HEADER_NAME: "Authorization"
       Events:
         ProxyRequest:
           Type: Api
