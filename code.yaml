@@ -69,7 +69,7 @@ Resources:
     Properties:
       FunctionName: !Ref ProjectName
       Runtime: go1.x
-      Handler: bin/main
+      Handler: bin/chefconnect
       Role: !GetAtt LambdaRole.Arn
       VpcConfig:
         SubnetIds:
