@@ -31,11 +31,11 @@ Parameters:
     Type: String
     Description: Auth token for the dgraph server
   TokenExpiry:
-    Type: Integer
+    Type: Number
     Description: Life duration of a JWT, in seconds
     Default: 600
   RefreshTokenLength:
-    Type: Integer
+    Type: Number
     Description: Length of the refresh token, used to obtain a new JWT
     Default: 40
   JwtSecretKeyDev:
