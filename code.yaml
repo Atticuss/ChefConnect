@@ -38,11 +38,7 @@ Parameters:
     Type: Number
     Description: Length of the refresh token, used to obtain a new JWT
     Default: 40
-  JwtSecretKeyDev:
-    Type: String
-    Description: The secret used for generating JWT HMACs
-    Default: "youllneverguessme"
-  JwtSecretKeyProd:
+  JwtSecretKey:
     Type: String
     Description: The secret used for generating JWT HMACs
     Default: "youllneverguessme"
@@ -51,10 +47,8 @@ Mappings:
   EnvMap:
     dev:
       domain: api.dev.recipes.veraciousdata.io
-      jwtSecret: !Ref JwtSecretKeyDev
     prod:
       domain: api.recipes.veraciousdata.io
-      jwtSecret: !Ref JwtSecretKeyProd
 
 Globals:
   Function:
@@ -91,7 +85,7 @@ Resources:
           DB_PORT: !Ref DbPort
           DB_TOKEN: !Ref DgraphAuthToken
           DOMAIN: !FindInMap [EnvMap, !Ref Environment, domain]
-          SECRET_KEY: !FindInMap [EnvMap, !Ref Environment, jwtSecret]
+          SECRET_KEY: !Ref JwtSecretKey
           TOKEN_EXPIRY: !Ref TokenExpiry
           REFRESH_TOKEN_LEN: !Ref RefreshTokenLength
           AUTH_TOKEN_HEADER_NAME: "Authorization"
