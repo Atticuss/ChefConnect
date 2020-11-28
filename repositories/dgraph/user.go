@@ -15,10 +15,12 @@ type manyDgraphUsers struct {
 }
 
 type dgraphUser struct {
-	ID       string `json:"uid,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Username string `json:"username,omitempty"`
-	Password string `json:"password,omitempty"`
+	ID              string `json:"uid,omitempty"`
+	Name            string `json:"name,omitempty"`
+	Username        string `json:"username,omitempty"`
+	Password        string `json:"password,omitempty"`
+	RefreshToken    string `json:"refresh_token,omitempty"`
+	RefreshTokenIat int64  `json:"refresh_token_iat,omitempty"`
 
 	Favorites []dgraphRecipe `json:"favorites,omitempty"`
 	Notes     []dgraphNote   `json:"~author,omitempty"`
@@ -43,6 +45,8 @@ func (d *dgraphRepo) GetAllUsers() (*models.ManyUsers, error) {
 				name
 				username
 				password
+				refresh_token
+				refresh_token_iat
 				dgraph.type
 
 				favorites {
@@ -88,6 +92,8 @@ func (d *dgraphRepo) GetUser(id string) (*models.User, error) {
 				name
 				username
 				password
+				refresh_token
+				refresh_token_iat
 				dgraph.type
 
 				favorites {
@@ -137,6 +143,59 @@ func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 				name
 				username
 				password
+				refresh_token
+				refresh_token_iat
+				dgraph.type
+
+				favorites {
+					uid
+					name
+				}
+
+				roles {
+					uid
+					name
+				}
+			}
+		}
+	`
+
+	resp, err := txn.QueryWithVars(ctx, q, variables)
+	if err != nil {
+		return &user, err
+	}
+
+	err = json.Unmarshal(resp.Json, &dUsers)
+	if err != nil {
+		return &user, err
+	}
+
+	if len(dUsers.Users) > 0 {
+		copier.Copy(&user, &dUsers.Users[0])
+		return &user, nil
+	}
+
+	return &user, nil
+}
+
+// Get a user out of dgraph by refresh token
+func (d *dgraphRepo) GetUserByRefreshToken(refreshToken string) (*models.User, error) {
+	user := models.User{}
+	dUsers := manyDgraphUsers{}
+	ctx := d.buildAuthContext(context.Background())
+	txn := d.Client.NewReadOnlyTxn()
+	defer txn.Discard(context.Background())
+
+	variables := map[string]string{"$refresh_token": refreshToken}
+	const q = `
+		query all($refresh_token: string) {
+			users(func: eq(refresh_token, $refresh_token)) @filter(type(User)) {
+				uid
+				name
+				username
+				password
+				refresh_token
+				refresh_token_iat
 				dgraph.type
 
 				favorites {

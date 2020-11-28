@@ -25,10 +25,11 @@ type restController struct {
 
 // Config defines the... configuration? I guess for the REST controller itself.
 type Config struct {
-	Port   string
-	Domain string
-	Logger *zerolog.Logger
-	IsProd bool
+	Port                string
+	Domain              string
+	AuthTokenHeaderName string
+	Logger              *zerolog.Logger
+	IsProd              bool
 
 	// UTC a boolean stating whether to use UTC time zone or local.
 	UTC bool
@@ -67,23 +68,18 @@ func (restCtlr *restController) SetupController() error {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(restCtlr.setLogger(restCtlr.Config))
-
-	authMiddleware, err := restCtlr.configureMiddleware()
-	if err != nil {
-		return errors.New("error configuring gin-jwt:" + err.Error())
-	}
+	router.Use(restCtlr.jwtDeserializationMiddleware())
 
 	router.Use(corsMiddleware())
 	router.GET("/ping", healthCheck)
 
 	authRouter := router.Group("/auth")
 	{
-		authRouter.POST("/login", authMiddleware.LoginHandler)
-		authRouter.GET("/refresh-token", authMiddleware.RefreshHandler)
+		authRouter.POST("/login", restCtlr.LoginHandler)
+		authRouter.POST("/refresh-token", restCtlr.RefreshHandler)
 	}
 
 	ingredientRouter := router.Group("/ingredients")
-	ingredientRouter.Use(authMiddleware.MiddlewareFunc())
 	{
 		ingredientRouter.GET("/", restCtlr.getAllIngredients)
 		ingredientRouter.POST("/", restCtlr.createIngredient)
@@ -93,7 +89,6 @@ func (restCtlr *restController) SetupController() error {
 	}
 
 	recipeRouter := router.Group("/recipes")
-	recipeRouter.Use(authMiddleware.MiddlewareFunc())
 	{
 		recipeRouter.GET("/", restCtlr.getAllRecipes)
 		recipeRouter.POST("/", restCtlr.createRecipe)
@@ -103,7 +98,6 @@ func (restCtlr *restController) SetupController() error {
 	}
 
 	userRouter := router.Group("/users")
-	userRouter.Use(authMiddleware.MiddlewareFunc())
 	{
 		userRouter.GET("/", restCtlr.getAllUsers)
 		userRouter.POST("/", restCtlr.createUser)
@@ -113,7 +107,6 @@ func (restCtlr *restController) SetupController() error {
 	}
 
 	tagRouter := router.Group("/tags")
-	tagRouter.Use(authMiddleware.MiddlewareFunc())
 	{
 		tagRouter.GET("/", restCtlr.getAllTags)
 		tagRouter.POST("/", restCtlr.createTag)
@@ -123,7 +116,6 @@ func (restCtlr *restController) SetupController() error {
 	}
 
 	roleRouter := router.Group("/roles")
-	roleRouter.Use(authMiddleware.MiddlewareFunc())
 	{
 		roleRouter.GET("/", restCtlr.getAllRoles)
 		roleRouter.GET("/:id", restCtlr.getRole)

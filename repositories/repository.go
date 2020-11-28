@@ -31,6 +31,7 @@ type Repository interface {
 	GetUser(id string) (*models.User, error)
 	GetAllUsers() (*models.ManyUsers, error)
 	GetUserByUsername(username string) (*models.User, error)
+	GetUserByRefreshToken(refreshToken string) (*models.User, error)
 	CreateUser(*models.User) (*models.User, error)
 	UpdateUser(*models.User) (*models.User, error)
 	DeleteUser(id string) error

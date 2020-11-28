@@ -42,6 +42,11 @@ type configuration struct {
 		Domain   string `envconfig:"DOMAIN"`
 		Port     string `envconfig:"SERVER_PORT"`
 		IsLambda bool   `envconfig:"IS_LAMBDA"`
+
+		SecretKey           string `envconfig:"SECRET_KEY"`
+		TokenExpiry         int    `envconfig:"TOKEN_EXPIRY"`
+		RefreshTokenLength  int    `envconfig:"REFRESH_TOKEN_LEN"`
+		AuthTokenHeaderName string `envconfig:"AUTH_TOKEN_HEADER_NAME"`
 	}
 
 	Environment string `envconfig:"ENVIRONMENT"`
@@ -83,10 +88,11 @@ func main() {
 
 	subLog := zerolog.New(os.Stdout).With().Logger()
 	restConfig := rest.Config{
-		Port:     config.Server.Port,
-		Logger:   &subLog,
-		UTC:      true,
-		IsLambda: config.Server.IsLambda,
+		Port:                config.Server.Port,
+		Logger:              &subLog,
+		UTC:                 true,
+		IsLambda:            config.Server.IsLambda,
+		AuthTokenHeaderName: config.Server.AuthTokenHeaderName,
 	}
 
 	env := strings.ToLower(config.Environment)
@@ -100,7 +106,7 @@ func main() {
 	}
 
 	dgraphRepo := dgraph.NewDgraphRepository(&dgraphConfig)
-	service := v1.NewV1Service(&dgraphRepo)
+	service := v1.NewV1Service(&dgraphRepo, config.Server.SecretKey, config.Server.TokenExpiry, config.Server.RefreshTokenLength)
 	controller := rest.NewRestController(&service, &restConfig)
 	if err := controller.SetupController(); err != nil {
 		log.Fatal().Msg(err.Error())

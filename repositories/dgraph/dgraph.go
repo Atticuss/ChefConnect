@@ -75,6 +75,7 @@ func (d *dgraphRepo) InitializeSchema() error {
 		has_been_tried: bool @index(bool) .
 		text: string .
 		amount: string .
+		refresh_token: string @index(exact) .
 
 		recipe: [uid] @reverse .
 		author: [uid] @reverse .
@@ -128,6 +129,8 @@ func (d *dgraphRepo) InitializeSchema() error {
 			<~author>
 			<~owner>
 			ratings
+			refresh_token
+			refresh_token_iat
 		}
 
 		type Role {

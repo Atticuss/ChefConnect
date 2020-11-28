@@ -6,7 +6,9 @@ import (
 
 // Service is an interface that all service implementations must follow
 type Service interface {
-	ValidateCredentials(userReq *models.User) (*models.User, *ServiceError)
+	GenerateJwtTokens(user *models.User) (*models.User, *ServiceError)
+	ExchangeRefreshToken(refreshToken string) (*models.User, *ServiceError)
+	DeserializeJwt(jwtToken string) (*models.User, *ServiceError)
 
 	GetAllTags(callingUser *models.User) (*models.ManyTags, *ServiceError)
 	GetTag(callingUser *models.User, id string) (*models.Tag, *ServiceError)
