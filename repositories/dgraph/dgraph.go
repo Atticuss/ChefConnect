@@ -76,6 +76,7 @@ func (d *dgraphRepo) InitializeSchema() error {
 		text: string .
 		amount: string .
 		refresh_token: string @index(exact) .
+		refresh_token_iat: int .
 
 		recipe: [uid] @reverse .
 		author: [uid] @reverse .
