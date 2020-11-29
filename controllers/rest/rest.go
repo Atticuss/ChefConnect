@@ -50,7 +50,7 @@ func NewRestController(svc *services.Service, config *Config) controllers.Contro
 
 func (restCtlr *restController) SetupController() error {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if gin.IsDebugging() {
+	if !restCtlr.Config.IsProd {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 
@@ -61,9 +61,7 @@ func (restCtlr *restController) SetupController() error {
 		},
 	)
 
-	if restCtlr.Config.IsProd {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.New()
 	router.Use(gin.Recovery())
