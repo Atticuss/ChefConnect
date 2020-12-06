@@ -9,7 +9,8 @@ buildLambda:
 	gofmt -l -s -w .
 	go mod tidy
 	GOOS=linux go build -o bin/chefconnect cmd/chefconnect/main.go
-	zip function.zip bin/chefconnect
+	chmod +x bin/chefconnect
+	zip -j function.zip bin/chefconnect
 buildSandbox:
 	gofmt -l -s -w .
 	go mod tidy
