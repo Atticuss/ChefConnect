@@ -52,7 +52,27 @@ Mappings:
 
 Globals:
   Function:
-    Timeout: 10
+    Runtime: go1.x
+    Environment:
+      Variables:
+        IS_LAMBDA: true
+        DB_HOST: !Ref DbHost
+        DB_PORT: !Ref DbPort
+        DB_TOKEN: !Ref DgraphAuthToken
+        DOMAIN: !FindInMap [EnvMap, !Ref Environment, domain]
+        SECRET_KEY: !Ref JwtSecretKey
+        TOKEN_EXPIRY: !Ref TokenExpiry
+        REFRESH_TOKEN_LEN: !Ref RefreshTokenLength
+        AUTH_TOKEN_HEADER_NAME: "Authorization"
+    VpcConfig:
+      SubnetIds:
+        - !Select [0, !Ref SubnetIdList]
+        - !Select [1, !Ref SubnetIdList]
+        - !Select [2, !Ref SubnetIdList]
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+    Tags:
+      Project: !Ref ProjectName
 
 Resources:
   ServerlessRestApi:
@@ -64,31 +84,35 @@ Resources:
       Tags:
         Project: !Ref ProjectName
 
+  # authn requests require a large amount of memory to complete in a timely
+  # manner due to the hashing that occurs. create a separate lambda with
+  # much higher resource allocation for handling these requests.
+  ServerlessAuthnLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ChefConnect-Authn
+      CodeUri: function.zip
+      Handler: chefconnect
+      Timeout: 10
+      MemorySize: 1024
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        ProxyRequest:
+          Type: Api
+          Properties:
+            Path: "/auth/login"
+            Method: any
+            RestApiId: !Ref ServerlessRestApi
+
   ServerlessLambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Ref ProjectName
-      Runtime: go1.x
-      Handler: bin/chefconnect
+      FunctionName: ChefConnect
+      CodeUri: function.zip
+      Handler: chefconnect
+      Timeout: 10
+      MemorySize: 128
       Role: !GetAtt LambdaRole.Arn
-      VpcConfig:
-        SubnetIds:
-          - !Select [0, !Ref SubnetIdList]
-          - !Select [1, !Ref SubnetIdList]
-          - !Select [2, !Ref SubnetIdList]
-        SecurityGroupIds:
-          - !Ref SecurityGroup
-      Environment:
-        Variables:
-          IS_LAMBDA: true
-          DB_HOST: !Ref DbHost
-          DB_PORT: !Ref DbPort
-          DB_TOKEN: !Ref DgraphAuthToken
-          DOMAIN: !FindInMap [EnvMap, !Ref Environment, domain]
-          SECRET_KEY: !Ref JwtSecretKey
-          TOKEN_EXPIRY: !Ref TokenExpiry
-          REFRESH_TOKEN_LEN: !Ref RefreshTokenLength
-          AUTH_TOKEN_HEADER_NAME: "Authorization"
       Events:
         ProxyRequest:
           Type: Api
@@ -96,13 +120,17 @@ Resources:
             Path: "/{proxy+}"
             Method: any
             RestApiId: !Ref ServerlessRestApi
-      Tags:
-        Project: !Ref ProjectName
 
   LambdaLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${ProjectName}"
+      LogGroupName: "/aws/lambda/ChefConnect"
+      RetentionInDays: 5
+  
+  AuthnLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: "/aws/lambda/ChefConnect-Authn"
       RetentionInDays: 5
 
   ApiDeployment:
@@ -181,7 +209,9 @@ Resources:
             Action:
               - "logs:CreateLogStream"
               - "logs:PutLogEvents"
-            Resource: !GetAtt LambdaLogGroup.Arn
+            Resource: 
+              - !GetAtt LambdaLogGroup.Arn
+              - !GetAtt AuthnLambdaLogGroup.Arn
 
 Outputs:
   Endpoint:
