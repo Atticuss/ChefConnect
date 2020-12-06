@@ -52,25 +52,17 @@ type configuration struct {
 	Environment string `envconfig:"ENVIRONMENT"`
 }
 
-func parseConfig() (*configuration, error) {
+func parseConfig() *configuration {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	var config configuration
 
-	if err := viper.ReadInConfig(); err != nil {
-		return &config, err
-	}
-	err := viper.Unmarshal(&config)
-	if err != nil {
-		return &config, err
+	if err := viper.ReadInConfig(); err == nil {
+		viper.Unmarshal(&config)
 	}
 
-	err = envconfig.Process("", &config)
-	if err != nil {
-		return &config, err
-	}
-
-	return &config, nil
+	envconfig.Process("", &config)
+	return &config
 }
 
 func main() {
@@ -81,10 +73,7 @@ func main() {
 		},
 	)
 
-	config, err := parseConfig()
-	if err != nil {
-		log.Fatal().Msg(err.Error())
-	}
+	config := parseConfig()
 
 	subLog := zerolog.New(os.Stdout).With().Logger()
 	restConfig := rest.Config{
