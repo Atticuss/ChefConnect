@@ -9,12 +9,9 @@ import (
 	"reflect"
 	"strings"
 
-	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/jinzhu/copier"
 
-	"github.com/atticuss/chefconnect/models"
 	"github.com/atticuss/chefconnect/services"
 )
 
@@ -24,28 +21,6 @@ var statusCodeMap = map[int]int{
 	services.NotFound:       http.StatusNotFound,
 	services.NotAuthorized:  http.StatusUnauthorized,
 	services.ResourceInUse:  http.StatusConflict,
-}
-
-// Unfortunately, we can't directly cast from the map[string]struct object pulled
-// from `jwt.ExtractClaims()` into a models.User struct. This is because there's
-// no json marshalling tags associated with structs within the `models` package.
-// Instead, we have to unmarshall into a jwtClaims struct and then copy it over
-// into a models.User struct. Not as clean as I'd like, but the `models` package
-// should remain agnostic about things like json marshalling.
-func getUserFromContext(c *gin.Context) (*models.User, error) {
-	user := models.User{}
-	claimsStruct := jwtClaims{}
-
-	claims := jwt.ExtractClaims(c)
-	jsonbody, err := json.Marshal(claims)
-	if err != nil {
-		return &user, err
-	}
-
-	json.Unmarshal(jsonbody, &claimsStruct)
-	copier.Copy(&user, &claimsStruct)
-
-	return &user, nil
 }
 
 func resolveFieldToTag(s interface{}, field string) string {

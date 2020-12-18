@@ -53,11 +53,8 @@ func (restCtrl *restController) getAllTags(c *gin.Context) {
 	// responses:
 	//   200: ManyTags
 
-	callingUser, err := getUserFromContext(c)
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
 
 	if tags, sErr := restCtrl.Service.GetAllTags(callingUser); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
@@ -75,11 +72,8 @@ func (restCtrl *restController) getTag(c *gin.Context) {
 	//   200: Tag
 
 	id := c.Param("id")
-	callingUser, err := getUserFromContext(c)
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
 
 	if tag, sErr := restCtrl.Service.GetTag(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
@@ -106,11 +100,8 @@ func (restCtrl *restController) createTag(c *gin.Context) {
 	tag := models.Tag{}
 	copier.Copy(&tag, &reqTag)
 
-	callingUser, err := getUserFromContext(c)
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
 
 	if tag, sErr := restCtrl.Service.CreateTag(callingUser, &tag); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
@@ -137,11 +128,8 @@ func (restCtrl *restController) updateTag(c *gin.Context) {
 	tagReq.ID = c.Param("id")
 	copier.Copy(&tag, &tagReq)
 
-	callingUser, err := getUserFromContext(c)
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
 
 	if tag, sErr := restCtrl.Service.UpdateTag(callingUser, &tag); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
@@ -159,11 +147,8 @@ func (restCtrl *restController) deleteTag(c *gin.Context) {
 	//   200
 
 	id := c.Param("id")
-	callingUser, err := getUserFromContext(c)
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
 
 	if sErr := restCtrl.Service.DeleteTag(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)

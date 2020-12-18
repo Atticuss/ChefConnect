@@ -20,6 +20,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rs/zerolog"
@@ -33,34 +34,35 @@ import (
 
 type configuration struct {
 	Database struct {
-		Host string `envconfig:"DB_HOST"`
-		Port string `envconfig:"DB_PORT"`
+		Host      string `envconfig:"DB_HOST"`
+		Port      string `envconfig:"DB_PORT"`
+		AuthToken string `envconfig:"DB_TOKEN"`
 	}
 	Server struct {
+		Domain   string `envconfig:"DOMAIN"`
 		Port     string `envconfig:"SERVER_PORT"`
 		IsLambda bool   `envconfig:"IS_LAMBDA"`
+
+		SecretKey           string `envconfig:"SECRET_KEY"`
+		TokenExpiry         int    `envconfig:"TOKEN_EXPIRY"`
+		RefreshTokenLength  int    `envconfig:"REFRESH_TOKEN_LEN"`
+		AuthTokenHeaderName string `envconfig:"AUTH_TOKEN_HEADER_NAME"`
 	}
+
+	Environment string `envconfig:"ENVIRONMENT"`
 }
 
-func parseConfig() (*configuration, error) {
+func parseConfig() *configuration {
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
 	var config configuration
 
-	if err := viper.ReadInConfig(); err != nil {
-		return &config, err
-	}
-	err := viper.Unmarshal(&config)
-	if err != nil {
-		return &config, err
+	if err := viper.ReadInConfig(); err == nil {
+		viper.Unmarshal(&config)
 	}
 
-	err = envconfig.Process("", &config)
-	if err != nil {
-		return &config, err
-	}
-
-	return &config, nil
+	envconfig.Process("", &config)
+	return &config
 }
 
 func main() {
@@ -71,25 +73,29 @@ func main() {
 		},
 	)
 
-	config, err := parseConfig()
-	if err != nil {
-		log.Fatal().Msg(err.Error())
-	}
+	config := parseConfig()
 
 	subLog := zerolog.New(os.Stdout).With().Logger()
 	restConfig := rest.Config{
-		Port:     config.Server.Port,
-		Logger:   &subLog,
-		UTC:      true,
-		IsLambda: config.Server.IsLambda,
+		Port:                config.Server.Port,
+		Logger:              &subLog,
+		UTC:                 true,
+		IsLambda:            config.Server.IsLambda,
+		AuthTokenHeaderName: config.Server.AuthTokenHeaderName,
+	}
+
+	env := strings.ToLower(config.Environment)
+	if env == "prod" || env == "production" {
+		restConfig.IsProd = true
 	}
 
 	dgraphConfig := dgraph.Config{
-		Host: fmt.Sprintf("%s:%s", config.Database.Host, config.Database.Port),
+		Host:      fmt.Sprintf("%s:%s", config.Database.Host, config.Database.Port),
+		AuthToken: config.Database.AuthToken,
 	}
 
 	dgraphRepo := dgraph.NewDgraphRepository(&dgraphConfig)
-	service := v1.NewV1Service(&dgraphRepo)
+	service := v1.NewV1Service(&dgraphRepo, config.Server.SecretKey, config.Server.TokenExpiry, config.Server.RefreshTokenLength)
 	controller := rest.NewRestController(&service, &restConfig)
 	if err := controller.SetupController(); err != nil {
 		log.Fatal().Msg(err.Error())

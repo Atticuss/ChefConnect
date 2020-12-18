@@ -28,6 +28,7 @@ type dgraphTag struct {
 func (d *dgraphRepo) GetAllTags() (*models.ManyTags, error) {
 	dTags := manyDgraphTags{}
 	tags := models.ManyTags{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -41,7 +42,7 @@ func (d *dgraphRepo) GetAllTags() (*models.ManyTags, error) {
 		}
 	`
 
-	resp, err := txn.Query(context.Background(), q)
+	resp, err := txn.Query(ctx, q)
 	if err != nil {
 		return &tags, err
 	}
@@ -60,6 +61,7 @@ func (d *dgraphRepo) GetAllTags() (*models.ManyTags, error) {
 func (d *dgraphRepo) GetTag(id string) (*models.Tag, error) {
 	dTags := manyDgraphTags{}
 	tag := models.Tag{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -84,7 +86,7 @@ func (d *dgraphRepo) GetTag(id string) (*models.Tag, error) {
 		}
 	`
 
-	resp, err := txn.QueryWithVars(context.Background(), q, variables)
+	resp, err := txn.QueryWithVars(ctx, q, variables)
 	if err != nil {
 		return &tag, err
 	}
@@ -105,6 +107,7 @@ func (d *dgraphRepo) GetTag(id string) (*models.Tag, error) {
 // CreateTag within dgraph
 func (d *dgraphRepo) CreateTag(tag *models.Tag) (*models.Tag, error) {
 	dTag := dgraphTag{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -124,7 +127,7 @@ func (d *dgraphRepo) CreateTag(tag *models.Tag) (*models.Tag, error) {
 		SetJson:   pb,
 	}
 
-	res, err := txn.Mutate(context.Background(), mu)
+	res, err := txn.Mutate(ctx, mu)
 	if err != nil {
 		return tag, err
 	}
@@ -137,6 +140,7 @@ func (d *dgraphRepo) CreateTag(tag *models.Tag) (*models.Tag, error) {
 // UpdateTag within dgraph by ID
 func (d *dgraphRepo) UpdateTag(tag *models.Tag) (*models.Tag, error) {
 	dTag := dgraphTag{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -154,7 +158,7 @@ func (d *dgraphRepo) UpdateTag(tag *models.Tag) (*models.Tag, error) {
 		SetJson:   pb,
 	}
 
-	_, err = txn.Mutate(context.Background(), mu)
+	_, err = txn.Mutate(ctx, mu)
 	if err != nil {
 		return tag, err
 	}
@@ -164,6 +168,7 @@ func (d *dgraphRepo) UpdateTag(tag *models.Tag) (*models.Tag, error) {
 
 // DeleteTag from dgraph by ID
 func (d *dgraphRepo) DeleteTag(id string) error {
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -185,7 +190,7 @@ func (d *dgraphRepo) DeleteTag(id string) error {
 		}
 	`
 
-	resp, err := readOnlyTxn.Query(context.Background(), q)
+	resp, err := readOnlyTxn.Query(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -211,7 +216,7 @@ func (d *dgraphRepo) DeleteTag(id string) error {
 			},
 		}
 
-		_, err = txn.Mutate(context.Background(), mu)
+		_, err = txn.Mutate(ctx, mu)
 		if err != nil {
 			return err
 		}
@@ -228,7 +233,7 @@ func (d *dgraphRepo) DeleteTag(id string) error {
 			},
 		}
 
-		_, err = txn.Mutate(context.Background(), mu)
+		_, err = txn.Mutate(ctx, mu)
 		if err != nil {
 			return err
 		}
@@ -245,7 +250,7 @@ func (d *dgraphRepo) DeleteTag(id string) error {
 		DeleteJson: pb,
 	}
 
-	_, err = txn.Mutate(context.Background(), mu)
+	_, err = txn.Mutate(ctx, mu)
 	if err != nil {
 		return err
 	}

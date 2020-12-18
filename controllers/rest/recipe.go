@@ -65,8 +65,9 @@ type restResponseRecipe struct {
 }
 
 type nestedRecipe struct {
-	ID   string `json:"uid,omitempty"`
-	Name string `json:"name,omitempty" validate:"required"`
+	ID   string      `json:"uid,omitempty"`
+	Name string      `json:"name,omitempty" validate:"required"`
+	Tags []nestedTag `json:"tags,omitempty"`
 }
 
 type manyRecipes struct {
@@ -80,11 +81,8 @@ func (restCtrl *restController) getAllRecipes(c *gin.Context) {
 	//   200: ManyRecipes
 
 	recipesResp := manyRecipes{}
-	callingUser, err := getUserFromContext(c)
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
 
 	if recipes, sErr := restCtrl.Service.GetAllRecipes(callingUser); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
@@ -101,11 +99,8 @@ func (restCtrl *restController) getRecipe(c *gin.Context) {
 	//   200: Recipe
 
 	id := c.Param("id")
-	callingUser, err := getUserFromContext(c)
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
 
 	recipeResp := restResponseRecipe{}
 	if recipe, sErr := restCtrl.Service.GetRecipe(callingUser, id); sErr.Error != nil {
@@ -132,11 +127,8 @@ func (restCtrl *restController) createRecipe(c *gin.Context) {
 	recipe := models.Recipe{}
 	copier.Copy(&recipe, &recipeReq)
 
-	callingUser, err := getUserFromContext(c)
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
 
 	if recipe, sErr := restCtrl.Service.CreateRecipe(callingUser, &recipe); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
@@ -163,11 +155,8 @@ func (restCtrl *restController) updateRecipe(c *gin.Context) {
 	recipeReq.ID = c.Param("id")
 	copier.Copy(&recipe, &recipeReq)
 
-	callingUser, err := getUserFromContext(c)
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
 
 	if recipe, sErr := restCtrl.Service.UpdateRecipe(callingUser, &recipe); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
@@ -185,11 +174,8 @@ func (restCtrl *restController) deleteRecipe(c *gin.Context) {
 	//   200
 
 	id := c.Param("id")
-	callingUser, err := getUserFromContext(c)
-	if err != nil {
-		respondWithError(c, http.StatusInternalServerError, err.Error())
-		return
-	}
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
 
 	if sErr := restCtrl.Service.DeleteRecipe(callingUser, id); sErr.Error != nil {
 		respondWithServiceError(c, sErr)

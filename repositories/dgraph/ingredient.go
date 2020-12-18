@@ -29,6 +29,7 @@ type dgraphIngredient struct {
 func (d *dgraphRepo) GetAllIngredients() (*models.ManyIngredients, error) {
 	ingredients := models.ManyIngredients{}
 	dIngredients := manyDgraphIngredients{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -43,7 +44,7 @@ func (d *dgraphRepo) GetAllIngredients() (*models.ManyIngredients, error) {
 		}
 	`
 
-	resp, err := txn.Query(context.Background(), q)
+	resp, err := txn.Query(ctx, q)
 	if err != nil {
 		return &ingredients, err
 	}
@@ -61,6 +62,7 @@ func (d *dgraphRepo) GetAllIngredients() (*models.ManyIngredients, error) {
 func (d *dgraphRepo) GetIngredient(id string) (*models.Ingredient, error) {
 	ingredient := models.Ingredient{}
 	dIngredients := manyDgraphIngredients{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -85,7 +87,7 @@ func (d *dgraphRepo) GetIngredient(id string) (*models.Ingredient, error) {
 		}
 	`
 
-	resp, err := txn.QueryWithVars(context.Background(), q, variables)
+	resp, err := txn.QueryWithVars(ctx, q, variables)
 	if err != nil {
 		return &ingredient, err
 	}
@@ -106,6 +108,7 @@ func (d *dgraphRepo) GetIngredient(id string) (*models.Ingredient, error) {
 // CreateIngredient within dgraph
 func (d *dgraphRepo) CreateIngredient(ingredient *models.Ingredient) (*models.Ingredient, error) {
 	dIngredient := dgraphIngredient{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -123,7 +126,7 @@ func (d *dgraphRepo) CreateIngredient(ingredient *models.Ingredient) (*models.In
 		SetJson:   pb,
 	}
 
-	res, err := txn.Mutate(context.Background(), mu)
+	res, err := txn.Mutate(ctx, mu)
 	if err != nil {
 		return ingredient, err
 	}
@@ -136,6 +139,7 @@ func (d *dgraphRepo) CreateIngredient(ingredient *models.Ingredient) (*models.In
 // UpdateIngredient within dgraph
 func (d *dgraphRepo) UpdateIngredient(ingredient *models.Ingredient) (*models.Ingredient, error) {
 	dIngredient := dgraphIngredient{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -147,7 +151,7 @@ func (d *dgraphRepo) UpdateIngredient(ingredient *models.Ingredient) (*models.In
 	}
 	dgo.DeleteEdges(mu, dIngredient.ID, "tags")
 
-	_, err := d.Client.NewTxn().Mutate(context.Background(), mu)
+	_, err := d.Client.NewTxn().Mutate(ctx, mu)
 	if err != nil {
 		return ingredient, err
 	}
@@ -162,7 +166,7 @@ func (d *dgraphRepo) UpdateIngredient(ingredient *models.Ingredient) (*models.In
 		SetJson:   pb,
 	}
 
-	_, err = txn.Mutate(context.Background(), mu)
+	_, err = txn.Mutate(ctx, mu)
 	if err != nil {
 		return ingredient, err
 	}
@@ -172,6 +176,7 @@ func (d *dgraphRepo) UpdateIngredient(ingredient *models.Ingredient) (*models.In
 
 // DeleteIngredient from dgraph
 func (d *dgraphRepo) DeleteIngredient(id string) error {
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -186,7 +191,7 @@ func (d *dgraphRepo) DeleteIngredient(id string) error {
 		DeleteJson: pb,
 	}
 
-	_, err = txn.Mutate(context.Background(), mu)
+	_, err = txn.Mutate(ctx, mu)
 	if err != nil {
 		return err
 	}

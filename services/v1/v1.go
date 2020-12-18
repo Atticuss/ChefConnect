@@ -12,10 +12,19 @@ import (
 type v1Service struct {
 	Validator  *validator.Validate
 	Repository repositories.Repository
+
+	// SecretKey is the string used to sign JWTs
+	SecretKey string
+
+	// TokenExpiry determines how long a JWT remains valid, in seconds
+	TokenExpiry int
+
+	// RefreshTokenLength determines how many chars are in the refresh token
+	RefreshTokenLength int
 }
 
 // NewV1Service configures a service for handling business logic
-func NewV1Service(repo *repositories.Repository) services.Service {
+func NewV1Service(repo *repositories.Repository, secretKey string, tokenExpiry int, refreshTokenLen int) services.Service {
 	v := validator.New()
 	_ = v.RegisterValidation("required-update", func(fl validator.FieldLevel) bool {
 		fmt.Printf("inside 'required-update' check with value: %+v\n", fl.Field())
@@ -31,8 +40,11 @@ func NewV1Service(repo *repositories.Repository) services.Service {
 	})
 
 	svc := v1Service{
-		Validator:  v,
-		Repository: *repo,
+		Validator:          v,
+		Repository:         *repo,
+		SecretKey:          secretKey,
+		TokenExpiry:        tokenExpiry,
+		RefreshTokenLength: refreshTokenLen,
 	}
 
 	return &svc

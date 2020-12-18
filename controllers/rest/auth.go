@@ -1,11 +1,10 @@
 package rest
 
 import (
-	"encoding/json"
-	"time"
+	"net/http"
 
-	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 
 	"github.com/atticuss/chefconnect/models"
@@ -26,91 +25,48 @@ type swaggerAuthnResponse struct {
 }
 
 type authnRequest struct {
-	Username string `json:"username,omitempty" validate:"required"`
-	Password string `json:"password,omitempty" validate:"required"`
+	Username     string `json:"username,omitempty"`
+	Password     string `json:"password,omitempty"`
+	RefreshToken string `json:"refreshToken,omitempty"`
 }
 
 type authnResponse struct {
-	Token  string `json:"token,omitempty"`
-	Code   int    `json:"code,omitempty"`
-	Expire string `json:"expire,omitempty"`
+	AuthToken    string `json:"authToken,omitempty"`
+	RefreshToken string `json:"refreshToken,omitempty"`
 }
 
-type jwtClaims struct {
-	ID       string `json:"uid"`
-	Name     string `json:"name"`
-	Username string `json:"username"`
+// both middleware funcs based on code provided here:
+// https://sosedoff.com/2014/12/21/gin-middleware.html
+func (restCtrl *restController) jwtDeserializationMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		jwtToken := c.Request.Header.Get(restCtrl.Config.AuthTokenHeaderName)
+		if jwtToken == "" {
+			c.Set("callingUser", &models.User{})
+			c.Next()
+			return
+		}
 
-	Roles []nestedRole `json:"roles,omitempty"`
-}
+		// TODO: unexpected error, log before return
+		callingUser, sErr := restCtrl.Service.DeserializeJwt(jwtToken)
+		if sErr.Error != nil {
+			respondWithServiceError(c, sErr)
+			return
+		}
 
-func (restCtrl *restController) configureMiddleware() (*jwt.GinJWTMiddleware, error) {
-	secretKey, err := generateRandomBytes(100)
-	if err != nil {
-		return &jwt.GinJWTMiddleware{}, err
+		c.Set("callingUser", callingUser)
+		c.Next()
 	}
-
-	missingTokenMsg := "token not found"
-
-	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
-		Realm:         "chefconnect",
-		Key:           secretKey,
-		Timeout:       time.Hour,
-		MaxRefresh:    time.Hour,
-		IdentityKey:   "uid",
-		DisabledAbort: true,
-		TokenLookup:   "header: Authorization",
-		TokenHeadName: "Token",
-		TimeFunc:      time.Now,
-		Authenticator: restCtrl.login,
-		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(jwtClaims); ok {
-				// this logic is for converting the jwtUser struct to a map[string]interface{}
-				// https://stackoverflow.com/a/42849112/13203635
-
-				var claims jwt.MapClaims
-				jsonbody, err := json.Marshal(v)
-				if err != nil {
-					return claims
-				}
-
-				json.Unmarshal(jsonbody, &claims)
-				return claims
-			}
-
-			return jwt.MapClaims{}
-		},
-		Authorizator: func(data interface{}, c *gin.Context) bool {
-			return true //push authorization off to the services layer
-		},
-		// standardize the error message returned if a token is not found, regardless of where it is searched for.
-		// unfortunately, can't rely on the raw error interface as the HTTPStatusMessageFunc returns a string.
-		HTTPStatusMessageFunc: func(err error, c *gin.Context) string {
-			missingJwtSlice := []error{jwt.ErrEmptyAuthHeader, jwt.ErrEmptyQueryToken, jwt.ErrEmptyCookieToken}
-			for _, e := range missingJwtSlice {
-				if e == err {
-					return missingTokenMsg
-				}
-			}
-			return err.Error()
-		},
-		// using the standardized error message on missing token, allow the next middleware to execute if this
-		// func is being called due to a missing token. this is because many resources are accessible regardless
-		// if a user is authenticated, but some resources will return different data depending on authn/z status.
-		Unauthorized: func(c *gin.Context, code int, message string) {
-			if message == missingTokenMsg {
-				c.Next()
-				return
-			}
-
-			c.JSON(code, gin.H{"error": message})
-		},
-	})
-
-	return authMiddleware, err
 }
 
-func (restCtrl *restController) login(c *gin.Context) (interface{}, error) {
+func (restCtrl *restController) requestIdMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		u4, _ := uuid.NewV4()
+		c.Writer.Header().Set("X-Request-Id", u4.String())
+		c.Next()
+	}
+}
+
+func (restCtrl *restController) LoginHandler(c *gin.Context) {
 	// swagger:route POST /login authn login
 	// Authenticate against the app
 	// responses:
@@ -118,22 +74,63 @@ func (restCtrl *restController) login(c *gin.Context) (interface{}, error) {
 
 	var authnReq authnRequest
 	if err := c.ShouldBindJSON(&authnReq); err != nil {
-		return nil, jwt.ErrMissingLoginValues
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	user := &models.User{}
 	copier.Copy(user, &authnReq)
 
-	user, sErr := restCtrl.Service.ValidateCredentials(user)
+	user, sErr := restCtrl.Service.GenerateJwtTokens(user)
 	if sErr.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect username or password"})
 		if sErr.ErrorCode == services.NotAuthorized {
-			return nil, jwt.ErrFailedAuthentication
+			return
 		}
-		return nil, sErr.Error
+
+		// unexpected error received. should log something.
+		// TODO: when logging is implemented
+
+		return
 	}
 
-	claimDetails := jwtClaims{}
-	copier.Copy(&claimDetails, &user)
+	resp := &authnResponse{
+		AuthToken:    user.AuthToken,
+		RefreshToken: user.RefreshToken,
+	}
 
-	return claimDetails, nil
+	c.JSON(http.StatusOK, resp)
+}
+
+func (restCtrl *restController) RefreshHandler(c *gin.Context) {
+	// swagger:route POST /refresh-token authn refresh
+	// Authenticate against the app
+	// responses:
+	//   200: AuthnResponse
+
+	var authnReq authnRequest
+	if err := c.ShouldBindJSON(&authnReq); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, sErr := restCtrl.Service.ExchangeRefreshToken(authnReq.RefreshToken)
+	if sErr.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect username or password"})
+		if sErr.ErrorCode == services.NotAuthorized {
+			return
+		}
+
+		// unexpected error received. should log something.
+		// TODO: when logging is implemented
+
+		return
+	}
+
+	resp := &authnResponse{
+		AuthToken:    user.AuthToken,
+		RefreshToken: user.RefreshToken,
+	}
+
+	c.JSON(http.StatusOK, resp)
 }

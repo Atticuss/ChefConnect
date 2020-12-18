@@ -29,7 +29,7 @@ type dgraphRecipe struct {
 
 	Ingredients          []dgraphIngredient `json:"ingredients,omitempty"`
 	IngredientAmounts    map[string]string  `json:"ingredients|amount,omitempty"`
-	Tags                 []dgraphTag        `json:"ingredient_tags,omitempty"`
+	Tags                 []dgraphTag        `json:"recipe_tags,omitempty"`
 	RatedBy              []dgraphUser       `json:"~ratings,omitempty"`
 	RatingScore          map[string]string  `json:"~ratings|score,omitempty"`
 	FavoritedBy          []dgraphUser       `json:"~favorites,omitempty"`
@@ -112,6 +112,7 @@ func (dRecipe *dgraphRecipe) dgraphToModel(recipe *models.Recipe) error {
 func (d *dgraphRepo) GetAllRecipes() (*models.ManyRecipes, error) {
 	recipes := models.ManyRecipes{}
 	dRecipes := manyDgraphRecipes{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -122,11 +123,16 @@ func (d *dgraphRepo) GetAllRecipes() (*models.ManyRecipes, error) {
 				name
 
 				dgraph.type
+
+				recipe_tags {
+					uid
+					name
+				}
 			}
 		}
 	`
 
-	resp, err := txn.Query(context.Background(), q)
+	resp, err := txn.Query(ctx, q)
 	if err != nil {
 		return &recipes, err
 	}
@@ -144,6 +150,7 @@ func (d *dgraphRepo) GetAllRecipes() (*models.ManyRecipes, error) {
 func (d *dgraphRepo) GetRecipe(id string) (*models.Recipe, error) {
 	recipe := models.Recipe{}
 	dRecipes := manyDgraphRecipes{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -166,7 +173,7 @@ func (d *dgraphRepo) GetRecipe(id string) (*models.Recipe, error) {
 					uid
 					name
 				}
-				tags {
+				recipe_tags {
 					uid
 					name
 				}
@@ -202,7 +209,7 @@ func (d *dgraphRepo) GetRecipe(id string) (*models.Recipe, error) {
 		}
 	`
 
-	resp, err := txn.QueryWithVars(context.Background(), q, variables)
+	resp, err := txn.QueryWithVars(ctx, q, variables)
 	if err != nil {
 		return &recipe, err
 	}
@@ -225,6 +232,7 @@ func (d *dgraphRepo) GetRecipe(id string) (*models.Recipe, error) {
 // CreateRecipe within dgraph
 func (d *dgraphRepo) CreateRecipe(recipe *models.Recipe) (*models.Recipe, error) {
 	dRecipe := dgraphRecipe{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -242,7 +250,7 @@ func (d *dgraphRepo) CreateRecipe(recipe *models.Recipe) (*models.Recipe, error)
 		SetJson:   pb,
 	}
 
-	res, err := txn.Mutate(context.Background(), mu)
+	res, err := txn.Mutate(ctx, mu)
 	if err != nil {
 		return recipe, err
 	}
@@ -255,6 +263,7 @@ func (d *dgraphRepo) CreateRecipe(recipe *models.Recipe) (*models.Recipe, error)
 // UpdateRecipe within dgraph
 func (d *dgraphRepo) UpdateRecipe(recipe *models.Recipe) (*models.Recipe, error) {
 	dRecipe := dgraphRecipe{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
 	defer txn.Discard(context.Background())
 
@@ -276,7 +285,7 @@ func (d *dgraphRepo) UpdateRecipe(recipe *models.Recipe) (*models.Recipe, error)
 		SetJson:   pb,
 	}
 
-	_, err = txn.Mutate(context.Background(), mu)
+	_, err = txn.Mutate(ctx, mu)
 	if err != nil {
 		return recipe, err
 	}
@@ -287,6 +296,7 @@ func (d *dgraphRepo) UpdateRecipe(recipe *models.Recipe) (*models.Recipe, error)
 // DeleteRecipe from dgraph
 func (d *dgraphRepo) DeleteRecipe(id string) error {
 	dRecipes := manyDgraphRecipes{}
+	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
 	defer txn.Discard(context.Background())
 
@@ -315,7 +325,7 @@ func (d *dgraphRepo) DeleteRecipe(id string) error {
 		}
 	`
 
-	resp, err := txn.QueryWithVars(context.Background(), q, variables)
+	resp, err := txn.QueryWithVars(ctx, q, variables)
 	if err != nil {
 		return err
 	}
@@ -331,7 +341,7 @@ func (d *dgraphRepo) DeleteRecipe(id string) error {
 	}
 
 	txn = d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	// Now lets delete all our reverse edges by referencing the parent node as the subject
 	for _, dRecipe := range dRecipes.Recipes[0].RelatedRecipesParent {
@@ -345,7 +355,7 @@ func (d *dgraphRepo) DeleteRecipe(id string) error {
 			},
 		}
 
-		_, err = txn.Mutate(context.Background(), mu)
+		_, err = txn.Mutate(ctx, mu)
 		if err != nil {
 			return err
 		}
@@ -362,7 +372,7 @@ func (d *dgraphRepo) DeleteRecipe(id string) error {
 			},
 		}
 
-		_, err = txn.Mutate(context.Background(), mu)
+		_, err = txn.Mutate(ctx, mu)
 		if err != nil {
 			return err
 		}
@@ -379,7 +389,7 @@ func (d *dgraphRepo) DeleteRecipe(id string) error {
 			},
 		}
 
-		_, err = txn.Mutate(context.Background(), mu)
+		_, err = txn.Mutate(ctx, mu)
 		if err != nil {
 			return err
 		}
@@ -396,7 +406,7 @@ func (d *dgraphRepo) DeleteRecipe(id string) error {
 			},
 		}
 
-		_, err = txn.Mutate(context.Background(), mu)
+		_, err = txn.Mutate(ctx, mu)
 		if err != nil {
 			return err
 		}
@@ -413,7 +423,7 @@ func (d *dgraphRepo) DeleteRecipe(id string) error {
 		CommitNow:  true,
 		DeleteJson: pb,
 	}
-	_, err = txn.Mutate(context.Background(), mu)
+	_, err = txn.Mutate(ctx, mu)
 	if err != nil {
 		return err
 	}

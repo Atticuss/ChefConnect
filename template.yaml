@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: ChefConnect API
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [prod, dev]
+    Default: dev
+    Description: Target deployment environment. Defaults to "dev".
+  DgraphAuthToken:
+    Type: String
+    Description: Auth token for the dgraph server
+
+# CFN can't handle tearing down ENIs associated with VPC-deployed Lambdas. recommended
+# solution is to create VPC resource in a separate CF stack. to address this, split up
+# the CFN templates for VPC infra and API GW/Lambda code resources.
+# ref: https://github.com/serverless/serverless/issues/5008
+Resources:
+  InfraDeployment:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: infra.yaml
+  CodeDeployment:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: code.yaml
+      Parameters:
+        Environment: !Ref Environment
+        DgraphAuthToken: !Ref DgraphAuthToken
+        SecurityGroup:
+          Fn::GetAtt: [InfraDeployment, Outputs.LambdaSecurityGroup]
+        SubnetIdList:
+          Fn::GetAtt: [InfraDeployment, Outputs.SubnetIdList]

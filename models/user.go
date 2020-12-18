@@ -8,6 +8,10 @@ type User struct {
 	Password    string
 	RatingScore int
 
+	AuthToken            string
+	RefreshToken         string
+	RefreshTokenIssuedAt int64
+
 	Favorites []Recipe
 	Notes     []Note
 	Ratings   []Recipe

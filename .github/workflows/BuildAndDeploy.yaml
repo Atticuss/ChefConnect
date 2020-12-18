@@ -1,0 +1,75 @@
+name: Build and Deploy
+on:
+  push:
+    branches:
+      - dev
+      - prod
+jobs:
+  dev-deploy:
+    name: Deploy to Dev
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - name: Source checkout
+        uses: actions/checkout@master
+
+      - name: Setup Golang env
+        uses: actions/setup-go@v1
+        with:
+          go-version: "1.14.4"
+
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          pip install aws-sam-cli && sudo apt update && sudo apt install build-essential
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+
+      - name: Build to Dev
+        run: |
+          make buildLambda
+          sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sam-chefconnect-dev
+          sam deploy --template-file packaged.yaml --stack-name sam-chefconnect-dev --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM CAPABILITY_NAMED_IAM --region us-east-1 --parameter-overrides Environment=${GITHUB_REF##*/} DgraphAuthToken=${{ secrets.DGRAPH_TOKEN_DEV }} JwtSecretKey=${{ secrets.JWT_SECRET_DEV }}
+  prod-deploy:
+    name: Deploy to Prod
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Source checkout
+        uses: actions/checkout@master
+
+      - name: Setup Golang env
+        uses: actions/setup-go@v1
+        with:
+          go-version: "1.14.4"
+
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: |
+          pip install aws-sam-cli && sudo apt update && sudo apt install build-essential
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+
+      - name: Build to Dev
+        run: |
+          make buildLambda
+          sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket sam-chefconnect-dev
+          sam deploy --template-file packaged.yaml --stack-name sam-chefconnect-dev --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM CAPABILITY_NAMED_IAM --region us-east-1 --parameter-overrides Environment=${GITHUB_REF##*/} DgraphAuthToken=${{ secrets.DGRAPH_TOKEN_DEV }} JwtSecretKey=${{ secrets.JWT_SECRET_PROD }}
