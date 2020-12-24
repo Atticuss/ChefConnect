@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -67,6 +68,7 @@ func (restCtlr *restController) SetupController() error {
 	router.Use(gin.Recovery())
 	router.Use(restCtlr.setLogger(restCtlr.Config))
 	router.Use(restCtlr.jwtDeserializationMiddleware())
+	router.Use(restCtlr.requestIdMiddleware())
 
 	router.Use(corsMiddleware())
 	router.GET("/ping", healthCheck)
@@ -164,6 +166,14 @@ func (restCtlr *restController) handler(req events.APIGatewayProxyRequest) (even
 
 func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, []string{})
+}
+
+func (restCtrl *restController) requestIdMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		u4, _ := uuid.NewV4()
+		c.Writer.Header().Set("X-Request-Id", u4.String())
+		c.Next()
+	}
 }
 
 func swagger(c *gin.Context) {
