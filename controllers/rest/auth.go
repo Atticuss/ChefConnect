@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 
 	"github.com/atticuss/chefconnect/models"
@@ -48,20 +47,12 @@ func (restCtrl *restController) jwtDeserializationMiddleware() gin.HandlerFunc {
 
 		// TODO: unexpected error, log before return
 		callingUser, sErr := restCtrl.Service.DeserializeJwt(jwtToken)
-		if sErr.Error != nil {
+		if sErr.Error != nil && sErr.ErrorCode != services.NotAuthorized {
 			respondWithServiceError(c, sErr)
-			return
+			c.Abort()
 		}
 
 		c.Set("callingUser", callingUser)
-		c.Next()
-	}
-}
-
-func (restCtrl *restController) requestIdMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		u4, _ := uuid.NewV4()
-		c.Writer.Header().Set("X-Request-Id", u4.String())
 		c.Next()
 	}
 }
@@ -116,13 +107,12 @@ func (restCtrl *restController) RefreshHandler(c *gin.Context) {
 
 	user, sErr := restCtrl.Service.ExchangeRefreshToken(authnReq.RefreshToken)
 	if sErr.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect username or password"})
-		if sErr.ErrorCode == services.NotAuthorized {
-			return
-		}
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid refresh token"})
 
 		// unexpected error received. should log something.
 		// TODO: when logging is implemented
+		if sErr.ErrorCode != services.NotAuthorized {
+		}
 
 		return
 	}
