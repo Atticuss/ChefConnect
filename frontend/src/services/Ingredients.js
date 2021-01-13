@@ -21,5 +21,18 @@ export default {
       .then(response => {
         return Promise.resolve(response.data);
       });
+  },
+
+  searchIngredients(searchTerm) {
+    return axios
+      .get(
+        `${process.env.VUE_APP_ROOT_DOMAIN}/search/ingredients/${searchTerm}`
+      )
+      .catch(error => {
+        return Promise.reject(error);
+      })
+      .then(response => {
+        return Promise.resolve(response.data);
+      });
   }
 };

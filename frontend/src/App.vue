@@ -1,17 +1,42 @@
 <template>
   <div id="app">
-    <TopNav />
-    <router-view />
+    <TopNav :state="state" />
+    <Router :state="state" />
   </div>
 </template>
 
 <script>
 import TopNav from "./components/TopNav.vue";
+import Router from "./components/Router.vue";
+import Api from "@/services/Api.js";
+
+var state = {
+  isAuthd: false,
+  name: "",
+  setIsAuthd(val) {
+    this.isAuthd = val;
+  },
+  setName(val) {
+    this.name = val;
+  }
+};
 
 export default {
   name: "App",
   components: {
-    TopNav
+    TopNav,
+    Router
+  },
+  // a stupid hack to get around es-lint-prettier enforcing
+  // unused imports. but the only thing within Api.js are
+  // interceptors for handling re-auth on token expiry.
+  created() {
+    Api.nop();
+  },
+  data() {
+    return {
+      state: state
+    };
   }
 };
 </script>

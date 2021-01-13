@@ -14,26 +14,28 @@
       </mdb-modal-body>
     </mdb-modal>
 
-    <mdb-row v-else>
-      <mdb-col col="11">
-        <Recipe
-          v-for="(recipe, index) in recipes"
-          :index="index"
-          :key="index"
-          :uid="recipe.uid"
-          :name="recipe.name"
-          :tags="recipe.tags"
-          @delete="handleDelete"
-        />
-        <mdb-row>
-          <mdb-col xl="3" md="6" class="mx-auto text-center">
-            <mdb-btn color="info" @click.native="modal = true"
-              >Add Recipe</mdb-btn
-            >
-          </mdb-col>
-        </mdb-row>
-      </mdb-col>
-    </mdb-row>
+    <mdb-tbl v-else>
+      <mdb-row>
+        <mdb-col col="11">
+          <Recipe
+            v-for="(recipe, index) in recipes"
+            :index="index"
+            :key="index"
+            :uid="recipe.uid"
+            :name="recipe.name"
+            :tags="recipe.tags"
+            @delete="handleDelete"
+          />
+          <mdb-row v-if="state.isAuthd">
+            <mdb-col xl="3" md="6" class="mx-auto text-center">
+              <mdb-btn color="info" @click.native="modal = true"
+                >Add Recipe</mdb-btn
+              >
+            </mdb-col>
+          </mdb-row>
+        </mdb-col>
+      </mdb-row>
+    </mdb-tbl>
 
     <NewRecipe v-bind:modal.sync="modal"> </NewRecipe>
     <Auth> </Auth>
@@ -43,6 +45,7 @@
 <script>
 import {
   mdbContainer,
+  mdbTbl,
   mdbRow,
   mdbCol,
   mdbBtn,
@@ -58,6 +61,7 @@ export default {
   name: "RecipeIndex",
   components: {
     mdbContainer,
+    mdbTbl,
     mdbRow,
     mdbCol,
     mdbBtn,
@@ -66,6 +70,11 @@ export default {
     Recipe,
     NewRecipe,
     Auth
+  },
+  props: {
+    state: {
+      type: Object
+    }
   },
   data() {
     return {

@@ -6,7 +6,12 @@
       >
     </mdb-modal-header>
     <mdb-modal-body>
-      <form class="mx-3 grey-text" @keyup.enter.native="saveIngredient">
+      <ul class="list-group text-center" v-if="error.length > 0">
+        <li class="list-group-item">
+          {{ error }}
+        </li>
+      </ul>
+      <form class="mx-3 grey-text" @keyup.enter="saveIngredient">
         <mdb-input
           name="name"
           label="Name"
@@ -14,12 +19,14 @@
           placeholder="Avacado"
           type="text"
           @input="handleInput($event, 'name')"
-          @keyup.enter.native="saveIngredient"
+          @keyup.enter="saveIngredient"
         />
       </form>
     </mdb-modal-body>
     <mdb-modal-footer class="justify-content-center">
-      <mdb-btn color="info" @click.native="saveIngredient">Add</mdb-btn>
+      <mdb-btn color="info" @click="saveIngredient">
+        Add
+      </mdb-btn>
     </mdb-modal-footer>
   </mdb-modal>
 </template>
@@ -36,7 +43,7 @@ import {
 } from "mdbvue";
 import IngredientAPI from "@/services/Ingredients.js";
 export default {
-  name: "NewIngredient",
+  name: "NewIngredientModal",
   components: {
     mdbBtn,
     mdbModal,
@@ -53,7 +60,8 @@ export default {
   },
   data() {
     return {
-      data: {}
+      data: {},
+      error: ""
     };
   },
   methods: {
@@ -61,10 +69,16 @@ export default {
       this.data[type] = val;
     },
     saveIngredient() {
-      IngredientAPI.createIngredient(this.data).then(data => {
-        this.$emit("update:modal", false);
-        this.$root.$emit("new-ingredient", data);
-      });
+      IngredientAPI.createIngredient(this.data)
+        .then(data => {
+          this.$emit("update:modal", false);
+          this.$root.$emit("new-ingredient", data);
+        })
+        .catch(
+          function() {
+            this.error = "An error ocurred";
+          }.bind(this)
+        );
     },
     handleClose() {
       this.$emit("update:modal", false);

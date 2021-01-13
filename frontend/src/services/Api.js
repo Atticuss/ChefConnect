@@ -1,5 +1,12 @@
 import axios from "axios";
 
+// a stupid hack to get around es-lint-prettier enforcing
+// unused imports. the only functionality here are
+// interceptors for handling re-auth on token expiry.
+export default {
+  nop() {}
+};
+
 var url2path = function(url) {
   return url;
 };
@@ -19,6 +26,8 @@ axios.interceptors.response.use(
     var path = url2path(originalRequest.url);
 
     if (error.response.status === 401 && path === "/auth/refresh-token") {
+      console.log("failed to refresh token");
+      console.log(error.response);
       return Promise.reject(error);
     }
 

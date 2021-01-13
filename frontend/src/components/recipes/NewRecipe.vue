@@ -1,5 +1,5 @@
 <template>
-  <mdb-modal container fluid v-if="modal" @close="handleClose()">
+  <mdb-modal container fluid v-if="modal" @close="handleClose()" size="lg">
     <mdb-modal-header>
       <mdb-modal-title tag="h4" class="w-100 text-center font-weight-bold"
         >Add new recipe</mdb-modal-title
@@ -10,7 +10,7 @@
         <mdb-input
           name="name"
           label="Name"
-          placeholder="Artisinally, hand-crafted PB&J"
+          placeholder="Artisinally hand-crafted PB&J"
           type="text"
           @input="handleInput($event, 'name')"
         />
@@ -55,41 +55,46 @@
           @input="handleInput($event, 'directions')"
         />
 
-        <p>
-          Ingredients
-        </p>
+        <mdb-row class="justify-content-between">
+          <mdb-col col="8">
+            <mdb-row>
+              <mdb-col col="1">
+                <mdb-badge
+                  @click.native="numIngredients += 1"
+                  tag="a"
+                  color="info-color"
+                  class="ml-2 mt-2 justify-content-left"
+                >
+                  +
+                </mdb-badge>
+              </mdb-col>
 
-        <mdb-btn
-          color="info"
-          class="justify-content-left"
-          size="sm"
-          @click.native="numIngredients += 1"
-        >
-          Add
-        </mdb-btn>
+              <mdb-col>
+                <p class="h5 mt-2">
+                  Add Ingredients
+                </p>
+              </mdb-col>
+            </mdb-row>
+          </mdb-col>
 
-        <mdb-btn
-          color="info"
-          class="justify-content-left"
-          size="sm"
-          @click.native="addNewIngredient()"
-        >
-          New
-        </mdb-btn>
+          <mdb-col col="3">
+            <NewIngredientDropRight />
+          </mdb-col>
+        </mdb-row>
 
         <mdb-tbl>
           <mdb-row
-            v-for="idx in numIngredients"
+            v-for="(item, idx) in numIngredients"
             :index="idx"
             :key="idx"
-            class="justify-content-start"
+            class="justify-content-center"
           >
             <mdb-col col="1" class="my-lg-4">
               <mdb-badge
                 @click.native="onDelete"
                 tag="a"
                 color="danger-color"
-                class="ml-2 float-center"
+                class="ml-2 mt-3"
               >
                 -
               </mdb-badge>
@@ -97,15 +102,13 @@
 
             <mdb-col col="7">
               <mdb-select
-                :filter="
-                  (text, search) => {
-                    return text.includes(search);
-                  }
-                "
-                v-model="ingredients[idx - 1]"
+                v-model="ingredients[idx]"
+                search
+                @search="handleIngredientSearch($event, idx)"
+                @change="handleArrayInput($event, 'ingredients', 'uid', idx)"
+                disableFilter
                 placeholder="Select an ingredient"
                 label=""
-                search
               >
               </mdb-select>
             </mdb-col>
@@ -137,6 +140,7 @@
                 search
                 multiple
                 selectAll
+                @change="handleMultiSelectInput($event, 'tags')"
               />
             </mdb-col>
 
@@ -153,6 +157,7 @@
                 search
                 multiple
                 selectAll
+                @change="handleMultiSelectInput($event, 'related_recipes')"
               />
             </mdb-col>
           </mdb-row>
@@ -181,6 +186,8 @@ import {
   mdbSelect
 } from "mdbvue";
 
+import NewIngredientDropRight from "@/components/ingredients/NewIngredientDropRight";
+
 import IngredientAPI from "@/services/Ingredients.js";
 import TagAPI from "@/services/Tags.js";
 import RecipeAPI from "@/services/Recipes.js";
@@ -199,7 +206,8 @@ export default {
     mdbModalBody,
     mdbModalFooter,
     mdbInput,
-    mdbSelect
+    mdbSelect,
+    NewIngredientDropRight
   },
   props: {
     modal: {
@@ -208,21 +216,16 @@ export default {
   },
   data() {
     return {
-      newValues: [],
+      newValues: {},
       render: false,
       ingredients: [],
       numIngredients: 1,
       tags: [],
-      recipes: []
+      recipes: [],
+      showNewIngredient: true
     };
   },
   created() {
-    IngredientAPI.getIngredients().then(data => {
-      this.ingredients[0] = data.ingredients.map(ing => {
-        return { text: ing.name, value: ing.uid };
-      });
-    });
-
     TagAPI.getTags().then(data => {
       this.tags = data.tags.map(tag => {
         return { text: tag.name, value: tag.uid };
@@ -256,18 +259,12 @@ export default {
       this.recipes.splice(eventIndex, 1);
     },
     handleInput(val, type) {
-      console.log(`handleInput(${val}, ${type})`);
       this.newValues[type] = val;
     },
     handleArrayInput(val, type, prop, idx) {
-      console.log(`handleArrayInput(${val}, ${type}, ${prop}, ${idx})`);
-      console.log(this.ingredients[0]);
-      this.selectedIngredients[idx] = {
-        selected: true,
-        text: val,
-        value: val
-      };
-      console.log(this.selectedIngredients[idx]);
+      if (val == null) {
+        return;
+      }
 
       if (!Object.prototype.hasOwnProperty.call(this.newValues, type)) {
         this.newValues[type] = [];
@@ -277,8 +274,25 @@ export default {
         this.newValues[type][idx] = {};
       }
 
-      //this.newValues[type][idx] = { uid: val };
       this.newValues[type][idx][prop] = val;
+    },
+    handleIngredientSearch(text, idx) {
+      if (text.length >= 3) {
+        IngredientAPI.searchIngredients(text).then(data => {
+          let options = data.ingredients.map(ing => {
+            return { text: ing.name, value: ing.uid, index: 0 };
+          });
+
+          // required for a state update to trigger. more details:
+          // https://vuejs.org/v2/guide/reactivity.html#For-Arrays
+          this.$set(this.ingredients, idx, options);
+        });
+      }
+    },
+    handleMultiSelectInput(val, type) {
+      console.log(`handleMultiSelectInput(${val}, ${type})`);
+      console.log(val);
+      this.newValues[type] = val;
     },
     saveRecipe() {
       //IngredientAPI.createIngredient(this.newValues).then(function() {
