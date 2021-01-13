@@ -21,6 +21,7 @@ type Repository interface {
 	CreateIngredient(*models.Ingredient) (*models.Ingredient, error)
 	UpdateIngredient(*models.Ingredient) (*models.Ingredient, error)
 	DeleteIngredient(id string) error
+	SearchIngredientByName(searchTearm string) (*models.ManyIngredients, error)
 
 	GetRecipe(id string) (*models.Recipe, error)
 	GetAllRecipes() (*models.ManyRecipes, error)

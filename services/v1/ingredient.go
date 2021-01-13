@@ -98,3 +98,13 @@ func (s *v1Service) DeleteIngredient(callingUser *models.User, id string) *servi
 
 	return &nilErr
 }
+
+// IngredientSearch handles the business logic when a client searches for an ingredient
+func (s *v1Service) IngredientSearch(callingUser *models.User, searchTerm string) (*models.ManyIngredients, *services.ServiceError) {
+	ingredients, err := s.Repository.SearchIngredientByName(searchTerm)
+	if err != nil {
+		return ingredients, &services.ServiceError{Error: err}
+	}
+
+	return ingredients, &nilErr
+}

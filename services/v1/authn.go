@@ -39,7 +39,8 @@ func compareHash(password, hash string) bool {
 func generateJwt(secretKey string, tokenExpiryPeriod int, user *models.User) (string, error) {
 	claimDetails := jwtClaims{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Unix() + int64(tokenExpiryPeriod),
+			//ExpiresAt: time.Now().Unix() + int64(tokenExpiryPeriod),
+			ExpiresAt: time.Now().Unix() + 10,
 			IssuedAt:  time.Now().Unix(),
 			Audience:  "Authentication",
 		},
