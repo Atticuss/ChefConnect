@@ -7,6 +7,11 @@
     </mdb-modal-header>
     <mdb-modal-body>
       <form class="mx-3 grey-text">
+        <ul class="list-group text-center" v-if="error.length > 0">
+          <li class="list-group-item">
+            {{ error }}
+          </li>
+        </ul>
         <mdb-input
           name="name"
           label="Name"
@@ -216,6 +221,7 @@ export default {
   },
   data() {
     return {
+      error: "",
       newValues: {},
       render: false,
       ingredients: [],
@@ -290,15 +296,25 @@ export default {
       }
     },
     handleMultiSelectInput(val, type) {
-      console.log(`handleMultiSelectInput(${val}, ${type})`);
-      console.log(val);
-      this.newValues[type] = val;
+      if (val.length == 0) {
+        delete this.newValues[type];
+      } else {
+        this.newValues[type] = val;
+      }
     },
     saveRecipe() {
-      //IngredientAPI.createIngredient(this.newValues).then(function() {
-      //  this.$emit("update:modal", false);
-      //});
-      console.log(this.newValues);
+      RecipeAPI.createRecipe(this.newValues)
+        .then(
+          function() {
+            this.error = "";
+            this.$emit("update:modal", false);
+          }.bind(this)
+        )
+        .catch(
+          function() {
+            this.error = "An error ocurred";
+          }.bind(this)
+        );
     },
     handleClose() {
       this.$emit("update:modal", false);
