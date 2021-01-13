@@ -89,6 +89,11 @@ export default {
       this.loading = false;
     });
   },
+  mounted() {
+    this.$root.$on("new-recipe", data => {
+      this.recipes.push(data);
+    });
+  },
   methods: {
     handleDelete() {
       console.log("deleted! but not really");

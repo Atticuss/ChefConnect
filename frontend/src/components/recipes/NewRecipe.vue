@@ -197,6 +197,8 @@ import IngredientAPI from "@/services/Ingredients.js";
 import TagAPI from "@/services/Tags.js";
 import RecipeAPI from "@/services/Recipes.js";
 
+var intTypeList = ["prep_time", "cook_time", "total_servings"];
+
 export default {
   name: "NewRecipe",
   components: {
@@ -266,6 +268,10 @@ export default {
     },
     handleInput(val, type) {
       this.newValues[type] = val;
+
+      if (intTypeList.includes(type)) {
+        this.newValues[type] = parseInt(val);
+      }
     },
     handleArrayInput(val, type, prop, idx) {
       if (val == null) {
@@ -304,12 +310,11 @@ export default {
     },
     saveRecipe() {
       RecipeAPI.createRecipe(this.newValues)
-        .then(
-          function() {
-            this.error = "";
-            this.$emit("update:modal", false);
-          }.bind(this)
-        )
+        .then(data => {
+          this.error = "";
+          this.$emit("update:modal", false);
+          this.$root.$emit("new-recipe", data);
+        })
         .catch(
           function() {
             this.error = "An error ocurred";
