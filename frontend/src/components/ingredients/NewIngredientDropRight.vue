@@ -54,7 +54,6 @@ export default {
       this.data[type] = val;
     },
     saveIngredient() {
-      console.log(this.data);
       IngredientAPI.createIngredient(this.data)
         .then(data => {
           this.$emit("update:modal", false);
