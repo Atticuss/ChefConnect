@@ -21,6 +21,7 @@ type Service interface {
 	CreateIngredient(callingUser *models.User, igredient *models.Ingredient) (*models.Ingredient, *ServiceError)
 	UpdateIngredient(callingUser *models.User, ingredient *models.Ingredient) (*models.Ingredient, *ServiceError)
 	DeleteIngredient(callingUser *models.User, id string) *ServiceError
+	IngredientSearch(callingUser *models.User, searchTerm string) (*models.ManyIngredients, *ServiceError)
 
 	GetAllRecipes(callingUser *models.User) (*models.ManyRecipes, *ServiceError)
 	GetRecipe(callingUser *models.User, id string) (*models.Recipe, *ServiceError)

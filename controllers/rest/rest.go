@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -67,6 +68,7 @@ func (restCtlr *restController) SetupController() error {
 	router.Use(gin.Recovery())
 	router.Use(restCtlr.setLogger(restCtlr.Config))
 	router.Use(restCtlr.jwtDeserializationMiddleware())
+	router.Use(restCtlr.requestIdMiddleware())
 
 	router.Use(corsMiddleware())
 	router.GET("/ping", healthCheck)
@@ -119,6 +121,18 @@ func (restCtlr *restController) SetupController() error {
 		roleRouter.GET("/:id", restCtlr.getRole)
 	}
 
+	// ideally, we would tie this functionality to a route like:
+	//		/ingredients/search/:searchTerm
+	// however, limitations in how httprouter (used internally by Gin) maps out
+	// routes, this isn't possible. trying to define this route causes compilation
+	// errors as the "/ingredients/search" path conflicts with the "/ingredients/:id"
+	// path. instead of using my own sub-router or implementing a middleware, i'm
+	// just going to create search-specific routes
+	searchRouter := router.Group("/search")
+	{
+		searchRouter.GET("/ingredients/:searchTerm", restCtlr.searchIngredients)
+	}
+
 	if restCtlr.Config.IsLambda {
 		restCtlr.GinRouter = ginadapter.New(router)
 	} else {
@@ -164,6 +178,14 @@ func (restCtlr *restController) handler(req events.APIGatewayProxyRequest) (even
 
 func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, []string{})
+}
+
+func (restCtrl *restController) requestIdMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		u4, _ := uuid.NewV4()
+		c.Writer.Header().Set("X-Request-Id", u4.String())
+		c.Next()
+	}
 }
 
 func swagger(c *gin.Context) {

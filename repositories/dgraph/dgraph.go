@@ -52,7 +52,7 @@ func (d *dgraphRepo) InitializeSchema() error {
 	op := &api.Operation{}
 
 	op.Schema = `
-		name: string @index(term) .
+		name: string @index(term, trigram) .
 		url: string .
 		domain: string .
 		directions: string .
@@ -64,16 +64,13 @@ func (d *dgraphRepo) InitializeSchema() error {
 		total_servings: int .
 		related_recipes: [uid] @reverse .
 		ratings: [uid] @reverse .
-		score: int .
 		owner: [uid] @reverse .
 		username: string @index(exact) .
 		password: string .
 		roles: [uid] @reverse .
 		favorites: [uid] @reverse .
-		user_notes: [uid] @reverse .
-		recipe_notes: [uid] @reverse .
 		has_been_tried: bool @index(bool) .
-		text: string .
+		text: string @index (fulltext) .
 		amount: string .
 		refresh_token: string @index(exact) .
 		refresh_token_iat: int .

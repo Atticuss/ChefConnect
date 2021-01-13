@@ -39,7 +39,8 @@ func compareHash(password, hash string) bool {
 func generateJwt(secretKey string, tokenExpiryPeriod int, user *models.User) (string, error) {
 	claimDetails := jwtClaims{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Unix() + int64(tokenExpiryPeriod),
+			//ExpiresAt: time.Now().Unix() + int64(tokenExpiryPeriod),
+			ExpiresAt: time.Now().Unix() + 10,
 			IssuedAt:  time.Now().Unix(),
 			Audience:  "Authentication",
 		},
@@ -138,15 +139,19 @@ func (s *v1Service) DeserializeJwt(jwtToken string) (*models.User, *services.Ser
 	})
 
 	if err != nil {
+		fmt.Printf("err1: %+v\n", err)
 		return user, &services.ServiceError{
 			Error:     err,
 			ErrorCode: services.NotAuthorized,
 		}
 	}
 
-	if claims, ok := token.Claims.(*jwtClaims); ok && token.Valid {
+	claims, ok := token.Claims.(*jwtClaims)
+	if ok && token.Valid {
 		copier.Copy(user, claims)
 	} else {
+		fmt.Printf("ok: %+v\n", ok)
+		fmt.Printf("token: %+v\n", token)
 		return user, &services.ServiceError{
 			Error:     errors.New("invalid JWT token provided"),
 			ErrorCode: services.NotAuthorized,

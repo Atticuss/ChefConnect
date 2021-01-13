@@ -3,6 +3,8 @@ package dgraph
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 
 	"github.com/dgraph-io/dgo/v2"
 	"github.com/dgraph-io/dgo/v2/protos/api"
@@ -197,4 +199,52 @@ func (d *dgraphRepo) DeleteIngredient(id string) error {
 	}
 
 	return nil
+}
+
+// SearchIngredientByName from dgraph
+func (d *dgraphRepo) SearchIngredientByName(searchTerm string) (*models.ManyIngredients, error) {
+	ingredients := models.ManyIngredients{}
+	dIngredients := manyDgraphIngredients{}
+	ctx := d.buildAuthContext(context.Background())
+	txn := d.Client.NewReadOnlyTxn()
+	defer txn.Discard(context.Background())
+
+	if len(searchTerm) < 3 {
+		return &ingredients, errors.New("`searchTerm` must be at least 3 characters long")
+	}
+
+	searchTerm = fmt.Sprintf("%s%s%s", "/.*", searchTerm, ".*/i")
+	variables := map[string]string{"$searchTerm": searchTerm}
+	const q = `
+		query all($searchTerm: string) {
+			ingredients(func: regexp(name, $searchTerm)) @filter(type(Ingredient)) {
+				uid
+				name
+				dgraph.type
+
+				tags {
+					uid
+					name
+				}
+
+				~ingredients {
+					uid
+					name
+				}
+			}
+		}
+	`
+
+	resp, err := txn.QueryWithVars(ctx, q, variables)
+	if err != nil {
+		return &ingredients, err
+	}
+
+	err = json.Unmarshal(resp.Json, &dIngredients)
+	if err != nil {
+		return &ingredients, err
+	}
+
+	copier.Copy(&ingredients, &dIngredients)
+	return &ingredients, nil
 }

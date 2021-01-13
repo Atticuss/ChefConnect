@@ -48,13 +48,13 @@ func (restCtrl *restController) getAllIngredients(c *gin.Context) {
 	// responses:
 	//   200: ManyIngredients
 
-	ingredientsResp := manyIngredients{}
 	callingUserInterface, _ := c.Get("callingUser")
 	callingUser, _ := callingUserInterface.(*models.User)
 
 	if ingredients, sErr := restCtrl.Service.GetAllIngredients(callingUser); sErr.Error != nil {
 		respondWithServiceError(c, sErr)
 	} else {
+		ingredientsResp := manyIngredients{}
 		copier.Copy(&ingredientsResp, &ingredients)
 		c.JSON(http.StatusOK, ingredientsResp)
 	}
@@ -149,5 +149,24 @@ func (restCtrl *restController) deleteIngredient(c *gin.Context) {
 		respondWithServiceError(c, sErr)
 	} else {
 		c.JSON(http.StatusOK, map[string]string{})
+	}
+}
+
+func (restCtrl *restController) searchIngredients(c *gin.Context) {
+	// swagger:route GET /ingredients/search/{} ingredients searchIngredients
+	// Search for an ingredient, by name
+	// responses:
+	//   200
+
+	searchTerm := c.Param("searchTerm")
+	callingUserInterface, _ := c.Get("callingUser")
+	callingUser, _ := callingUserInterface.(*models.User)
+
+	if ingredients, sErr := restCtrl.Service.IngredientSearch(callingUser, searchTerm); sErr.Error != nil {
+		respondWithServiceError(c, sErr)
+	} else {
+		ingredientsResp := manyIngredients{}
+		copier.Copy(&ingredientsResp, ingredients)
+		c.JSON(http.StatusOK, ingredientsResp)
 	}
 }
