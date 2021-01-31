@@ -22,33 +22,32 @@
 </template>
 
 <script>
-import { mdbBadge, mdbIcon } from "mdbvue";
+import { mdbBadge } from "mdbvue";
 
 export default {
   name: "Ingredient",
   components: {
-    mdbBadge,
-    mdbIcon,
+    mdbBadge
   },
   props: {
     index: {
-      type: Number,
+      type: Number
     },
     uid: {
-      type: String,
+      type: String
     },
     name: {
-      type: String,
+      type: String
     },
     tags: {
-      type: Array,
-    },
+      type: Array
+    }
   },
   methods: {
     onDelete() {
       this.$emit("delete", this.index);
-    },
-  },
+    }
+  }
 };
 </script>
 

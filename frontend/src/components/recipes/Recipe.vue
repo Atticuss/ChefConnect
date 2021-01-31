@@ -22,13 +22,12 @@
 </template>
 
 <script>
-import { mdbBadge, mdbIcon } from "mdbvue";
+import { mdbBadge } from "mdbvue";
 
 export default {
   name: "Recipe",
   components: {
-    mdbBadge,
-    mdbIcon
+    mdbBadge
   },
   props: {
     index: {

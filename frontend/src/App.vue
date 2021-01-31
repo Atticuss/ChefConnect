@@ -41,9 +41,13 @@ export default {
 };
 </script>
 
+<!-- 
 <style lang="scss">
 $image-path: "~@/../mdb/mdbvue/img";
 @import "~@/../mdb/mdbvue/scss/mdb-pro.scss";
 
 @import url("https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap");
 </style>
+-->
+
+<style></style>
