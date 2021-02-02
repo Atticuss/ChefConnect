@@ -300,5 +300,7 @@ Resources:
       Type: A
 
 Outputs:
-  Endpoint:
-    Value: !FindInMap [EnvMap, !Ref Environment, domain]
+  StaticDomain:
+    Value: !FindInMap [EnvMap, !Ref Environment, staticDomain]
+  APIDomain:
+    Value: !FindInMap [EnvMap, !Ref Environment, apiDomain]
