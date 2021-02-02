@@ -261,7 +261,7 @@ Resources:
               DomainName: !Join
                 - ""
                 - - !FindInMap [EnvMap, !Ref Environment, bucketName]
-                  - ".s3-website.us-west-2.amazonaws.com"
+                  - ".s3-website.us-east-1.amazonaws.com"
               CustomOriginConfig:
                 OriginProtocolPolicy: http-only
           # Don't do any forwarding, send all through to the S3 origin.
