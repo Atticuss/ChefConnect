@@ -25,10 +25,6 @@ Parameters:
     Type: String
     Default: "sg-0a8152dc68b10c5e4"
     Description: The database EC2 server SG. An ingress rule will be created, allowing Lambdas to interact with it.
-  DatabaseVpc:
-    Type: String
-    Default: "vpc-e8847d8d"
-    Description: The VPC which the dgraph EC2 is deployed to.
 
 Resources:
   InfraVpc:
@@ -44,34 +40,45 @@ Resources:
   InternetGateway:
     Type: "AWS::EC2::InternetGateway"
 
-  VPCGatewayAttachment:
+  NATGateway:
+    Type: "AWS::EC2::NatGateway"
+    Properties:
+      AllocationId: !GetAtt EIPAllocation.AllocationId
+      SubnetId: !Ref PublicSubnet01
+
+  EIPAllocation:
+    Type: AWS::EC2::EIP
+    Properties: 
+      Domain: "vpc"
+
+  InternetGatewayAttachment:
     Type: "AWS::EC2::VPCGatewayAttachment"
     Properties:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref InfraVpc
 
-  RouteTable:
+  PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref InfraVpc
 
-  Route:
-    DependsOn: VPCGatewayAttachment
+  PublicRoute:
+    DependsOn: InternetGatewayAttachment
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref RouteTable
+      RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  PxnRoute:
+  PrivateRoute:
     DependsOn: VPCGatewayAttachment
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref RouteTable
-      DestinationCidrBlock: 172.31.0.0/16
-      VpcPeeringConnectionId: !Ref PeeringConn
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
 
-  Subnet01:
+  PublicSubnet01:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone:
@@ -86,7 +93,7 @@ Resources:
         - Key: Project
           Value: !Ref ProjectName
 
-  Subnet02:
+  PrivateSubnet01:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone:
@@ -96,12 +103,12 @@ Resources:
               Ref: AWS::Region
       CidrBlock: !Select [1, !Ref SubnetBlocks]
       VpcId: !Ref InfraVpc
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: Project
           Value: !Ref ProjectName
 
-  Subnet03:
+  PrivateSubnet02:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone:
@@ -111,28 +118,28 @@ Resources:
               Ref: AWS::Region
       CidrBlock: !Select [2, !Ref SubnetBlocks]
       VpcId: !Ref InfraVpc
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: false
       Tags:
         - Key: Project
           Value: !Ref ProjectName
 
-  Subnet01RouteTableAssociation:
+  PublicSubnet01RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref Subnet01
-      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref PublicSubnet01
+      RouteTableId: !Ref PublicRouteTable
 
-  Subnet02RouteTableAssociation:
+  PrivateSubnet01RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref Subnet02
-      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref PrivateSubnet01
+      RouteTableId: !Ref PrivateRouteTable
 
-  Subnet03RouteTableAssociation:
+  PrivateSubnet02RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref Subnet03
-      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref PrivateSubnet02
+      RouteTableId: !Ref PrivateRouteTable
 
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -148,23 +155,6 @@ Resources:
       Tags:
         - Key: Project
           Value: !Ref ProjectName
-
-  PeeringConn:
-    Type: AWS::EC2::VPCPeeringConnection
-    Properties:
-      VpcId: !Ref InfraVpc
-      PeerVpcId: !Ref DatabaseVpc
-
-  Ec2DatabaseSgIngress:
-    Type: AWS::EC2::SecurityGroupIngress
-    DependsOn:
-      - PeeringConn
-    Properties:
-      GroupId: !Ref DatabaseSgId
-      IpProtocol: -1
-      FromPort: -1
-      ToPort: -1
-      SourceSecurityGroupId: !GetAtt LambdaSecurityGroup.GroupId
 
 Outputs:
   LambdaSecurityGroup:
