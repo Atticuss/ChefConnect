@@ -260,8 +260,7 @@ Resources:
             - Id: !FindInMap [EnvMap, !Ref Environment, bucketName]
               DomainName: !Join
                 - ""
-                - - "https://"
-                  - !FindInMap [EnvMap, !Ref Environment, bucketName]
+                - - !FindInMap [EnvMap, !Ref Environment, bucketName]
                   - ".s3-website.us-west-2.amazonaws.com"
               CustomOriginConfig:
                 OriginProtocolPolicy: http-only
