@@ -75,13 +75,13 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  PrivateRoute:
-    DependsOn: NATGateway
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref NATGateway
+  #PrivateRoute:
+  #  DependsOn: NATGateway
+  #  Type: AWS::EC2::Route
+  #  Properties:
+  #    RouteTableId: !Ref PrivateRouteTable
+  #    DestinationCidrBlock: 0.0.0.0/0
+  #    GatewayId: !Ref NATGateway
 
   PublicSubnet01:
     Type: AWS::EC2::Subnet
