@@ -288,15 +288,15 @@ Resources:
         - Key: Name
           Value: !FindInMap [EnvMap, !Ref Environment, staticDomain]
 
-  StaticRoute53Entry:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      AliasTarget:
-        DNSName: !GetAtt CustomAPIDomain.DistributionDomainName
-        HostedZoneId: !GetAtt CustomAPIDomain.DistributionHostedZoneId
-      HostedZoneId: Z04564473TXYVWUJFRVM3
-      Name: !FindInMap [EnvMap, !Ref Environment, staticDomain]
-      Type: A
+  #StaticRoute53Entry:
+  #  Type: AWS::Route53::RecordSet
+  #  Properties:
+  #    AliasTarget:
+  #      DNSName: !GetAtt CustomAPIDomain.DistributionDomainName
+  #      HostedZoneId: !GetAtt CustomAPIDomain.DistributionHostedZoneId
+  #    HostedZoneId: Z04564473TXYVWUJFRVM3
+  #    Name: !FindInMap [EnvMap, !Ref Environment, staticDomain]
+  #    Type: A
 
 Outputs:
   StaticDomain:
