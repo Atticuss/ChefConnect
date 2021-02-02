@@ -21,10 +21,6 @@ Parameters:
     Type: CommaDelimitedList
     Default: "172.20.1.0/24, 172.20.2.0/24, 172.20.3.0/24"
     Description: List of 3 CIDR blocks for each subnet.
-  DatabaseSgId:
-    Type: String
-    Default: "sg-0a8152dc68b10c5e4"
-    Description: The database EC2 server SG. An ingress rule will be created, allowing Lambdas to interact with it.
 
 Resources:
   InfraVpc:
