@@ -15,7 +15,7 @@ Parameters:
     Description: Target deployment environment. Defaults to "dev".
   SubnetIdList:
     Type: List<String>
-    Description: Exactly three comma-separated subnets that the Lambda should deploy within.
+    Description: Exactly two comma-separated subnets that the Lambda should deploy within.
   SecurityGroup:
     Type: String
     Description: The security group to associate with the Lambda.
@@ -68,7 +68,6 @@ Globals:
       SubnetIds:
         - !Select [0, !Ref SubnetIdList]
         - !Select [1, !Ref SubnetIdList]
-        - !Select [2, !Ref SubnetIdList]
       SecurityGroupIds:
         - !Ref SecurityGroup
     Tags:

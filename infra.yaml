@@ -162,12 +162,14 @@ Outputs:
     Value: !Ref LambdaSecurityGroup
     Export:
       Name: LambdaSecurityGroup
-  SubnetIdList:
+  PrivateSubnetIdList:
     Description: Subnets used by the Lambda VPC
     Value: !Join
       - ","
-      - - !Ref Subnet01
-        - !Ref Subnet02
-        - !Ref Subnet03
+      - - !Ref PrivateSubnet01
+        - !Ref PrivateSubnet02
     Export:
       Name: SubnetIdList
+  PublicEip:
+    Description: The public IP associated with the NAT instance. All Lambda outbound traffic will originate from this IP address.
+    Value: !Ref EIPAllocation

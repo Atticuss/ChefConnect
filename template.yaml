@@ -32,4 +32,4 @@ Resources:
         SecurityGroup:
           Fn::GetAtt: [InfraDeployment, Outputs.LambdaSecurityGroup]
         SubnetIdList:
-          Fn::GetAtt: [InfraDeployment, Outputs.SubnetIdList]
+          Fn::GetAtt: [InfraDeployment, Outputs.PrivateSubnetIdList]
