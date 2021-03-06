@@ -41,10 +41,10 @@ Resources:
         Environment: !Ref Environment
         DgraphAuthToken: !Ref DgraphAuthToken
         Domain: !FindInMap [EnvMap, !Ref Environment, apiDomain]
-        SecurityGroup:
-          Fn::GetAtt: [InfraDeployment, Outputs.LambdaSecurityGroup]
-        SubnetIdList:
-          Fn::GetAtt: [InfraDeployment, Outputs.PrivateSubnetIdList]
+        #SecurityGroup:
+        #  Fn::GetAtt: [InfraDeployment, Outputs.LambdaSecurityGroup]
+        #SubnetIdList:
+        #  Fn::GetAtt: [InfraDeployment, Outputs.PrivateSubnetIdList]
   FrontendDeployment:
     Type: AWS::Serverless:Application
     Properties:
