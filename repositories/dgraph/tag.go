@@ -30,7 +30,7 @@ func (d *dgraphRepo) GetAllTags() (*models.ManyTags, error) {
 	tags := models.ManyTags{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	const q = `
 		{
@@ -63,7 +63,7 @@ func (d *dgraphRepo) GetTag(id string) (*models.Tag, error) {
 	tag := models.Tag{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	variables := map[string]string{"$id": id}
 	const q = `
@@ -109,7 +109,7 @@ func (d *dgraphRepo) CreateTag(tag *models.Tag) (*models.Tag, error) {
 	dTag := dgraphTag{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	copier.Copy(&dTag, tag)
 
@@ -142,7 +142,7 @@ func (d *dgraphRepo) UpdateTag(tag *models.Tag) (*models.Tag, error) {
 	dTag := dgraphTag{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	copier.Copy(&dTag, tag)
 
@@ -170,10 +170,10 @@ func (d *dgraphRepo) UpdateTag(tag *models.Tag) (*models.Tag, error) {
 func (d *dgraphRepo) DeleteTag(id string) error {
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx
 
 	readOnlyTxn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer readOnlyTxn.Discard(ctx)
 
 	// Nuke all our reverse edges by the parent node
 	dTags := models.ManyTags{}

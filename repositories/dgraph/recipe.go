@@ -114,7 +114,7 @@ func (d *dgraphRepo) GetAllRecipes() (*models.ManyRecipes, error) {
 	dRecipes := manyDgraphRecipes{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	const q = `
 		{
@@ -152,7 +152,7 @@ func (d *dgraphRepo) GetRecipe(id string) (*models.Recipe, error) {
 	dRecipes := manyDgraphRecipes{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	variables := map[string]string{"$id": id}
 	const q = `
@@ -234,7 +234,7 @@ func (d *dgraphRepo) CreateRecipe(recipe *models.Recipe) (*models.Recipe, error)
 	dRecipe := dgraphRecipe{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	copier.Copy(&dRecipe, recipe)
 	dRecipe.ID = "_:recipe"
@@ -265,7 +265,7 @@ func (d *dgraphRepo) UpdateRecipe(recipe *models.Recipe) (*models.Recipe, error)
 	dRecipe := dgraphRecipe{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	copier.Copy(&dRecipe, recipe)
 	dRecipe.DType = []string{"Recipe"}
@@ -298,7 +298,7 @@ func (d *dgraphRepo) DeleteRecipe(id string) error {
 	dRecipes := manyDgraphRecipes{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	// First we need to grab all reverse edges as they must deleted by referencing
 	// the parent node itself, and not the current child recipe being deleted. This

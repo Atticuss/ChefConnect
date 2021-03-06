@@ -33,7 +33,7 @@ func (d *dgraphRepo) GetAllIngredients() (*models.ManyIngredients, error) {
 	dIngredients := manyDgraphIngredients{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	const q = `
 		{
@@ -66,7 +66,7 @@ func (d *dgraphRepo) GetIngredient(id string) (*models.Ingredient, error) {
 	dIngredients := manyDgraphIngredients{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	variables := map[string]string{"$id": id}
 	const q = `
@@ -112,7 +112,7 @@ func (d *dgraphRepo) CreateIngredient(ingredient *models.Ingredient) (*models.In
 	dIngredient := dgraphIngredient{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	copier.Copy(&dIngredient, ingredient)
 	dIngredient.ID = "_:ingredient"
@@ -143,7 +143,7 @@ func (d *dgraphRepo) UpdateIngredient(ingredient *models.Ingredient) (*models.In
 	dIngredient := dgraphIngredient{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	copier.Copy(&dIngredient, ingredient)
 	dIngredient.DType = []string{"Ingredient"}
@@ -180,7 +180,7 @@ func (d *dgraphRepo) UpdateIngredient(ingredient *models.Ingredient) (*models.In
 func (d *dgraphRepo) DeleteIngredient(id string) error {
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	m := map[string]string{"uid": id}
 	pb, err := json.Marshal(m)
@@ -207,7 +207,7 @@ func (d *dgraphRepo) SearchIngredientByName(searchTerm string) (*models.ManyIngr
 	dIngredients := manyDgraphIngredients{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	if len(searchTerm) < 3 {
 		return &ingredients, errors.New("`searchTerm` must be at least 3 characters long")

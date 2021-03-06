@@ -36,7 +36,7 @@ func (d *dgraphRepo) GetAllUsers() (*models.ManyUsers, error) {
 	dUsers := manyDgraphUsers{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	const q = `
 		{
@@ -82,7 +82,7 @@ func (d *dgraphRepo) GetUser(id string) (*models.User, error) {
 	dUsers := manyDgraphUsers{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	variables := map[string]string{"$id": id}
 	const q = `
@@ -133,7 +133,7 @@ func (d *dgraphRepo) GetUserByUsername(username string) (*models.User, error) {
 	dUsers := manyDgraphUsers{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	variables := map[string]string{"$username": username}
 	const q = `
@@ -184,7 +184,7 @@ func (d *dgraphRepo) GetUserByRefreshToken(refreshToken string) (*models.User, e
 	dUsers := manyDgraphUsers{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	variables := map[string]string{"$refresh_token": refreshToken}
 	const q = `
@@ -234,7 +234,7 @@ func (d *dgraphRepo) CreateUser(user *models.User) (*models.User, error) {
 	dUser := dgraphUser{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	copier.Copy(&dUser, user)
 	dUser.ID = "_:user"
@@ -265,7 +265,7 @@ func (d *dgraphRepo) UpdateUser(user *models.User) (*models.User, error) {
 	dUser := dgraphUser{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	copier.Copy(&dUser, user)
 	dUser.DType = []string{"User"}
@@ -292,10 +292,10 @@ func (d *dgraphRepo) UpdateUser(user *models.User) (*models.User, error) {
 func (d *dgraphRepo) DeleteUser(id string) error {
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	readOnlyTxn := d.Client.NewReadOnlyTxn()
-	defer readOnlyTxn.Discard(context.Background())
+	defer readOnlyTxn.Discard(ctx)
 
 	dUsers := manyDgraphUsers{}
 	variables := map[string]string{"$id": id}

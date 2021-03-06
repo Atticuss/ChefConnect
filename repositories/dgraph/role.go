@@ -28,7 +28,7 @@ func (d *dgraphRepo) GetAllRoles() (*models.ManyRoles, error) {
 	roles := models.ManyRoles{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	const q = `
 		{
@@ -61,7 +61,7 @@ func (d *dgraphRepo) GetRole(id string) (*models.Role, error) {
 	role := models.Role{}
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewReadOnlyTxn()
-	defer txn.Discard(context.Background())
+	defer txn.Discard(ctx)
 
 	variables := map[string]string{"$id": id}
 	const q = `
