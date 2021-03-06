@@ -32,11 +32,11 @@ Resources:
   #InfraDeployment:
   #  Type: AWS::Serverless::Application
   #  Properties:
-  #    Location: deployment/infra.yaml
+  #    Location: infra.yaml
   CodeDeployment:
     Type: AWS::Serverless::Application
     Properties:
-      Location: deployment/code.yaml
+      Location: code.yaml
       Parameters:
         Environment: !Ref Environment
         DgraphAuthToken: !Ref DgraphAuthToken
@@ -48,7 +48,7 @@ Resources:
   FrontendDeployment:
     Type: AWS::Serverless:Application
     Properties:
-      Location: deployment/frontend.yaml
+      Location: frontend.yaml
       Parameters:
         Environment: !Ref Environment
         Domain: !FindInMap [EnvMap, !Ref Environment, staticDomain]
