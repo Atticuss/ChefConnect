@@ -40,7 +40,7 @@ func (d *dgraphRepo) buildAuthContext(ctx context.Context) context.Context {
 	}
 
 	md := metadata.New(nil)
-	md.Append("auth-token", d.Config.AuthToken)
+	md.Append("Authorization", d.Config.AuthToken)
 	authCtx := metadata.NewOutgoingContext(ctx, md)
 
 	return authCtx
