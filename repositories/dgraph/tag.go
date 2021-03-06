@@ -170,7 +170,7 @@ func (d *dgraphRepo) UpdateTag(tag *models.Tag) (*models.Tag, error) {
 func (d *dgraphRepo) DeleteTag(id string) error {
 	ctx := d.buildAuthContext(context.Background())
 	txn := d.Client.NewTxn()
-	defer txn.Discard(ctx
+	defer txn.Discard(ctx)
 
 	readOnlyTxn := d.Client.NewReadOnlyTxn()
 	defer readOnlyTxn.Discard(ctx)
