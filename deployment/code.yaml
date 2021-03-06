@@ -91,7 +91,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: ChefConnect-Authn
-      CodeUri: function.zip
+      CodeUri: ../function.zip
       Handler: chefconnect
       Timeout: 10
       MemorySize: 1024
@@ -108,7 +108,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: ChefConnect
-      CodeUri: function.zip
+      CodeUri: ../function.zip
       Handler: chefconnect
       Timeout: 10
       MemorySize: 128
