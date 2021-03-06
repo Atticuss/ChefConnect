@@ -29,10 +29,10 @@ Mappings:
 # the CFN templates for VPC infra and API GW/Lambda code resources.
 # ref: https://github.com/serverless/serverless/issues/5008
 Resources:
-  InfraDeployment:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location: deployment/infra.yaml
+  #InfraDeployment:
+  #  Type: AWS::Serverless::Application
+  #  Properties:
+  #    Location: deployment/infra.yaml
   CodeDeployment:
     Type: AWS::Serverless::Application
     Properties:

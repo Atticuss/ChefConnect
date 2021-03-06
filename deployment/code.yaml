@@ -18,9 +18,11 @@ Parameters:
     Description: The domain name to associate with the API Gateway deployment.
   SubnetIdList:
     Type: List<String>
+    Default: "a,b"
     Description: Exactly two comma-separated subnets that the Lambda should deploy within.
   SecurityGroup:
     Type: String
+    Default: ""
     Description: The security group to associate with the Lambda.
   DbHost:
     Type: String
@@ -60,12 +62,12 @@ Globals:
         TOKEN_EXPIRY: !Ref TokenExpiry
         REFRESH_TOKEN_LEN: !Ref RefreshTokenLength
         AUTH_TOKEN_HEADER_NAME: "Authorization"
-    VpcConfig:
-      SubnetIds:
-        - !Select [0, !Ref SubnetIdList]
-        - !Select [1, !Ref SubnetIdList]
-      SecurityGroupIds:
-        - !Ref SecurityGroup
+    #VpcConfig:
+    #  SubnetIds:
+    #    - !Select [0, !Ref SubnetIdList]
+    #    - !Select [1, !Ref SubnetIdList]
+    #  SecurityGroupIds:
+    #    - !Ref SecurityGroup
     Tags:
       Project: !Ref ProjectName
 
