@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: ChefConnect Lambda + API Gateway
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: ChefConnect
+    Description: Project name, to be used for labeling and  tagging
+  Environment:
+    Type: String
+    AllowedValues: [prod, dev]
+    Default: dev
+    Description: Target deployment environment. Defaults to "dev".
+  Domain:
+    Type: String
+    Description: The domain associated with the CF instance
+  BucketName:
+    Type: String
+    Description: The S3 bucket name for housing static content
+
+Resources:
+  VueS3:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      AccessControl: PublicRead
+      BucketName: !Ref BucketName
+      WebsiteConfiguration:
+        IndexDocument: index.html
+
+  VueS3BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref BucketName
+      PolicyDocument:
+        Statement:
+          -
+            Action: [ "s3:GetObject" ]
+            Effect: Allow
+            Principal: "*"
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Ref BucketName
+                - "/*"
+
+  VueCFDistribution:
+    Type: "AWS::CloudFront::Distribution"
+    Properties:
+      DistributionConfig:
+          Aliases:
+            - !Ref Domain
+          # S3 website is our origin, so we can have redirects
+          Origins:
+            - Id: !Ref BucketName
+              DomainName: !Join
+                - ""
+                - - !Ref BucketName
+                  - ".s3-website.us-east-1.amazonaws.com"
+              CustomOriginConfig:
+                OriginProtocolPolicy: http-only
+          # Don't do any forwarding, send all through to the S3 origin.
+          CustomErrorResponses:
+            - ErrorCode: 404
+              ResponseCode: 200
+              ResponsePagePath: /index.html
+          DefaultCacheBehavior:
+            ForwardedValues:
+              Cookies:
+                Forward: none
+              Headers: []
+              QueryString: "false"
+            TargetOriginId: !Ref BucketName
+            ViewerProtocolPolicy: redirect-to-https
+          DefaultRootObject: index.html
+          Enabled: "true"
+          HttpVersion: http2
+          PriceClass: PriceClass_100 # US, Canada, and Europe
+          ViewerCertificate:
+            AcmCertificateArn: arn:aws:acm:us-east-1:178067731538:certificate/703adec2-085e-4311-860d-481d4589f79d
+            SslSupportMethod: sni-only
+      Tags:
+        - Key: Name
+          Value: !Ref Domain
+
+  #StaticRoute53Entry:
+  #  Type: AWS::Route53::RecordSet
+  #  Properties:
+  #    AliasTarget:
+  #      DNSName: !GetAtt CustomAPIDomain.DistributionDomainName
+  #      HostedZoneId: !GetAtt CustomAPIDomain.DistributionHostedZoneId
+  #    HostedZoneId: Z04564473TXYVWUJFRVM3
+  #    Name: !Ref Domain
+  #    Type: A
