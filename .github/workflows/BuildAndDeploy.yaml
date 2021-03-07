@@ -25,7 +25,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install aws-sam-cli && sudo apt update && sudo apt install build-essential
+          pip install aws-sam-cli==1.19.1 && sudo apt update && sudo apt install build-essential
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
