@@ -48,7 +48,7 @@ jobs:
           ssh-keyscan -t rsa -H git.mdbootstrap.com >> ~/.ssh/known_hosts
           npm install
           npm run build
-          aws s3 sync dist/* s3://$(aws cloudformation describe-stacks --stack-name chefconnect-dev | jq '.Stacks[0].Outputs[] | select(.OutputKey == "StaticBucket") | .OutputValue')
+          aws s3 sync dist/ s3://$(aws cloudformation describe-stacks --stack-name chefconnect-dev | jq '.Stacks[0].Outputs[] | select(.OutputKey == "StaticBucket") | .OutputValue')
 
   prod-deploy:
     name: Deploy to Prod
