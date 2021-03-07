@@ -18,11 +18,11 @@ Mappings:
     dev:
       apiDomain: api.dev.recipes.veraciousdata.io
       staticDomain: dev.recipes.veraciousdata.io
-      bucketName: chefconnect-static-dev
+      staticBucketName: chefconnect-static-dev
     prod:
       apiDomain: api.recipes.veraciousdata.io
       staticDomain: recipes.veraciousdata.io
-      bucketName: chefconnect-static-prod 
+      staticBucketName: chefconnect-static-prod 
 
 # CFN can't handle tearing down ENIs associated with VPC-deployed Lambdas. recommended
 # solution is to create VPC resource in a separate CF stack. to address this, split up
@@ -52,10 +52,12 @@ Resources:
       Parameters:
         Environment: !Ref Environment
         Domain: !FindInMap [EnvMap, !Ref Environment, staticDomain]
-        BucketName: !FindInMap [EnvMap, !Ref Environment, bucketName]
+        BucketName: !FindInMap [EnvMap, !Ref Environment, staticBucketName]
 
 Outputs:
   ApiDomain:
     Value: !FindInMap [EnvMap, !Ref Environment, apiDomain]
   StaticDomain:
     Value: !FindInMap [EnvMap, !Ref Environment, staticDomain]
+  StaticBucket:
+    Value: !FindInMap [EnvMap, !Ref Environment, staticBucketName]
