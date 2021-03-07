@@ -46,7 +46,7 @@ Resources:
         #SubnetIdList:
         #  Fn::GetAtt: [InfraDeployment, Outputs.PrivateSubnetIdList]
   FrontendDeployment:
-    Type: AWS::Serverless:Application
+    Type: AWS::Serverless::Application
     Properties:
       Location: frontend.yaml
       Parameters:
