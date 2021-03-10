@@ -43,7 +43,7 @@ jobs:
         run: |
           make buildLambda
           sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket chefconnect-cfn-dev
-          sam deploy --template-file packaged.yaml --stack-name chefconnect-dev --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM CAPABILITY_NAMED_IAM --region us-east-1 --parameter-overrides Environment=${GITHUB_REF##*/} DgraphAuthToken=${{ secrets.DGRAPH_TOKEN_DEV }} JwtSecretKey=${{ secrets.JWT_SECRET_DEV }}
+          sam deploy --template-file packaged.yaml --stack-name chefconnect-dev --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_IAM CAPABILITY_NAMED_IAM --region us-east-1 --parameter-overrides Environment=${GITHUB_REF##*/} JwtSecretKey=${{ secrets.JWT_SECRET_DEV }} DgraphHost="dev.dgraph.dc1.veraciousdata.io" DgraphPort="9080" DgraphAuthToken=${{ secrets.DGRAPH_TOKEN_DEV }}
           cd frontend/
           ssh-keyscan -t rsa -H git.mdbootstrap.com >> ~/.ssh/known_hosts
           npm install

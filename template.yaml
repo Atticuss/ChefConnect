@@ -9,9 +9,14 @@ Parameters:
     AllowedValues: [prod, dev]
     Default: dev
     Description: Target deployment environment. Defaults to "dev".
+  DgraphHost:
+    Type: String
+  DgraphPort:
+    Type: String
   DgraphAuthToken:
     Type: String
-    Description: Auth token for the dgraph server
+  JwtSecretKey:
+    Type: String
 
 Mappings:
   EnvMap:
@@ -40,7 +45,10 @@ Resources:
       Parameters:
         Environment: !Ref Environment
         DgraphAuthToken: !Ref DgraphAuthToken
+        DgraphHost: !Ref DgraphHost
+        DgraphPort: !Ref DgraphPort
         Domain: !FindInMap [EnvMap, !Ref Environment, apiDomain]
+        JwtSecretKey: !Ref JwtSecretKey
         #SecurityGroup:
         #  Fn::GetAtt: [InfraDeployment, Outputs.LambdaSecurityGroup]
         #SubnetIdList:
