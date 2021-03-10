@@ -24,11 +24,11 @@ Parameters:
     Type: String
     Default: ""
     Description: The security group to associate with the Lambda.
-  DbHost:
+  DgraphHost:
     Type: String
     Default: ip-172-31-12-209.ec2.internal
     Description: Private EC2 IP address for the dgraph DB.
-  DbPort:
+  DgraphPort:
     Type: String
     Default: 9080
     Description: Port for the dgraph DB.
