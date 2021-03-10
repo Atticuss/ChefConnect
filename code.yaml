@@ -54,8 +54,8 @@ Globals:
     Environment:
       Variables:
         IS_LAMBDA: true
-        DB_HOST: !Ref DbHost
-        DB_PORT: !Ref DbPort
+        DB_HOST: !Ref DgraphHost
+        DB_PORT: !Ref DgraphPort
         DB_TOKEN: !Ref DgraphAuthToken
         DOMAIN: !Ref Domain
         SECRET_KEY: !Ref JwtSecretKey
