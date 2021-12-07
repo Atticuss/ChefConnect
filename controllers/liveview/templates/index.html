@@ -1,0 +1,74 @@
+<header>
+  {{ render .SideBar }}
+  {{ render .NavBar }}
+</header>
+<!--Main Navigation-->
+
+<!--Main layout-->
+<main style="margin-top: 58px">
+  {{ render .LoginModal }}
+  <div class="container pt-4">
+    <!-- Section: Main chart -->
+    <section class="mb-4">
+      <div class="card">
+        <div class="card-header py-3">
+          <h5 class="mb-0 text-center"><strong>Sales</strong></h5>
+        </div>
+        <div class="card-body">
+          <canvas class="my-4 w-100" id="myChart" height="380"></canvas>
+        </div>
+      </div>
+    </section>
+    <!-- Section: Main chart -->
+  </div>
+</main>
+<!--Main layout-->
+<!-- MDB -->
+<!-- https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.9.0/mdb.min.js -->
+<script type="text/javascript" src="/static/mdb.min.js"></script>
+
+<style type="text/css" media="screen">
+  body {
+    background-color: #fbfbfb;
+  }
+
+  @media (min-width: 991.98px) {
+    main {
+      padding-left: 240px;
+    }
+  }
+
+  /* Sidebar */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    padding: 58px 0 0;
+    /* Height of navbar */
+    box-shadow: 0 2px 5px 0 rgb(0 0 0 / 5%), 0 2px 10px 0 rgb(0 0 0 / 5%);
+    width: 240px;
+    z-index: 600;
+  }
+
+  @media (max-width: 991.98px) {
+    .sidebar {
+      width: 100%;
+    }
+  }
+
+  .sidebar .active {
+    border-radius: 5px;
+    box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+  }
+
+  .sidebar-sticky {
+    position: relative;
+    top: 0;
+    height: calc(100vh - 48px);
+    padding-top: 0.5rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* Scrollable contents if viewport is shorter than content. */
+  }
+</style>
