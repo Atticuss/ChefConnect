@@ -1,0 +1,42 @@
+@page "/recipes"
+@inject ConferenceClient ConferenceClient;
+@using Frontend.GraphQL
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.ComponentModel
+
+<MudText Typo="Typo.h3" GutterBottom="true">Ingredients</MudText>
+<MudText Class="mb-8">All currently available ingredients.</MudText>
+@if (ingredients == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="ingredients" Hover="true" SortLabel="Sort By" Elevation="0">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<IGetIngredients_QueryIngredient, object>(x=>x.Name)">Name</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    private List<IGetIngredients_QueryIngredient> ingredients = new List<IGetIngredients_QueryIngredient>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try {
+            var result = await ConferenceClient.GetIngredients.ExecuteAsync();
+            ingredients = result.Data.QueryIngredient.ToList();
+        
+        } catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+}

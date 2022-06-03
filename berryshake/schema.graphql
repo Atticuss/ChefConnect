@@ -1,0 +1,566 @@
+﻿schema {
+  query: Query
+  mutation: Mutation
+}
+
+type User {
+  username: String!
+  recipes(filter: RecipeFilter): Recipe
+}
+
+input CustomHTTP {
+  url: String!
+  method: HTTPMethod!
+  body: String
+  graphql: String
+  mode: Mode
+  forwardHeaders: [String!]
+  secretHeaders: [String!]
+  introspectionHeaders: [String!]
+  skipIntrospection: Boolean
+}
+
+input GenerateQueryParams {
+  get: Boolean
+  query: Boolean
+  password: Boolean
+  aggregate: Boolean
+}
+
+input FloatRange {
+  min: Float!
+  max: Float!
+}
+
+input NearFilter {
+  distance: Float!
+  coordinate: PointRef!
+}
+
+input IntFilter {
+  eq: Int
+  in: [Int]
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: IntRange
+}
+
+input StringHashFilter {
+  eq: String
+  in: [String]
+}
+
+input IngredientRef {
+  id: ID
+  name: String
+  recipes: [RecipeRef]
+}
+
+type UserAggregateResult {
+  count: Int
+  usernameMin: String
+  usernameMax: String
+}
+
+input IngredientPatch {
+  name: String
+  recipes: [RecipeRef]
+}
+
+input UpdateUserInput {
+  filter: UserFilter!
+  set: UserPatch
+  remove: UserPatch
+}
+
+enum HTTPMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+}
+
+input PointListRef {
+  points: [PointRef!]!
+}
+
+type UpdateIngredientPayload {
+  ingredient(filter: IngredientFilter order: IngredientOrder first: Int offset: Int): [Ingredient]
+  numUids: Int
+}
+
+"The DateTime scalar type represents date and time as a string in RFC3339 format.\nFor example: \"1985-04-12T23:20:50.52Z\" represents 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC."
+scalar DateTime
+
+input DateTimeRange {
+  min: DateTime!
+  max: DateTime!
+}
+
+type Polygon {
+  coordinates: [PointList!]!
+}
+
+type MultiPolygon {
+  polygons: [Polygon!]!
+}
+
+input DateTimeFilter {
+  eq: DateTime
+  in: [DateTime]
+  le: DateTime
+  lt: DateTime
+  ge: DateTime
+  gt: DateTime
+  between: DateTimeRange
+}
+
+type UpdateRecipePayload {
+  recipe(filter: RecipeFilter order: RecipeOrder first: Int offset: Int): [Recipe]
+  numUids: Int
+}
+
+type Recipe {
+  id: ID!
+  name: String!
+  url: String
+  domain: String
+  directions: String!
+  ingredients(filter: IngredientFilter order: IngredientOrder first: Int offset: Int): [Ingredient]!
+  prep_time: Int
+  cook_time: Int
+  total_servings: Int
+  author(filter: UserFilter order: UserOrder first: Int offset: Int): [User!]
+  ingredientsAggregate(filter: IngredientFilter): IngredientAggregateResult
+  authorAggregate(filter: UserFilter): UserAggregateResult
+}
+
+input Int64Range {
+  min: Int64!
+  max: Int64!
+}
+
+enum Mode {
+  BATCH
+  SINGLE
+}
+
+type PointList {
+  points: [Point!]!
+}
+
+input PolygonGeoFilter {
+  near: NearFilter
+  within: WithinFilter
+  contains: ContainsFilter
+  intersects: IntersectsFilter
+}
+
+type RecipeAggregateResult {
+  count: Int
+  nameMin: String
+  nameMax: String
+  urlMin: String
+  urlMax: String
+  domainMin: String
+  domainMax: String
+  directionsMin: String
+  directionsMax: String
+  prep_timeMin: Int
+  prep_timeMax: Int
+  prep_timeSum: Int
+  prep_timeAvg: Float
+  cook_timeMin: Int
+  cook_timeMax: Int
+  cook_timeSum: Int
+  cook_timeAvg: Float
+  total_servingsMin: Int
+  total_servingsMax: Int
+  total_servingsSum: Int
+  total_servingsAvg: Float
+}
+
+type Query {
+  getUser(username: String!): User
+  queryUser(filter: UserFilter order: UserOrder first: Int offset: Int): [User]
+  aggregateUser(filter: UserFilter): UserAggregateResult
+  getRecipe(id: ID!): Recipe
+  queryRecipe(filter: RecipeFilter order: RecipeOrder first: Int offset: Int): [Recipe]
+  aggregateRecipe(filter: RecipeFilter): RecipeAggregateResult
+  getIngredient(id: ID!): Ingredient
+  queryIngredient(filter: IngredientFilter order: IngredientOrder first: Int offset: Int): [Ingredient]
+  aggregateIngredient(filter: IngredientFilter): IngredientAggregateResult
+}
+
+enum IngredientOrderable {
+  name
+}
+
+enum RecipeHasFilter {
+  name
+  url
+  domain
+  directions
+  ingredients
+  prep_time
+  cook_time
+  total_servings
+  author
+}
+
+input AuthRule {
+  and: [AuthRule]
+  or: [AuthRule]
+  not: AuthRule
+  rule: String
+}
+
+input StringRegExpFilter {
+  regexp: String
+}
+
+input StringExactFilter {
+  eq: String
+  in: [String]
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  between: StringRange
+}
+
+type AddUserPayload {
+  user(filter: UserFilter order: UserOrder first: Int offset: Int): [User]
+  numUids: Int
+}
+
+enum IngredientHasFilter {
+  name
+  recipes
+}
+
+input IngredientOrder {
+  asc: IngredientOrderable
+  desc: IngredientOrderable
+  then: IngredientOrder
+}
+
+input RecipePatch {
+  name: String
+  url: String
+  domain: String
+  directions: String
+  ingredients: [IngredientRef]
+  prep_time: Int
+  cook_time: Int
+  total_servings: Int
+  author: [UserRef!]
+}
+
+input Int64Filter {
+  eq: Int64
+  in: [Int64]
+  le: Int64
+  lt: Int64
+  ge: Int64
+  gt: Int64
+  between: Int64Range
+}
+
+type AddRecipePayload {
+  recipe(filter: RecipeFilter order: RecipeOrder first: Int offset: Int): [Recipe]
+  numUids: Int
+}
+
+input AddUserInput {
+  username: String!
+  recipes: RecipeRef
+}
+
+type DeleteUserPayload {
+  user(filter: UserFilter order: UserOrder first: Int offset: Int): [User]
+  msg: String
+  numUids: Int
+}
+
+input AddRecipeInput {
+  name: String!
+  url: String
+  domain: String
+  directions: String!
+  ingredients: [IngredientRef]!
+  prep_time: Int
+  cook_time: Int
+  total_servings: Int
+  author: [UserRef!]
+}
+
+input UserRef {
+  username: String
+  recipes: RecipeRef
+}
+
+enum DgraphIndex {
+  int
+  int64
+  float
+  bool
+  hash
+  exact
+  term
+  fulltext
+  trigram
+  regexp
+  year
+  month
+  day
+  hour
+  geo
+}
+
+type AddIngredientPayload {
+  ingredient(filter: IngredientFilter order: IngredientOrder first: Int offset: Int): [Ingredient]
+  numUids: Int
+}
+
+type DeleteRecipePayload {
+  recipe(filter: RecipeFilter order: RecipeOrder first: Int offset: Int): [Recipe]
+  msg: String
+  numUids: Int
+}
+
+input StringTermFilter {
+  allofterms: String
+  anyofterms: String
+}
+
+type IngredientAggregateResult {
+  count: Int
+  nameMin: String
+  nameMax: String
+}
+
+enum RecipeOrderable {
+  name
+  url
+  domain
+  directions
+  prep_time
+  cook_time
+  total_servings
+}
+
+type Ingredient {
+  id: ID!
+  name: String!
+  recipes(filter: RecipeFilter order: RecipeOrder first: Int offset: Int): [Recipe]
+  recipesAggregate(filter: RecipeFilter): RecipeAggregateResult
+}
+
+"The Int64 scalar type represents a signed 64‐bit numeric non‐fractional value.\nInt64 can represent values in range [-(2^63),(2^63 - 1)]."
+scalar Int64
+
+input PointRef {
+  longitude: Float!
+  latitude: Float!
+}
+
+input PointGeoFilter {
+  near: NearFilter
+  within: WithinFilter
+}
+
+input IngredientFilter {
+  id: [ID!]
+  has: [IngredientHasFilter]
+  and: [IngredientFilter]
+  or: [IngredientFilter]
+  not: IngredientFilter
+}
+
+input RecipeRef {
+  id: ID
+  name: String
+  url: String
+  domain: String
+  directions: String
+  ingredients: [IngredientRef]
+  prep_time: Int
+  cook_time: Int
+  total_servings: Int
+  author: [UserRef!]
+}
+
+type Mutation {
+  addUser(input: [AddUserInput!]! upsert: Boolean): AddUserPayload
+  updateUser(input: UpdateUserInput!): UpdateUserPayload
+  deleteUser(filter: UserFilter!): DeleteUserPayload
+  addRecipe(input: [AddRecipeInput!]!): AddRecipePayload
+  updateRecipe(input: UpdateRecipeInput!): UpdateRecipePayload
+  deleteRecipe(filter: RecipeFilter!): DeleteRecipePayload
+  addIngredient(input: [AddIngredientInput!]!): AddIngredientPayload
+  updateIngredient(input: UpdateIngredientInput!): UpdateIngredientPayload
+  deleteIngredient(filter: IngredientFilter!): DeleteIngredientPayload
+}
+
+input StringRange {
+  min: String!
+  max: String!
+}
+
+type Point {
+  longitude: Float!
+  latitude: Float!
+}
+
+input PolygonRef {
+  coordinates: [PointListRef!]!
+}
+
+type UpdateUserPayload {
+  user(filter: UserFilter order: UserOrder first: Int offset: Int): [User]
+  numUids: Int
+}
+
+input RecipeFilter {
+  id: [ID!]
+  name: StringTermFilter
+  url: StringTermFilter
+  has: [RecipeHasFilter]
+  and: [RecipeFilter]
+  or: [RecipeFilter]
+  not: RecipeFilter
+}
+
+input WithinFilter {
+  polygon: PolygonRef!
+}
+
+input StringFullTextFilter {
+  alloftext: String
+  anyoftext: String
+}
+
+input UserFilter {
+  username: StringHashFilter
+  has: [UserHasFilter]
+  and: [UserFilter]
+  or: [UserFilter]
+  not: UserFilter
+}
+
+input UpdateIngredientInput {
+  filter: IngredientFilter!
+  set: IngredientPatch
+  remove: IngredientPatch
+}
+
+input UserOrder {
+  asc: UserOrderable
+  desc: UserOrderable
+  then: UserOrder
+}
+
+input UserPatch {
+  recipes: RecipeRef
+}
+
+input MultiPolygonRef {
+  polygons: [PolygonRef!]!
+}
+
+input ContainsFilter {
+  point: PointRef
+  polygon: PolygonRef
+}
+
+enum UserHasFilter {
+  username
+  recipes
+}
+
+input AddIngredientInput {
+  name: String!
+  recipes: [RecipeRef]
+}
+
+input RecipeOrder {
+  asc: RecipeOrderable
+  desc: RecipeOrderable
+  then: RecipeOrder
+}
+
+input IntersectsFilter {
+  polygon: PolygonRef
+  multiPolygon: MultiPolygonRef
+}
+
+input GenerateMutationParams {
+  add: Boolean
+  update: Boolean
+  delete: Boolean
+}
+
+input UpdateRecipeInput {
+  filter: RecipeFilter!
+  set: RecipePatch
+  remove: RecipePatch
+}
+
+type DeleteIngredientPayload {
+  ingredient(filter: IngredientFilter order: IngredientOrder first: Int offset: Int): [Ingredient]
+  msg: String
+  numUids: Int
+}
+
+enum UserOrderable {
+  username
+}
+
+input IntRange {
+  min: Int!
+  max: Int!
+}
+
+input FloatFilter {
+  eq: Float
+  in: [Float]
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  between: FloatRange
+}
+
+directive @withSubscription on OBJECT | INTERFACE | FIELD_DEFINITION
+
+directive @remoteResponse(name: String) on FIELD_DEFINITION
+
+directive @cacheControl(maxAge: Int!) on QUERY
+
+directive @generate(query: GenerateQueryParams mutation: GenerateMutationParams subscription: Boolean) on OBJECT | INTERFACE
+
+directive @dgraph(type: String pred: String) on OBJECT | INTERFACE | FIELD_DEFINITION
+
+directive @id on FIELD_DEFINITION
+
+directive @secret(field: String! pred: String) on OBJECT | INTERFACE
+
+directive @lambda on FIELD_DEFINITION
+
+directive @lambdaOnMutate(add: Boolean update: Boolean delete: Boolean) on OBJECT | INTERFACE
+
+directive @search(by: [DgraphIndex!]) on FIELD_DEFINITION
+
+directive @auth(password: AuthRule query: AuthRule add: AuthRule update: AuthRule delete: AuthRule) on OBJECT | INTERFACE
+
+directive @cascade(fields: [String]) on FIELD
+
+directive @hasInverse(field: String!) on FIELD_DEFINITION
+
+directive @custom(http: CustomHTTP dql: String) on FIELD_DEFINITION
+
+directive @remote on OBJECT | INTERFACE | UNION | INPUT_OBJECT | ENUM

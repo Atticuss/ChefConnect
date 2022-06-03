@@ -1,0 +1,28 @@
+{
+    "schema": "schema.graphql",
+    "documents": "**/*.graphql",
+    "extensions": {
+        "strawberryShake": {
+            "name": "ConferenceClient",
+            "namespace": "Frontend.GraphQL",
+            "url": "https://blue-surf-510082.us-east-1.aws.cloud.dgraph.io/graphql",
+            "dependencyInjection": true,
+            "strictSchemaValidation": true,
+            "hashAlgorithm": "md5",
+            "useSingleFile": true,
+            "requestStrategy": "Default",
+            "outputDirectoryName": "Generated",
+            "noStore": false,
+            "emitGeneratedCode": true,
+            "razorComponents": false,
+            "records": {
+                "inputs": false,
+                "entities": false
+            },
+            "transportProfiles": [{
+                "default": "Http",
+                "subscription": "WebSocket"
+            }]
+        }
+    }
+}

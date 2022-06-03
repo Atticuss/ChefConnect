@@ -1,0 +1,74 @@
+@page "/ingredients"
+@inject ConferenceClient ConferenceClient;
+@inject IDialogService DialogService
+@using Frontend.GraphQL
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.ComponentModel
+
+<MudText Typo="Typo.h3" GutterBottom="true">Ingredients</MudText>
+<MudText Class="mb-8">All currently available ingredients.</MudText>
+<MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="OpenNewIngredientDialog">+ Add New</MudButton>
+
+@if (ingredients == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="ingredients" Hover="true" SortLabel="Sort By" Elevation="0">
+    <HeaderContent>
+        <MudTh>
+            <!--
+            <MudTableSortLabel InitialDirection="SortDirection.Ascending"
+                SortBy="new Func<IGetIngredients_QueryIngredient, object>(x=>x.Name)">Name</MudTableSortLabel>
+            -->
+            <MudTableSortLabel InitialDirection="SortDirection.Ascending"
+                SortBy="new Func<Ingredient, object>(x=>x.Name)">Name</MudTableSortLabel>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+    </PagerContent>
+</MudTable>
+}
+
+@code {
+    //private List<IGetIngredients_QueryIngredient> ingredients = new List<IGetIngredients_QueryIngredient>();
+    public List<Ingredient> ingredients = new List<Ingredient>();
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var result = await ConferenceClient.GetIngredients.ExecuteAsync();
+            //ingredients = result.Data.QueryIngredient.ToList();
+            ingredients = result.Data.QueryIngredient.Select(_ => new Ingredient{
+                Id = _.Id,
+                Name = _.Name,
+            }).ToList();
+
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+     async Task OpenNewIngredientDialog() {
+         /*
+         var parameters = new DialogParameters { ["ingredient"]=new GetIngredients_QueryIngredient_Ingredient("", "") };
+
+        var dialog = DialogService.Show<IngredientDialog>("Add Ingredient", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            Console.WriteLine("dialog completed successfully");
+        } else {
+            Console.WriteLine("dialog cancelled");
+        }
+        */
+    }
+}

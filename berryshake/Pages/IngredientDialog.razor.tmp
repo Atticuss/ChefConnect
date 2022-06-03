@@ -1,0 +1,56 @@
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            Add ingredient
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="ingredientForm" @bind-IsValid="@success" @bind-Errors="@errors">
+            @if (ingredient.Id != "") {
+                <MudTextField Value="@ingredient.Id" Label="ID" ReadOnly="true"/>
+            }
+            <MudTextField Value="@ingredient.Name" Label="Name" Required="true"/>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" OnClick="IngredientFormSubmit" Class="ml-auto">
+                    Add</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public GetIngredients_QueryIngredient_Ingredient ingredient { get; set; }
+
+    bool success;
+    string[] errors = { };
+    MudForm ingredientForm;
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void IngredientFormSubmit()
+    {
+        if (ingredient.Id == "") {
+            CreateIngredient();
+        } else {
+            SaveIngredient();
+        }
+    }
+
+    async Task CreateIngredient()
+    {
+        //MudDialog.Close(DialogResult.Ok(ingredient.Id));
+        //var result = ConferenceClient.AddIngredient.ExecuteAsync();
+        //IAddIngredientMutation mutation = ConferenceClient.AddIngredient.ExecuteAsync();
+        //Console.WriteLine("result: " + mutation.GetType().Name);
+    }
+
+    async Task SaveIngredient()
+    {
+        //MudDialog.Close(DialogResult.Ok(ingredient.Id));
+    }
+}

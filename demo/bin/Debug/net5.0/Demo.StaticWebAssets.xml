@@ -1,0 +1,4 @@
+﻿<StaticWebAssets Version="1.0">
+  <ContentRoot BasePath="_content/MudBlazor" Path="/home/atticuss/.nuget/packages/mudblazor/5.1.5/build/../staticwebassets/" />
+  <ContentRoot BasePath="/" Path="/home/atticuss/github/chefconnect/demo/bin/Debug/net5.0/wwwroot/" />
+</StaticWebAssets>

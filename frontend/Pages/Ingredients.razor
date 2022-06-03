@@ -1,0 +1,51 @@
+@page "/ingredients"
+@inject frontend.Data.GraphqlService GraphqlOps
+@using frontend.Models
+
+@using GraphQL
+@using Microsoft.Extensions.Logging;
+@inject ILogger<Ingredients> Logger;
+
+<MudText Typo="Typo.h3" GutterBottom="true">Ingredients</MudText>
+@if (ingredients == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="ingredients" Hover="true" SortLabel="Sort By" Elevation="0">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Ingredient, object>(x=>x.name)">Name</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.name</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+        </PagerContent>
+    </MudTable>
+}
+
+
+@code {
+    private List<Ingredient> ingredients;
+
+    private async Task FetchIngredientData()
+    {
+        ingredients = await GraphqlOps.FetchIngredients();
+        Logger.LogWarning("finished fetch");
+        Logger.LogWarning("ingredients: " + ingredients);
+
+        //GraphQL.GraphQLResponse<frontend.Models.ManyIngredients> gqlResp = await GraphqlOps.FetchIngredients();
+        //Logger.LogWarning("gql: " + gqlResp);
+        //Logger.LogWarning("gql.data: " + gqlResp.Data);
+        //Logger.LogWarning("gql.data.ingredients: " + gqlResp.Data.ingredients);
+        //ingredients = gqlResp.Data.ingredients;
+    }
+
+    // Executed immediately component is created
+    protected override async Task OnInitializedAsync()
+    {
+        await FetchIngredientData();
+    }
+}

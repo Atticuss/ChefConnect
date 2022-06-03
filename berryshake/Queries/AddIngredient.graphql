@@ -1,0 +1,5 @@
+mutation AddIngredient {
+  addIngredient(input: {name: "Tomato"}) {
+    numUids
+  }
+}

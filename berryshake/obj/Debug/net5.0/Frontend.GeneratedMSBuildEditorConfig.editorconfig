@@ -1,0 +1,39 @@
+is_global = true
+build_property.StrawberryShake_DefaultNamespace = Frontend
+build_property.StrawberryShake_LogFile = 
+build_property.StrawberryShake_BuildDirectory = /home/atticuss/.nuget/packages/strawberryshake.codegeneration.csharp.analyzers/12.3.2/build/../analyzers/dotnet/cs
+build_property.StrawberryShake_PersistedQueryDirectory = 
+build_property.StrawberryShake_State = obj/berry
+build_property.StrawberryShake_EmitGeneratedCode = 
+build_property.TargetFramework = net5.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property._SupportedPlatformList = browser
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = true
+build_property.IncludeAllContentForSelfExtract = 
+build_property.RootNamespace = Frontend
+build_property.ProjectDir = /home/atticuss/github/chefconnect/berryshake/
+
+[/home/atticuss/github/chefconnect/berryshake/Queries/AddIngredient.graphql]
+build_metadata.AdditionalFiles.GraphQL = true
+build_metadata.AdditionalFiles.GraphQLConfig = 
+
+[/home/atticuss/github/chefconnect/berryshake/Queries/GetIngredients.graphql]
+build_metadata.AdditionalFiles.GraphQL = true
+build_metadata.AdditionalFiles.GraphQLConfig = 
+
+[/home/atticuss/github/chefconnect/berryshake/schema.extensions.graphql]
+build_metadata.AdditionalFiles.GraphQL = true
+build_metadata.AdditionalFiles.GraphQLConfig = 
+
+[/home/atticuss/github/chefconnect/berryshake/schema.graphql]
+build_metadata.AdditionalFiles.GraphQL = true
+build_metadata.AdditionalFiles.GraphQLConfig = 
+
+[/home/atticuss/github/chefconnect/berryshake/.graphqlrc.json]
+build_metadata.AdditionalFiles.GraphQL = 
+build_metadata.AdditionalFiles.GraphQLConfig = true

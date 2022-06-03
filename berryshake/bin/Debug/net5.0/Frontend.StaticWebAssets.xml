@@ -1,0 +1,5 @@
+﻿<StaticWebAssets Version="1.0">
+  <ContentRoot BasePath="_content/Microsoft.AspNetCore.Components.WebAssembly.Authentication" Path="/home/atticuss/.nuget/packages/microsoft.aspnetcore.components.webassembly.authentication/5.0.12/build/../staticwebassets/" />
+  <ContentRoot BasePath="_content/MudBlazor" Path="/home/atticuss/.nuget/packages/mudblazor/5.1.5/build/../staticwebassets/" />
+  <ContentRoot BasePath="/" Path="/home/atticuss/github/chefconnect/berryshake/bin/Debug/net5.0/wwwroot/" />
+</StaticWebAssets>

@@ -1,0 +1,6 @@
+query GetIngredients {
+  queryIngredient(order: {asc: name}) {
+    id
+    name
+  }
+}
